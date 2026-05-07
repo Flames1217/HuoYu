@@ -1,4 +1,4 @@
-// AT THE VERY TOP OF app/admin/profile/page.tsx
+﻿// AT THE VERY TOP OF app/admin/profile/page.tsx
 
 "use client";
 import { useState, useEffect, ChangeEvent, FormEvent, Suspense, useMemo } from 'react';
@@ -37,22 +37,31 @@ interface SocialLink {
 
 // Updated ProfileData interface with snake_case to match API and DB
 interface ProfileData {
+  site_title?: string | null;
+  favicon_url?: string | null;
+  nickname?: string | null;
+  hero_title_line1?: string | null;
+  hero_title_line2?: string | null;
+  skill_icon_row1?: string | null;
+  skill_icon_row2?: string | null;
   avatar_url?: string | null;
   introduction?: string | null;
-  githubUsername?: string | null; // Added GitHub Username
-  signature_svg_url1?: string | null;
-  signature_svg_url2?: string | null;
+  githubUsername?: string | null;
+  github_token?: string | null;
   social_links?: SocialLink[] | null; // Keep SocialLink interface as is for array items
   mbti_type?: string | null; // MBTI 类型
   mbti_title?: string | null;
-  mbti_image_url?: string | null; // MBTI 图片URL
-  mbti_traits?: string[] | null; // MBTI 个性特质（4条）
+  mbti_image_url?: string | null; // MBTI 图片 URL
+  mbti_traits?: string[] | null; // MBTI 个性特质（4 条）
   rss_url?: string | null;
   folo_url?: string | null; // Added for Folo link
   steam_user_id?: string | null;
   steam_api_key?: string | null;
   netease_user_id?: string | null;
   netease_music_u?: string | null;
+  wegame_tgp_id?: string | null;
+  wegame_cookie?: string | null;
+  wakatime_api_key?: string | null;
 }
 
 // SortableItem for Social Links - Restoring this component definition
@@ -77,21 +86,21 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
       </button>
       {/* Name Input */}
       <div className="flex flex-col w-full sm:flex-1">
-        <Input 
-          type="text" 
-          value={link.name} 
-          onChange={(e) => handleSocialLinkChange(index, 'name', e.target.value)} 
-          placeholder="名称 (如：GitHub)" 
+        <Input
+          type="text"
+          value={link.name}
+          onChange={(e) => handleSocialLinkChange(index, 'name', e.target.value)}
+          placeholder="名称（例如 GitHub）"
           className="w-full"
         />
       </div>
       {/* URL Input */}
       <div className="flex flex-col w-full sm:flex-1">
-        <Input 
-          type="url" 
-          value={link.url} 
-          onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)} 
-          placeholder="链接 (如：https://github.com/user)" 
+        <Input
+          type="url"
+          value={link.url}
+          onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
+          placeholder="链接（例如 https://github.com/user）"
           className="w-full"
         />
       </div>
@@ -116,12 +125,12 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
       </div>
       {/* Delete Button */}
       <div className="flex-shrink-0 self-center mt-2 sm:mt-0 sm:ml-2">
-        <Button 
-          type="button" 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => removeSocialLink(index)} 
-          aria-label="移除社交链接" 
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => removeSocialLink(index)}
+          aria-label="移除社交链接"
         >
           <FiTrash2 className="h-4 w-4 text-destructive" />
         </Button>
@@ -134,11 +143,16 @@ export default function AdminProfilePage() {
   const { t } = useTranslation(); // Initialize useTranslation
   // Initialize state with snake_case keys and default empty/null values
   const [profile, setProfile] = useState<ProfileData>({ 
+    site_title: 'HuoYu',
+    favicon_url: '/images/logo.png',
+    nickname: '🔥Flamez',
+    hero_title_line1: '心中有火',
+    hero_title_line2: '前方有光',
+    skill_icon_row1: 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
+    skill_icon_row2: 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
     avatar_url: '', 
     introduction: '', 
-    githubUsername: '', // Added GitHub Username
-    signature_svg_url1: '', 
-    signature_svg_url2: '', 
+    github_token: '',
     social_links: [],
     mbti_type: '',
     mbti_title: '',
@@ -150,6 +164,9 @@ export default function AdminProfilePage() {
     steam_api_key: '',
     netease_user_id: '',
     netease_music_u: '',
+    wegame_tgp_id: '',
+    wegame_cookie: '',
+    wakatime_api_key: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -174,11 +191,16 @@ export default function AdminProfilePage() {
         // Set profile state using snake_case keys, handling potential nulls from API for form fields
         setProfile({
           ...data, // Spread all data first
+          site_title: data.site_title || 'HuoYu',
+          favicon_url: data.favicon_url || '/images/logo.png',
+          nickname: data.nickname || '🔥Flamez',
+          hero_title_line1: data.hero_title_line1 || '心中有火',
+          hero_title_line2: data.hero_title_line2 || '前方有光',
+          skill_icon_row1: data.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
+          skill_icon_row2: data.skill_icon_row2 || 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
           avatar_url: data.avatar_url || '',
           introduction: data.introduction || '',
-          githubUsername: data.githubUsername || '', // Added GitHub Username
-          signature_svg_url1: data.signature_svg_url1 || '',
-          signature_svg_url2: data.signature_svg_url2 || '',
+          github_token: data.github_token || '',
           // Ensure each social link has an id for dnd-kit
           social_links: (data.social_links || []).map(link => ({ 
             ...link, 
@@ -191,9 +213,13 @@ export default function AdminProfilePage() {
           rss_url: data.rss_url || '',
           folo_url: data.folo_url || '',
           steam_user_id: data.steam_user_id || '',
+          netease_user_id: data.netease_user_id || '',
           // steam_api_key and netease_music_u come from env, not profile data directly for saving
           steam_api_key: data.steam_api_key || '', // For display only
           netease_music_u: data.netease_music_u || '', // For display only
+          wegame_tgp_id: data.wegame_tgp_id || '',
+          wegame_cookie: data.wegame_cookie || '',
+          wakatime_api_key: data.wakatime_api_key || '',
         });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : t('adminProfile.toastCouldNotLoad'));
@@ -266,11 +292,16 @@ export default function AdminProfilePage() {
     }
 
     const payload: ProfilePayload = {
+      site_title: profile.site_title || 'HuoYu',
+      favicon_url: profile.favicon_url || '/images/logo.png',
       avatar_url: profile.avatar_url || null,
+      nickname: profile.nickname || '🔥Flamez',
+      hero_title_line1: profile.hero_title_line1 || '心中有火',
+      hero_title_line2: profile.hero_title_line2 || '前方有光',
+      skill_icon_row1: profile.skill_icon_row1 || null,
+      skill_icon_row2: profile.skill_icon_row2 || null,
       introduction: profile.introduction || null,
-      githubUsername: profile.githubUsername || null, // Added GitHub Username
-      signature_svg_url1: profile.signature_svg_url1 || null,
-      signature_svg_url2: profile.signature_svg_url2 || null,
+      github_token: profile.github_token || null,
       social_links: profile.social_links && profile.social_links.length > 0 
         ? profile.social_links.map(({ id, ...rest }) => rest) // Strip id before sending
         : [], 
@@ -282,6 +313,9 @@ export default function AdminProfilePage() {
       folo_url: profile.folo_url || null,
       steam_user_id: profile.steam_user_id || null,
       netease_user_id: profile.netease_user_id || null,
+      wegame_tgp_id: profile.wegame_tgp_id || null,
+      wegame_cookie: profile.wegame_cookie || null,
+      wakatime_api_key: profile.wakatime_api_key || null,
     };
 
     try {
@@ -300,9 +334,20 @@ export default function AdminProfilePage() {
         const updatedData: ProfileData = await fetchResponse.json();
         setProfile({
           ...updatedData,
+          site_title: updatedData.site_title || 'HuoYu',
+          favicon_url: updatedData.favicon_url || '/images/logo.png',
+          nickname: updatedData.nickname || '🔥Flamez',
+          hero_title_line1: updatedData.hero_title_line1 || '心中有火',
+          hero_title_line2: updatedData.hero_title_line2 || '前方有光',
+          skill_icon_row1: updatedData.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
+          skill_icon_row2: updatedData.skill_icon_row2 || 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
           social_links: (updatedData.social_links || []).map(link => ({ ...link, id: (link as any).id || crypto.randomUUID() }) ),
           steam_api_key: updatedData.steam_api_key || '', // For display
+          netease_user_id: updatedData.netease_user_id || '',
           netease_music_u: updatedData.netease_music_u || '', // For display
+          wegame_tgp_id: updatedData.wegame_tgp_id || '',
+          wegame_cookie: updatedData.wegame_cookie || '',
+          wakatime_api_key: updatedData.wakatime_api_key || '',
         });
       }
     } catch (error) {
@@ -327,6 +372,112 @@ export default function AdminProfilePage() {
       <AdminPageTitle title={t('adminProfile.title')} description={t('adminProfile.description')} />
       
       <form onSubmit={handleSubmit} className="mt-6 space-y-8 max-w-5xl">
+        <section className="zero-admin-surface rounded-lg p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">站点信息</h2>
+            <p className="mt-1 text-sm text-muted-foreground">控制浏览器标签页标题和 favicon 图标。</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="site_title" className="block text-sm font-medium text-foreground mb-1">站点标题</label>
+              <Input
+                type="text"
+                name="site_title"
+                id="site_title"
+                value={profile.site_title || ''}
+                onChange={handleInputChange}
+                placeholder="HuoYu"
+              />
+            </div>
+            <div>
+              <label htmlFor="favicon_url" className="block text-sm font-medium text-foreground mb-1">Favicon URL</label>
+              <Input
+                type="text"
+                name="favicon_url"
+                id="favicon_url"
+                value={profile.favicon_url || ''}
+                onChange={handleInputChange}
+                placeholder="/images/logo.png"
+              />
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                支持站内路径或完整图片地址，例如 <code className="rounded bg-muted px-1">/images/logo.png</code>、<code className="rounded bg-muted px-1">/favicon.ico</code>。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="zero-admin-surface rounded-lg p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">首页首屏信息</h2>
+            <p className="mt-1 text-sm text-muted-foreground">控制个人主页首屏的昵称、标题和技能图标。</p>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="nickname" className="block text-sm font-medium text-foreground mb-1">昵称</label>
+            <Input
+              type="text"
+              name="nickname"
+              id="nickname"
+              value={profile.nickname || ''}
+              onChange={handleInputChange}
+              placeholder="🔥Flamez"
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="hero_title_line1" className="block text-sm font-medium text-foreground mb-1">第一行</label>
+              <Input
+                type="text"
+                name="hero_title_line1"
+                id="hero_title_line1"
+                value={profile.hero_title_line1 || ''}
+                onChange={handleInputChange}
+                placeholder="心中有火"
+              />
+            </div>
+            <div>
+              <label htmlFor="hero_title_line2" className="block text-sm font-medium text-foreground mb-1">第二行</label>
+              <Input
+                type="text"
+                name="hero_title_line2"
+                id="hero_title_line2"
+                value={profile.hero_title_line2 || ''}
+                onChange={handleInputChange}
+                placeholder="前方有光"
+              />
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="skill_icon_row1" className="block text-sm font-medium text-foreground mb-1">技能图标第一行</label>
+              <Input
+                type="text"
+                name="skill_icon_row1"
+                id="skill_icon_row1"
+                value={profile.skill_icon_row1 || ''}
+                onChange={handleInputChange}
+                placeholder="html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch"
+              />
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                到 <a href="https://github.com/tandpfun/skill-icons#readme" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">skill-icons README</a> 查看可用图标名，只填写 URL 里 <code className="rounded bg-muted px-1">i=</code> 后面的内容，多个用英文逗号分隔。
+              </p>
+            </div>
+            <div>
+              <label htmlFor="skill_icon_row2" className="block text-sm font-medium text-foreground mb-1">技能图标第二行</label>
+              <Input
+                type="text"
+                name="skill_icon_row2"
+                id="skill_icon_row2"
+                value={profile.skill_icon_row2 || ''}
+                onChange={handleInputChange}
+                placeholder="mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr"
+              />
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                例如 <code className="rounded bg-muted px-1">docker,linux,git</code> 会生成 <code className="rounded bg-muted px-1">https://skillicons.dev/icons?i=docker,linux,git</code>。
+              </p>
+            </div>
+          </div>
+        </section>
+
         <div>
           <label htmlFor="avatar_url" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.avatarUrlLabel')}</label>
           <Input 
@@ -338,41 +489,6 @@ export default function AdminProfilePage() {
             placeholder={t('adminProfile.avatarUrlPlaceholder')}
           />
         </div>
-
-        <div>
-          <label htmlFor="signature_svg_url1" className="block text-sm font-medium text-foreground mb-1">
-            {t('adminProfile.signatureSvgLine1Label')}
-          </label>
-          <Input
-            type="url"
-            name="signature_svg_url1"
-            id="signature_svg_url1"
-            value={profile.signature_svg_url1 || ''}
-            onChange={handleInputChange}
-            placeholder={t('adminProfile.signatureSvgLine1Placeholder')}
-            className="w-full"
-          />
-           <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.signatureSvgLine1Description')}</p>
-        </div>
-
-        <div>
-          <label htmlFor="signature_svg_url2" className="block text-sm font-medium text-foreground mb-1">
-            {t('adminProfile.signatureSvgLine2Label')}
-          </label>
-          <Input
-            type="url"
-            name="signature_svg_url2"
-            id="signature_svg_url2"
-            value={profile.signature_svg_url2 || ''}
-            onChange={handleInputChange}
-            placeholder={t('adminProfile.signatureSvgLine2Placeholder')}
-            className="w-full"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            {t('adminProfile.signatureSvgLine2Description')}
-          </p>
-        </div>
-
         <div>
           <label htmlFor="introduction" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.introductionOptionalLabel')}</label>
           <Textarea 
@@ -386,16 +502,18 @@ export default function AdminProfilePage() {
         </div>
 
         <div>
-          <label htmlFor="githubUsername" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.githubUsernameLabel')}</label>
-          <Input 
-            type="text" 
-            name="githubUsername" 
-            id="githubUsername" 
-            value={profile.githubUsername || ''} 
-            onChange={handleInputChange} 
-            placeholder={t('adminProfile.githubUsernamePlaceholder')}
+          <label htmlFor="github_token" className="block text-sm font-medium text-foreground mb-1">GitHub Token</label>
+          <Input
+            type="password"
+            name="github_token"
+            id="github_token"
+            value={profile.github_token || ''}
+            onChange={handleInputChange}
+            placeholder="用于同步本人 GitHub 仓库，需要 repo/read:user 权限"
+            autoComplete="off"
           />
-           <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.githubUsernameDescription')}</p>
+          <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 GITHUB_TOKEN，后台只读取环境变量，不再写入 settings.json。</p>
+          <p className="text-xs text-muted-foreground mt-1">请先在 GitHub Settings &gt; Developer settings &gt; Personal access tokens 生成后再粘贴。</p>
         </div>
 
         <fieldset className="space-y-4">
@@ -413,12 +531,12 @@ export default function AdminProfilePage() {
               ))}
             </SortableContext>
           </DndContext>
-          <Button type="button" variant="outline" onClick={addSocialLink} className="mt-2">
+          <Button type="button" variant="outline" onClick={addSocialLink} className="admin-secondary-button mt-2">
             <FiPlusCircle className="h-4 w-4 mr-2" /> {t('adminProfile.addSocialLinkButton')}
           </Button>
         </fieldset>
 
-        {/* MBTI 配置区域 */}
+        {/* MBTI 閰嶇疆鍖哄煙 */}
         <fieldset className="space-y-4 border rounded-md p-4 bg-muted/50">
           <legend className="text-lg font-semibold text-foreground mb-2">{t('adminProfile.mbtiSectionTitle')}</legend>
           <div>
@@ -429,7 +547,7 @@ export default function AdminProfilePage() {
               id="mbti_type"
               value={profile.mbti_type || ''}
               onChange={handleInputChange}
-              placeholder="如：ENFJ、INTP 等"
+              placeholder="例如：INFJ-T、ENFP"
               className="w-40"
             />
           </div>
@@ -441,7 +559,7 @@ export default function AdminProfilePage() {
               id="mbti_title"
               value={profile.mbti_title || ''}
               onChange={handleInputChange}
-              placeholder="如：主人公、The Protagonist"
+              placeholder="例如：提倡者"
               className="w-60"
             />
           </div>
@@ -456,6 +574,7 @@ export default function AdminProfilePage() {
               placeholder="粘贴 MBTI 相关图片链接"
               className="w-full"
             />
+            <p className="text-xs text-muted-foreground mt-1">如果使用图床或外部站点图片，请先生成可公开访问的直链后再粘贴。</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.mbtiTraitsLabel')}</label>
@@ -476,7 +595,7 @@ export default function AdminProfilePage() {
           </div>
         </fieldset>
 
-        {/* RSS/Steam/网易云音乐 配置区域 */}
+        {/* RSS/Steam/缃戞槗浜戦煶涔?閰嶇疆鍖哄煙 */}
         <fieldset className="space-y-4 border rounded-md p-4 bg-muted/50">
           <legend className="text-lg font-semibold text-foreground mb-2">{t('adminProfile.mediaStatsTitle')}</legend>
           <div>
@@ -487,7 +606,7 @@ export default function AdminProfilePage() {
               id="rss_url"
               value={profile.rss_url || ''}
               onChange={handleInputChange}
-              placeholder="如：https://yourblog.com/rss.xml"
+              placeholder="例如：https://yourblog.com/rss.xml"
               className="w-full"
             />
           </div>
@@ -502,6 +621,7 @@ export default function AdminProfilePage() {
               placeholder="例如：https://app.follow.is/share/feeds/your_feed_id"
               className="w-full"
             />
+            <p className="text-xs text-muted-foreground mt-1">请先在 Follow/Folo 页面生成分享链接，再粘贴到这里。</p>
           </div>
           <div>
             <label htmlFor="steam_user_id" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.steamUserIdLabel')}</label>
@@ -511,7 +631,7 @@ export default function AdminProfilePage() {
               id="steam_user_id"
               value={profile.steam_user_id || ''}
               onChange={handleInputChange}
-              placeholder="如：7656119..."
+              placeholder="例如：7656119..."
               className="w-full"
             />
           </div>
@@ -523,9 +643,10 @@ export default function AdminProfilePage() {
               id="steam_api_key"
               value={profile.steam_api_key || ''}
               onChange={handleInputChange}
-              placeholder="你的 Steam Web API Key"
+              placeholder="浣犵殑 Steam Web API Key"
               className="w-full"
             />
+            <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 STEAM_API_KEY，避免把密钥写进仓库。</p>
           </div>
           <div>
             <label htmlFor="netease_user_id" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.neteaseUserIdLabel')}</label>
@@ -535,7 +656,7 @@ export default function AdminProfilePage() {
               id="netease_user_id"
               value={profile.netease_user_id || ''}
               onChange={handleInputChange}
-              placeholder="如：12345678"
+              placeholder="濡傦細12345678"
               className="w-full"
             />
           </div>
@@ -547,9 +668,75 @@ export default function AdminProfilePage() {
               id="netease_music_u"
               value={profile.netease_music_u || ''}
               onChange={handleInputChange}
-              placeholder="你的网易云 MUSIC_U Cookie"
+              placeholder="浣犵殑缃戞槗浜?MUSIC_U Cookie"
               className="w-full"
             />
+            <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 NETEASE_MUSIC_U，避免把 Cookie 写进仓库。</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-[240px_1fr]">
+            <div>
+              <label htmlFor="wegame_tgp_id" className="block text-sm font-medium text-foreground mb-1">WeGame TGP ID</label>
+              <Input
+                type="text"
+                name="wegame_tgp_id"
+                id="wegame_tgp_id"
+                value={profile.wegame_tgp_id || ''}
+                onChange={handleInputChange}
+                placeholder="例如：290717074"
+                className="w-full"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                登录
+                <a
+                  href="https://www.wegame.com.cn/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mx-1 font-bold underline underline-offset-2"
+                >
+                  WeGame
+                </a>
+                ，F12 查看 Cookie 中的 tgp_id，并配置到 .env.local 的 WEGAME_TGP_ID。
+              </p>
+            </div>
+            <div>
+              <label htmlFor="wegame_cookie" className="block text-sm font-medium text-foreground mb-1">WeGame Cookie</label>
+              <Textarea
+                name="wegame_cookie"
+                id="wegame_cookie"
+                value={profile.wegame_cookie || ''}
+                onChange={handleInputChange}
+                placeholder="粘贴 GetAllGameInfo 请求里的完整 Cookie"
+                className="min-h-24 w-full"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                登录
+                <a
+                  href="https://www.wegame.com.cn/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mx-1 font-bold underline underline-offset-2"
+                >
+                  WeGame
+                </a>
+                ，F12 查看 Cookie 中的 tgp_id，并复制完整 Cookie 配置到 .env.local 的 WEGAME_COOKIE。
+              </p>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="wakatime_api_key" className="block text-sm font-medium text-foreground mb-1">WakaTime API Key</label>
+            <Input
+              type="password"
+              name="wakatime_api_key"
+              id="wakatime_api_key"
+              value={profile.wakatime_api_key || ''}
+              onChange={handleInputChange}
+              placeholder="粘贴 WakaTime Settings 里的 API Key"
+              className="w-full"
+              autoComplete="off"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              到 <a href="https://wakatime.com/settings/api-key" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">WakaTime API Key</a> 页面复制 API Key，并配置到 .env.local 的 WAKATIME_API_KEY。
+            </p>
           </div>
         </fieldset>
 
@@ -565,4 +752,4 @@ export default function AdminProfilePage() {
       </form>
     </div>
   );
-} 
+}

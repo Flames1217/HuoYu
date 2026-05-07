@@ -24,21 +24,20 @@ export async function GET() {
     const steam_user_id = profile.steam_user_id || settings.steam_user_id || process.env.STEAM_USER_ID || '';
     const netease_user_id = profile.netease_user_id || settings.netease_user_id || process.env.NETEASE_USER_ID || '';
     const netease_music_u = process.env.NETEASE_MUSIC_U || '';
-    const skills = settings.skills || [];
-    
+    const { github_token, wegame_cookie, wakatime_api_key, ...publicProfile } = profile;
+
     return NextResponse.json({
-      ...profile,
+      ...publicProfile,
       social_links,
       rss_url,
       folo_url,
       steam_api_key,
       steam_user_id,
       netease_user_id,
-      netease_music_u,
-      skills
+      netease_music_u
     });
   } catch (error) {
     console.error('Error fetching profile data:', error);
     return NextResponse.json({ message: 'Error fetching profile data' }, { status: 500 });
   }
-} 
+}

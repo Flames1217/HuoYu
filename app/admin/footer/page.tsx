@@ -1,37 +1,18 @@
 "use client";
 
-import {useEffect, useState, useCallback, JSX} from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { FiPlusCircle, FiSave, FiTrash2 } from "react-icons/fi";
 import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FiTrash2, FiPlusCircle, FiMoreVertical } from 'react-icons/fi';
 
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { useTranslation } from "react-i18next"; // Import useTranslation
-
-// Keep these interfaces in sync with components/footer.tsx and app/api/footer/route.ts
 interface FooterItemBase {
-  id: string;
+  id?: string;
   type: string;
 }
+
 interface BeianItem extends FooterItemBase {
   type: "beian";
   icpBeian?: string;
@@ -39,439 +20,307 @@ interface BeianItem extends FooterItemBase {
   icpBeianUrl?: string;
   mengIcpBeianUrl?: string;
 }
+
 interface CopyrightItem extends FooterItemBase {
   type: "copyright";
   authorName: string;
-  startYear: number;
+  startYear?: number;
 }
+
 interface CustomTextItem extends FooterItemBase {
   type: "customText";
   text: string;
 }
+
 interface Link {
   text: string;
   url: string;
   title?: string;
 }
+
 interface CustomLinksItem extends FooterItemBase {
   type: "customLinks";
   links: Link[];
 }
+
 type FooterItem = BeianItem | CopyrightItem | CustomTextItem | CustomLinksItem;
+
 interface FooterSettings {
   items: FooterItem[];
 }
 
-// Generic function to create props for Input components - Needs t and handlers
-const getInputProps = <T extends FooterItem>(item: T, itemIndex: number, fieldName: keyof T, handleItemFieldChange: (itemIndex: number, fieldName: string, value: any) => void, t: any, isNumeric: boolean = false) => ({
-  id: `${item.type}-${itemIndex}-${String(fieldName)}`,
-  value: String(item[fieldName] ?? (isNumeric ? 0 : '')),
-  type: isNumeric ? "number" : "text",
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = isNumeric ? parseInt(e.target.value, 10) || 0 : e.target.value;
-    handleItemFieldChange(itemIndex, fieldName as string, value);
+const fallbackItems: FooterItem[] = [
+  {
+    type: "beian",
+    icpBeian:
+      '<span style="display: inline-flex; align-items: center; white-space: nowrap;">   <img src="https://img.viper3.top/user/ICP.ico" alt="ICP" style="height: 1em; margin-right: 0.25em;">   京ICP备2023015801号 </span>',
+    mengIcpBeian:
+      '<span style="display: inline-flex; align-items: center; white-space: nowrap;">   <img src="https://img.viper3.top/user/cuteICP.ico" alt="萌ICP" style="height: 1em; margin-right: 0.25em;">   萌ICP备20251217号 </span>',
+    icpBeianUrl: "https://beian.miit.gov.cn/",
+    mengIcpBeianUrl: "https://icp.gov.moe/?keyword=20251217",
   },
-  className: "mt-1",
-});
+  { type: "copyright", authorName: "Viper373", startYear: 2025 },
+  {
+    type: "customText",
+    text: '<div style="font-size:15px;font-weight:bold;background:linear-gradient(90deg,#ff0000 0%,#ff8000 6.25%,#ffff00 12.5%,#80ff00 18.75%,#00ff00 25%,#00ff80 31.25%,#00ffff 37.5%,#0080ff 43.75%,#0000ff 50%,#8000ff 56.25%,#ff00ff 62.5%,#ff0080 68.75%,#ff0000 75%,#ff8000 81.25%,#ffff00 87.5%,#80ff00 93.75%,#00ff00 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rainbow 6s linear infinite;text-align:center;font-family:sans-serif;padding:0.5em">平平无奇的爬虫开发者</div> <style> @keyframes rainbow{   0%{background-position:0% 50%}   100%{background-position:200% 50%} } </style>',
+  },
+];
 
-// Render form based on item type - Needs t and handlers
-const renderItemForm = (item: FooterItem, index: number, handleItemFieldChange: (itemIndex: number, fieldName: string, value: any) => void, handleCustomLinkChange: (itemIndex: number, linkIndex: number, fieldName: keyof Link, value: string) => void, addLinkToCustomLinksItem: (itemIndex: number) => void, removeLinkFromCustomLinksItem: (itemIndex: number, linkIndex: number) => void, t: any) => {
-  switch (item.type) {
-    case "beian":
-      return (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor={`${item.type}-${index}-icpBeian`}>{t('adminFooter.beianLabelIcpBeian', 'ICP备案号')}</Label>
-              <Input {...getInputProps(item as BeianItem, index, 'icpBeian', handleItemFieldChange, t)} placeholder={t('adminFooter.beianPlaceholderIcpBeian', '例如：京ICP备xxxxxxxx号-x')} />
-            </div>
-            <div>
-              <Label htmlFor={`${item.type}-${index}-icpBeianUrl`}>{t('adminFooter.beianLabelIcpBeianUrl', 'ICP备案链接')}</Label>
-              <Input {...getInputProps(item as BeianItem, index, 'icpBeianUrl', handleItemFieldChange, t)} placeholder={t('adminFooter.beianPlaceholderIcpBeianUrl', '例如：https://beian.miit.gov.cn/')} />
-            </div>
-            <div>
-              <Label htmlFor={`${item.type}-${index}-mengIcpBeian`}>{t('adminFooter.beianLabelMengIcpBeian', '萌ICP备案号 (可选)')}</Label>
-              <Input {...getInputProps(item as BeianItem, index, 'mengIcpBeian', handleItemFieldChange, t)} placeholder={t('adminFooter.beianPlaceholderMengIcpBeian', '例如：萌ICP备xxxxxxxx号')} />
-            </div>
-            <div>
-              <Label htmlFor={`${item.type}-${index}-mengIcpBeianUrl`}>{t('adminFooter.beianLabelMengIcpBeianUrl', '萌ICP备案链接 (可选)')}</Label>
-              <Input {...getInputProps(item as BeianItem, index, 'mengIcpBeianUrl', handleItemFieldChange, t)} placeholder={t('adminFooter.beianPlaceholderMengIcpBeianUrl', '例如：https://meng.icp.gov.moe/')} />
-            </div>
-          </div>
-        </>
-      );
-    case "copyright":
-      return null; // Do not render form for copyright items
-    case "customText":
-      return (
-        <>
-          <div>
-            <Label htmlFor={`${item.type}-${index}-text`}>{t('adminFooter.customTextLabel', '自定义文本')}</Label>
-            <Input {...getInputProps(item as CustomTextItem, index, 'text', handleItemFieldChange, t)} placeholder={t('adminFooter.customTextPlaceholder', '输入您想显示的任何文本 (支持HTML)')} />
-          </div>
-        </>
-      );
-    case "customLinks":
-      const customLinksItem = item as CustomLinksItem;
-      return (
-        <>
-          <h4 className="text-md font-medium mb-2">{t('adminFooter.customLinksTitle', '链接列表:')}</h4>
-          {customLinksItem.links.map((link, linkIndex) => (
-            <div key={linkIndex} className="p-3 border rounded-md mb-3 space-y-2 bg-slate-50 dark:bg-slate-800">
-              <div className="flex justify-between items-center">
-                {/* Use translation and placeholder for link number */}
-                <p className="text-sm font-medium">{t('adminFooter.customLinksLinkNumber', '链接 #{{number}}', { number: linkIndex + 1 })}</p>
-                <Button variant="ghost" size="icon" onClick={() => removeLinkFromCustomLinksItem(index, linkIndex)} aria-label={t('adminFooter.ariaLabelRemoveLink', '删除此链接')}>
-                  <FiTrash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              </div>
-              <div>
-                <Label htmlFor={`link-${index}-${linkIndex}-text`}>{t('adminFooter.customLinksLabelLinkText', '链接文字')}</Label>
-                <Input 
-                  id={`link-${index}-${linkIndex}-text`}
-                  value={link.text}
-                  onChange={(e) => handleCustomLinkChange(index, linkIndex, 'text', e.target.value)}
-                  className="mt-1"
-                  placeholder={t('adminFooter.customLinksPlaceholderLinkText', '例如：GitHub')}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`link-${index}-${linkIndex}-url`}>{t('adminFooter.customLinksLabelLinkUrl', '链接URL')}</Label>
-                <Input
-                  id={`link-${index}-${linkIndex}-url`}
-                  value={link.url}
-                  onChange={(e) => handleCustomLinkChange(index, linkIndex, 'url', e.target.value)}
-                  className="mt-1"
-                  placeholder={t('adminFooter.customLinksPlaceholderLinkUrl', '例如：https://github.com')}
-                />
-              </div>
-              <div>
-                <Label htmlFor={`link-${index}-${linkIndex}-title`}>{t('adminFooter.customLinksLabelLinkTitle', '链接提示 (可选)')}</Label>
-                <Input
-                  id={`link-${index}-${linkIndex}-title`}
-                  value={link.title || ''}
-                  onChange={(e) => handleCustomLinkChange(index, linkIndex, 'title', e.target.value)}
-                  className="mt-1"
-                  placeholder={t('adminFooter.customLinksPlaceholderLinkTitle', '鼠标悬停时显示的文字')}
-                />
-              </div>
-            </div>
-          ))}
-          <Button onClick={() => addLinkToCustomLinksItem(index)} className="mt-2" variant="outline" size="sm">
-            <FiPlusCircle className="mr-2 h-4 w-4" /> {t('adminFooter.customLinksButtonAddLink', '添加链接')}
-          </Button>
-        </>
-      );
-    default:
-      console.warn("Unknown footer item type in admin:", (item as any).type);
-      // Use translation for unknown type message with placeholder
-      return <p className="text-red-500">{t('adminFooter.unknownItemTypeError', { type: (item as any).type })}</p>;
-  }
-};
-
-// Sortable Item Component
-function SortableFooterItemCard({
-  item,
-  index,
-  removeItem,
-  renderItemForm // This will now be a function that takes t and handlers
-}: {
-  item: FooterItem;
-  index: number;
-  removeItem: (index: number) => void;
-  renderItemForm: (item: FooterItem, index: number, handleItemFieldChange: (itemIndex: number, fieldName: string, value: any) => void, handleCustomLinkChange: (itemIndex: number, linkIndex: number, fieldName: keyof Link, value: string) => void, addLinkToCustomLinksItem: (itemIndex: number) => void, removeLinkFromCustomLinksItem: (itemIndex: number, linkIndex: number) => void, t: any) => JSX.Element | null;
-}) {
-  const { 
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : undefined, // Elevate a bit when dragging
-    opacity: isDragging ? 0.8 : 1, // Slightly transparent when dragging
-  };
-
-  const { t } = useTranslation(); // Call useTranslation inside the component
-
-  if (item.type === "copyright") {
-    return null; // Still skip rendering copyright items
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} className="mb-6">
-      <Card className={`shadow-lg transition-all hover:shadow-xl ${isDragging ? 'ring-2 ring-primary' : ''}`}>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <button {...listeners} className="cursor-grab p-1 text-gray-500 hover:text-gray-700" aria-label={t('adminFooter.ariaLabelDragItem', '拖拽排序此行')}>
-                <FiMoreVertical className="h-5 w-5" />
-              </button>
-              <CardTitle className="capitalize">{t(`admin.itemTypes.${item.type}`)}</CardTitle>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => removeItem(index)} aria-label={t('adminFooter.ariaLabelRemoveItem', '删除此项')}>
-              <FiTrash2 className="h-5 w-5 text-red-500 hover:text-red-700 transition-colors" />
-            </Button>
-          </div>
-          <CardDescription>{t('adminFooter.descriptionMain', '编辑下方的具体内容来更新此页脚行。拖动左侧手柄可排序。')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Call renderItemForm with t and handlers from FooterAdminPage */}
-          {renderItemForm(item, index, (window as any).handleItemFieldChangeFromPage, (window as any).handleCustomLinkChangeFromPage, (window as any).addLinkToCustomLinksItemFromPage, (window as any).removeLinkFromCustomLinksItemFromPage, t)}
-        </CardContent>
-      </Card>
-    </div>
-  );
+function withIds(items: FooterItem[]) {
+  return items.map((item) => ({ ...item, id: item.id || crypto.randomUUID() }));
 }
 
 export default function FooterAdminPage() {
-  const [footerSettings, setFooterSettings] = useState<FooterSettings>({ items: [] });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 2000 + 1 }, (_, index) => currentYear - index);
+  const [footerSettings, setFooterSettings] = useState<FooterSettings>({ items: withIds(fallbackItems) });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const { t } = useTranslation(); // Call useTranslation inside FooterAdminPage
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+  const copyrightItem = useMemo(
+    () => footerSettings.items.find((item): item is CopyrightItem => item.type === "copyright"),
+    [footerSettings.items],
   );
 
-  const fetchFooterSettings = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/footer');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to fetch footer settings: ${response.statusText}`);
-      }
-      let data: FooterSettings = await response.json();
-      const itemsWithIds = (data.items || []).map(item => ({
-        ...item,
-        id: item.id || crypto.randomUUID(),
-      }));
-      setFooterSettings({ items: itemsWithIds });
-    } catch (err: any) {
-      console.error("Error fetching footer settings:", err);
-      setError(err.message || "An unknown error occurred while fetching settings.");
-      toast.error(t('adminFooter.toastFetchError'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [t]);
-
   useEffect(() => {
-    fetchFooterSettings();
-  }, [fetchFooterSettings]);
-
-  const handleSaveChanges = async () => {
-    const settingsToSave = {
-      ...footerSettings,
-      items: footerSettings.items.map(({ id, ...rest }) => rest)
-    };
-    console.log("Attempting to save changes:", settingsToSave);
-    const toastId = "save-footer-settings";
-    toast.loading(t('adminFooter.toastLoading'), { id: toastId });
-    try {
-      const response = await fetch('/api/footer', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settingsToSave),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to save settings: ${response.statusText}`);
+    async function loadFooter() {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/footer");
+        if (!response.ok) throw new Error("读取页脚配置失败");
+        const data = await response.json();
+        const items = Array.isArray(data.items) && data.items.length ? data.items : fallbackItems;
+        setFooterSettings({ items: withIds(items) });
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "读取页脚配置失败");
+      } finally {
+        setLoading(false);
       }
-      const result = await response.json();
-      toast.success(t('adminFooter.toastSuccess'), { id: toastId });
-      fetchFooterSettings();
-    } catch (err: any) {
-      console.error("Error saving footer settings:", err);
-      toast.error(t('adminFooter.toastSaveError'), { id: toastId });
     }
-  };
 
-  const handleItemFieldChange = (itemIndex: number, fieldName: string, value: any) => {
-    setFooterSettings(prevSettings => {
-      const updatedItems = prevSettings.items.map((item, idx) => {
-        if (idx === itemIndex) {
-          if (fieldName === 'startYear' && typeof value === 'string') {
-            const parsedValue = parseInt(value, 10);
-            return { ...item, [fieldName]: isNaN(parsedValue) ? 0 : parsedValue };
-          }
-          return { ...item, [fieldName]: value };
-        }
-        return item;
-      });
-      return { ...prevSettings, items: updatedItems };
-    });
-  };
-  
-  const handleCustomLinkChange = (itemIndex: number, linkIndex: number, fieldName: keyof Link, value: string) => {
-    setFooterSettings(prevSettings => {
-      const updatedItems = prevSettings.items.map((item, idx) => {
-        if (idx === itemIndex && item.type === 'customLinks') {
-          const updatedLinks = item.links.map((link, lIdx) => {
-            if (lIdx === linkIndex) {
-              return { ...link, [fieldName]: value };
-            }
-            return link;
-          });
-          return { ...item, links: updatedLinks };
-        }
-        return item;
-      });
-      return { ...prevSettings, items: updatedItems };
-    });
-  };
+    loadFooter();
+  }, []);
 
-  const addLinkToCustomLinksItem = (itemIndex: number) => {
-    setFooterSettings(prevSettings => {
-      const updatedItems = prevSettings.items.map((item, idx) => {
-        if (idx === itemIndex && item.type === 'customLinks') {
-          return {
-            ...item,
-            links: [...item.links, { text: '', url: '', title: '' }],
-          };
-        }
-        return item;
-      });
-      return { ...prevSettings, items: updatedItems };
-    });
-  };
-
-  const removeLinkFromCustomLinksItem = (itemIndex: number, linkIndex: number) => {
-    setFooterSettings(prevSettings => {
-      const updatedItems = prevSettings.items.map((item, idx) => {
-        if (idx === itemIndex && item.type === 'customLinks') {
-          const filteredLinks = item.links.filter((_, lIdx) => lIdx !== linkIndex);
-          return { ...item, links: filteredLinks };
-        }
-        return item;
-      });
-      return { ...prevSettings, items: updatedItems };
-    });
-  };
-
-  const removeItem = (indexToRemove: number) => {
-    setFooterSettings(prevSettings => ({
-      ...prevSettings,
-      items: prevSettings.items.filter((_, index) => index !== indexToRemove),
+  function updateItem(index: number, patch: Partial<FooterItem>) {
+    setFooterSettings((current) => ({
+      items: current.items.map((item, itemIndex) => (itemIndex === index ? ({ ...item, ...patch } as FooterItem) : item)),
     }));
-    toast.info(t('adminFooter.toastItemRemovedInfo'));
-  };
+  }
 
-  const addItem = (type: 'beian' | 'customText' | 'customLinks') => {
-    let newItem: FooterItem;
-    const newId = crypto.randomUUID();
-    switch (type) {
-        case 'beian':
-            newItem = { id: newId, type: 'beian', icpBeian: '', mengIcpBeian: '', icpBeianUrl: 'https://beian.miit.gov.cn/', mengIcpBeianUrl: '#' };
-            break;
-        case 'customText':
-            newItem = { id: newId, type: 'customText', text: '<p>新的自定义文本</p>' };
-            break;
-        case 'customLinks':
-            newItem = { id: newId, type: 'customLinks', links: [{ text: '新链接', url: '#', title: '新链接提示' }] };
-            break;
-        default:
-            toast.error("尝试添加无效的项目类型");
-            return;
-    }
-    setFooterSettings(prevSettings => ({
-        ...prevSettings,
-        items: [...prevSettings.items, newItem],
-    }));
-    toast.success(t('adminFooter.toastAddItemSuccess', { type: type }));
-  };
+  function updateCopyrightAuthor(authorName: string) {
+    setFooterSettings((current) => {
+      const hasCopyright = current.items.some((item) => item.type === "copyright");
+      const items = hasCopyright
+        ? current.items.map((item) =>
+            item.type === "copyright" ? { ...item, authorName } : item,
+          )
+        : [...current.items, { id: crypto.randomUUID(), type: "copyright" as const, authorName, startYear: currentYear }];
+      return { items };
+    });
+  }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const {active, over} = event;
-    if (over && active.id !== over.id) {
-      setFooterSettings((settings) => {
-        const oldIndex = settings.items.findIndex((item) => item.id === active.id);
-        const newIndex = settings.items.findIndex((item) => item.id === over.id);
-        if (oldIndex === -1 || newIndex === -1) {
-            console.warn("Drag and drop error: item not found for ID during reorder.");
-            return settings;
-        }
+  function updateCopyrightYear(startYear: number) {
+    setFooterSettings((current) => {
+      const hasCopyright = current.items.some((item) => item.type === "copyright");
+      const items = hasCopyright
+        ? current.items.map((item) =>
+            item.type === "copyright" ? { ...item, startYear } : item,
+          )
+        : [...current.items, { id: crypto.randomUUID(), type: "copyright" as const, authorName: "", startYear }];
+      return { items };
+    });
+  }
+
+  function formatCopyrightYears(startYear?: number) {
+    const start = startYear || currentYear;
+    return start < currentYear ? `${start}-${currentYear}` : String(currentYear);
+  }
+
+  function updateCustomLink(itemIndex: number, linkIndex: number, patch: Partial<Link>) {
+    setFooterSettings((current) => ({
+      items: current.items.map((item, index) => {
+        if (index !== itemIndex || item.type !== "customLinks") return item;
         return {
-            ...settings,
-            items: arrayMove(settings.items, oldIndex, newIndex),
+          ...item,
+          links: item.links.map((link, currentLinkIndex) =>
+            currentLinkIndex === linkIndex ? { ...link, ...patch } : link,
+          ),
         };
+      }),
+    }));
+  }
+
+  function addItem(type: "beian" | "customText" | "customLinks") {
+    const nextItem: FooterItem =
+      type === "beian"
+        ? { id: crypto.randomUUID(), type, icpBeian: "", icpBeianUrl: "https://beian.miit.gov.cn/", mengIcpBeian: "", mengIcpBeianUrl: "" }
+        : type === "customText"
+          ? { id: crypto.randomUUID(), type, text: "新的自定义文本" }
+          : { id: crypto.randomUUID(), type, links: [{ text: "新链接", url: "#", title: "" }] };
+
+    setFooterSettings((current) => ({ items: [...current.items, nextItem] }));
+  }
+
+  function removeItem(index: number) {
+    setFooterSettings((current) => ({ items: current.items.filter((_, itemIndex) => itemIndex !== index) }));
+  }
+
+  async function saveFooter() {
+    setSaving(true);
+    try {
+      const items = footerSettings.items.map(({ id, ...item }) =>
+        item.type === "copyright" ? { ...item, startYear: item.startYear || currentYear } : item,
+      );
+      const response = await fetch("/api/footer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
       });
+      if (!response.ok) throw new Error("保存页脚配置失败");
+      toast.success("页脚配置已保存");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "保存页脚配置失败");
+    } finally {
+      setSaving(false);
     }
   }
 
-  if (isLoading) return (
-    <div className="flex justify-center items-center h-screen">
-      <p className="text-lg">{t('adminFooter.loadingInitial')}</p>
-    </div>
-  );
-
-  if (error) return (
-    <div className="container mx-auto p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6 text-red-600">{t('adminFooter.loadErrorTitle')}</h1>
-      <p className="text-red-500">{t('adminFooter.loadErrorMessage', { error: error })}</p>
-      <Button onClick={fetchFooterSettings} className="mt-4">{t('adminFooter.retryButton')}</Button>
-    </div>
-  );
+  if (loading) {
+    return <div className="flex min-h-[360px] items-center justify-center text-lg font-bold">正在加载页脚配置...</div>;
+  }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold">{t('adminFooter.titleMain')}</h1>
-        <Button onClick={handleSaveChanges} disabled={isLoading} size="lg">
-          {isLoading ? t('adminFooter.savingButton') : t('adminFooter.saveButton')}
+    <div className="mx-auto w-full max-w-5xl space-y-5 py-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="admin-kicker">Footer</div>
+          <h1 className="mt-2 text-3xl font-black">页脚管理</h1>
+          <p className="mt-2 text-sm text-slate-400">维护备案、自定义文本、链接组；版权格式固定，只填写作者名。</p>
+        </div>
+        <Button onClick={saveFooter} disabled={saving} className="bg-cyan-500 text-white hover:bg-cyan-400">
+          <FiSave className="mr-2 h-4 w-4" />
+          {saving ? "保存中..." : "保存页脚"}
         </Button>
       </div>
 
-      {footerSettings.items.length === 0 && (
-        <Card className="mb-6 shadow-lg">
-          <CardContent className="pt-6 text-center text-gray-500">
-            {t('adminFooter.noItemsHint')}
-          </CardContent>
-        </Card>
-      )}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={footerSettings.items.map(item => item.id)} strategy={verticalListSortingStrategy}>
-          {footerSettings.items.map((item, index) => (
-            <SortableFooterItemCard 
-              key={item.id}
-              item={item} 
-              index={index} 
-              removeItem={removeItem}
-              // Pass necessary handlers and t from FooterAdminPage
-              renderItemForm={(item, index) => renderItemForm(item, index, handleItemFieldChange, handleCustomLinkChange, addLinkToCustomLinksItem, removeLinkFromCustomLinksItem, t)}
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
+      <div className="flex flex-wrap gap-3">
+        <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("beian")}>
+          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加备案
+        </Button>
+        <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("customText")}>
+          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加文本
+        </Button>
+        <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("customLinks")}>
+          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加链接组
+        </Button>
+      </div>
 
-      <Card className="mt-10 shadow-lg">
+      <Card className="zero-admin-surface">
         <CardHeader>
-          <CardTitle className="text-2xl">{t('adminFooter.addFooterItemTitle')}</CardTitle>
-          <CardDescription>{t('adminFooter.addFooterItemDescription')}</CardDescription>
+          <CardTitle>版权作者</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          <Button onClick={() => addItem('beian')} variant="outline">
-            <FiPlusCircle className="mr-2 h-4 w-4" /> {t('adminFooter.addItemButtonBeian')}
-          </Button>
-          <Button onClick={() => addItem('customText')} variant="outline">
-            <FiPlusCircle className="mr-2 h-4 w-4" /> {t('adminFooter.addItemButtonCustomText')}
-          </Button>
-          <Button onClick={() => addItem('customLinks')} variant="outline">
-            <FiPlusCircle className="mr-2 h-4 w-4" /> {t('adminFooter.addItemButtonCustomLinks')}
-          </Button>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-[1fr_180px]">
+            <div className="space-y-2">
+              <label htmlFor="footer-author" className="text-sm font-bold">作者名</label>
+              <Input
+                id="footer-author"
+                value={copyrightItem?.authorName ?? ""}
+                onChange={(event) => updateCopyrightAuthor(event.target.value)}
+                placeholder="例如：Viper373"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="footer-year" className="text-sm font-bold">起始年份</label>
+              <select
+                id="footer-year"
+                value={copyrightItem?.startYear ?? currentYear}
+                onChange={(event) => updateCopyrightYear(Number(event.target.value) || currentYear)}
+                className="h-10 w-full rounded-md border px-3 py-2 text-sm"
+              >
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="rounded-xl border border-cyan-300/20 p-4 text-sm text-slate-300">
+            预览：Copyright © {formatCopyrightYears(copyrightItem?.startYear)} @ {copyrightItem?.authorName || "Viper373"}
+          </div>
         </CardContent>
       </Card>
+
+      {footerSettings.items.map((item, index) => {
+        if (item.type === "copyright") return null;
+
+        return (
+          <Card key={item.id || index} className="zero-admin-surface">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle>
+                {item.type === "beian" ? "备案信息" : item.type === "customText" ? "自定义文本" : "链接组"}
+              </CardTitle>
+              <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} aria-label="删除">
+                <FiTrash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {item.type === "beian" && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">ICP备案号</label>
+                    <Input value={item.icpBeian || ""} onChange={(event) => updateItem(index, { icpBeian: event.target.value } as Partial<FooterItem>)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">ICP备案链接</label>
+                    <Input value={item.icpBeianUrl || ""} onChange={(event) => updateItem(index, { icpBeianUrl: event.target.value } as Partial<FooterItem>)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">萌ICP备案号</label>
+                    <Input value={item.mengIcpBeian || ""} onChange={(event) => updateItem(index, { mengIcpBeian: event.target.value } as Partial<FooterItem>)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold">萌ICP备案链接</label>
+                    <Input value={item.mengIcpBeianUrl || ""} onChange={(event) => updateItem(index, { mengIcpBeianUrl: event.target.value } as Partial<FooterItem>)} />
+                  </div>
+                </div>
+              )}
+
+              {item.type === "customText" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-bold">文本内容</label>
+                  <Input value={item.text || ""} onChange={(event) => updateItem(index, { text: event.target.value } as Partial<FooterItem>)} />
+                </div>
+              )}
+
+              {item.type === "customLinks" && (
+                <div className="space-y-4">
+                  {item.links.map((link, linkIndex) => (
+                    <div key={linkIndex} className="grid gap-3 rounded-xl border border-slate-500/20 p-3 md:grid-cols-3">
+                      <Input value={link.text} onChange={(event) => updateCustomLink(index, linkIndex, { text: event.target.value })} placeholder="链接文字" />
+                      <Input value={link.url} onChange={(event) => updateCustomLink(index, linkIndex, { url: event.target.value })} placeholder="链接 URL" />
+                      <Input value={link.title || ""} onChange={(event) => updateCustomLink(index, linkIndex, { title: event.target.value })} placeholder="悬停提示" />
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      updateItem(index, {
+                        links: [...item.links, { text: "新链接", url: "#", title: "" }],
+                      } as Partial<FooterItem>)
+                    }
+                  >
+                    <FiPlusCircle className="mr-2 h-4 w-4" /> 添加链接
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
-} 
+}

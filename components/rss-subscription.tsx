@@ -1,13 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { FiRss, FiExternalLink, FiFileText, FiAlertCircle, FiCalendar } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FiAlertCircle, FiCalendar, FiCopy, FiExternalLink, FiFileText, FiRss } from "react-icons/fi";
+
+const RSS_TITLE_ICON = "https://img.viper3.top/%E5%B0%8F%E9%9C%9C%E5%8D%97%E9%A3%8E/%E5%B0%8F%E9%9C%9C%E5%8D%97%E9%A3%8E%E9%80%8F%E6%98%8E.jpg";
+const RSS_FEED_URL = "https://blog.viper3.top/rss.xml";
 
 interface Post {
   title: string;
@@ -16,29 +18,32 @@ interface Post {
   summary?: string;
 }
 
-export function RSSSubscription() {
-  const [copied, setCopied] = useState(false)
+interface RSSSubscriptionProps {
+  placement?: "hero" | "section";
+}
+
+export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps) {
+  const [copied, setCopied] = useState(false);
   const [rssUrl, setRssUrl] = useState<string | null>(null);
   const [foloUrl, setFoloUrl] = useState<string | null>(null);
   const [rssLoading, setRssLoading] = useState(true);
   const [latestPosts, setLatestPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState<string | null>(null);
-
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRssUrl = async () => {
       try {
         setRssLoading(true);
-        const res = await fetch('/api/profile-public');
-        if (!res.ok) throw new Error('Failed to fetch profile data for RSS URL');
+        const res = await fetch("/api/profile-public");
+        if (!res.ok) throw new Error("Failed to fetch profile data for RSS URL");
         const data = await res.json();
-        setRssUrl(data.rss_url || 'https://example.com/feed.xml');
+        setRssUrl(RSS_FEED_URL);
         setFoloUrl(data.folo_url || null);
       } catch (e: any) {
         console.error("Error fetching rss_url or folo_url:", e);
-        setRssUrl('https://example.com/feed.xml');
+        setRssUrl(RSS_FEED_URL);
         setFoloUrl(null);
       } finally {
         setRssLoading(false);
@@ -49,16 +54,16 @@ export function RSSSubscription() {
       try {
         setPostsLoading(true);
         setPostsError(null);
-        const res = await fetch('/api/latest-posts');
+        const res = await fetch("/api/latest-posts");
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: 'Failed to fetch latest posts' }));
-          throw new Error(errorData.message || 'Failed to fetch latest posts');
+          const errorData = await res.json().catch(() => ({ message: "Failed to fetch latest posts" }));
+          throw new Error(errorData.message || "Failed to fetch latest posts");
         }
         const data = await res.json();
-        setLatestPosts(data);
+        setLatestPosts(Array.isArray(data) ? data : []);
       } catch (e: any) {
         console.error("Error fetching latest posts:", e);
-        setPostsError(e.message || 'Could not load posts.');
+        setPostsError(e.message || "Could not load posts.");
       } finally {
         setPostsLoading(false);
       }
@@ -69,148 +74,145 @@ export function RSSSubscription() {
   }, []);
 
   const handleCopy = () => {
-    if (rssUrl) {
-      navigator.clipboard.writeText(rssUrl)
-        .then(() => {
-          setCopied(true)
-          toast.success(t("rss.copiedToClipboard"))
-          setTimeout(() => setCopied(false), 2000)
-        })
-        .catch(err => {
-          toast.error(t("rss.copyFailed"))
-          console.error("Failed to copy: ", err)
-        })
-    }
-  }
+    if (!rssUrl) return;
+    navigator.clipboard
+      .writeText(rssUrl)
+      .then(() => {
+        setCopied(true);
+        toast.success(t("rss.copiedToClipboard"));
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => {
+        toast.error(t("rss.copyFailed"));
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   const handleFollow = () => {
-    if (foloUrl) {
-      window.open(foloUrl, "_blank")
-    } else if (rssUrl) {
-      window.open(rssUrl, "_blank")
-    }
-  }
+    window.open(foloUrl || rssUrl || RSS_FEED_URL, "_blank");
+  };
 
   if (rssLoading) {
     return (
-      <Card className="bg-white/[.30] dark:bg-black/[.30] border border-white/10 shadow-xl rounded-2xl flex flex-col justify-center items-center p-4 transition-all hover:shadow-2xl hover:scale-[1.01] w-full h-full">
-        <Skeleton className="h-8 w-1/2 mb-4" />
-        <Skeleton className="h-6 w-3/4 mb-6" />
-        <Skeleton className="h-10 w-full mb-6" />
-        <div className="flex gap-3 justify-center mb-6">
-          <Skeleton className="h-10 w-1/2" />
-          <Skeleton className="h-10 w-1/2" />
-        </div>
-        <Skeleton className="h-6 w-1/3 mb-3" />
-        <div className="space-y-4 mt-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex flex-col gap-2">
-              <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-1/2 mt-1" />
-            </div>
-          ))}
-        </div>
+      <Card className="rss-showcase-card flex min-h-[320px] w-full flex-col justify-center gap-4 rounded-[28px] p-6">
+        <Skeleton className="h-12 w-1/3 rounded-full" />
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
       </Card>
     );
   }
 
-  return (
-    <Card className="bg-white/[.60] dark:bg-black/[.30] border border-white/10 shadow-xl rounded-2xl flex flex-col justify-start transition-all hover:shadow-2xl hover:scale-[1.01] w-full h-full p-6 overflow-hidden">
-      <div className="flex-shrink-0">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-semibold mb-2">{t('rss.subscribeTitle')}</h2>
-          <p className="text-sm text-muted-foreground">
-            {t('rss.subscribeDescription')}
-          </p>
-        </div>
-        
-        <div className="relative flex items-center mb-6">
-          <FiRss className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            value={rssUrl || ''}
-            readOnly
-            className="pl-10 pr-2 py-2 h-10 w-full bg-background/50 border rounded-md focus-visible:ring-0 focus-visible:ring-offset-0" 
-          />
-        </div>
-        
-        <div className="flex gap-3 justify-center mb-6">
-          <Button
-            onClick={handleCopy}
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            {copied ? t('rss.copiedButton') : t('rss.copyButtonText')}
-          </Button>
-          <Button
-            size="sm"
-            className="flex items-center gap-1 bg-orange-500 hover:bg-orange-600 text-white"
-            onClick={handleFollow}
-          >
-            <FiExternalLink className="mr-2 h-4 w-4" />
-            {"folo"}
-          </Button>
-        </div>
-      </div>
+  const isHero = placement === "hero";
+  const panelSize = isHero ? "h-[420px]" : "h-[600px]";
+  const layoutClass = isHero ? "grid h-full min-h-0 gap-0 md:grid-cols-[0.92fr_1.08fr]" : "flex h-full min-h-0 flex-col";
 
-      <div className="flex-grow overflow-y-auto border-t border-white/10">
-        <h3 className="text-lg font-semibold mb-3 flex items-center pt-2">
-          <FiFileText className="mr-2 h-5 w-5 text-primary" />
-          {t('rss.latestPosts')}
-        </h3>
-        {postsLoading ? (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2 mt-1" />
+  return (
+    <Card className={`rss-showcase-card ${panelSize} w-full overflow-hidden rounded-[28px] p-0`}>
+      <div className="rss-flower rss-flower-a" />
+      <div className="rss-flower rss-flower-b" />
+      <div className="rss-flower rss-flower-c" />
+
+      <div className={layoutClass}>
+        <div className={`rss-subscribe-pane flex flex-col justify-between gap-4 p-5 ${isHero ? "md:p-7" : ""}`}>
+          <div>
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/50 bg-white/70 shadow-lg">
+                <img src={RSS_TITLE_ICON} alt="" className="h-full w-full scale-125 object-cover" loading="lazy" />
+              </span>
+              <div className="text-left">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-700/70">RSS Preview</p>
+                <h3 className="text-xl font-black tracking-tight text-emerald-950 md:text-2xl">订阅小霜南风</h3>
               </div>
-            ))}
+            </div>
+
+            <p className="mb-4 text-left text-sm font-semibold leading-6 text-emerald-950/78">
+              散落一些碎花，凝结一些轻痕。
+            </p>
+
+            <div className="rss-feed-url mb-3 flex items-center gap-2 rounded-2xl px-4 py-2.5">
+              <FiRss className="h-4 w-4 shrink-0 text-emerald-700" />
+              <span className="min-w-0 truncate font-mono text-sm font-semibold text-emerald-950">{rssUrl || RSS_FEED_URL}</span>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={handleCopy} size="sm" className="rss-action rss-action-copy">
+                <FiCopy className="mr-2 h-4 w-4" />
+                {copied ? t("rss.copiedButton") : t("rss.copyButtonText")}
+              </Button>
+              <Button size="sm" className="rss-action rss-action-folo" onClick={handleFollow}>
+                <FiExternalLink className="mr-2 h-4 w-4" />
+                folo
+              </Button>
+            </div>
           </div>
-        ) : postsError ? (
-          <div className="text-destructive flex items-center">
-            <FiAlertCircle className="mr-2 h-5 w-5" />
-            {postsError}
+
+          {isHero && <div className="rss-note rounded-2xl p-4 text-left text-sm leading-6 text-emerald-950/72">
+            用阅读器订阅后，可以第一时间看到博客更新；当前预览直接读取 Typecho 的 RSS 内容。
+          </div>}
+        </div>
+
+        <div className={`rss-preview-pane flex min-h-0 flex-1 flex-col p-5 ${isHero ? "md:p-7" : "pt-0"}`}>
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h4 className="flex items-center text-base font-black text-emerald-950">
+              <FiFileText className="mr-2 h-5 w-5 text-emerald-700" />
+              最新文章
+            </h4>
+            <span className="rounded-full border border-emerald-700/18 bg-white/48 px-3 py-1 text-xs font-bold text-emerald-900/70">
+              {latestPosts.length} posts
+            </span>
           </div>
-        ) : latestPosts.length > 0 ? (
-          <ul className="space-y-3">
-            {latestPosts.map((post, index) => (
-              <li key={index} className="border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
-                <a 
-                  href={post.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-sm font-medium text-foreground hover:text-primary transition-colors block truncate mb-1"
-                  title={post.title}
-                >
-                  {post.title}
-                </a>
-                {post.summary && (
-                  <p 
-                    className="text-xs text-muted-foreground mb-1" 
-                    style={{ textShadow: '0px 0px 5px rgba(0,0,0,0.7)' }}
-                  >
-                    {post.summary}
-                  </p>
-                )}
-                {post.date && (
-                  <p 
-                    className="text-xs text-muted-foreground flex items-center" 
-                    style={{ textShadow: '0px 0px 5px rgba(0,0,0,0.7)' }}
-                  >
-                    <FiCalendar className="mr-1 h-3 w-3" />
-                    {new Date(post.date).toLocaleDateString()}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t("rss.noPosts", "暂无最新文章")}</p>
-        )}
+
+          <div className="rss-post-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+            {postsLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="rounded-2xl border border-emerald-900/10 bg-white/35 p-4">
+                    <Skeleton className="mb-3 h-4 w-1/3" />
+                    <Skeleton className="mb-2 h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : postsError ? (
+              <div className="flex items-center rounded-2xl border border-red-400/30 bg-red-50/50 p-4 text-sm font-semibold text-red-700">
+                <FiAlertCircle className="mr-2 h-5 w-5" />
+                {postsError}
+              </div>
+            ) : latestPosts.length > 0 ? (
+              <ul className="space-y-3">
+                {latestPosts.map((post, index) => (
+                  <li key={post.url || index} className="rss-post-card">
+                    <div className="mb-1.5 flex items-center gap-2 text-xs font-bold text-emerald-900/58">
+                      <span className="text-emerald-700">#{String(index + 1).padStart(2, "0")}</span>
+                      {post.date && (
+                        <span className="inline-flex items-center gap-1">
+                          <FiCalendar className="h-3 w-3" />
+                          {new Date(post.date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block truncate text-sm font-black text-emerald-950 transition-colors hover:text-teal-700"
+                      title={post.title}
+                    >
+                      {post.title}
+                    </a>
+                    {post.summary && <p className="mt-1 line-clamp-1 text-xs leading-5 text-emerald-950/62">{post.summary}</p>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-2xl border border-emerald-900/10 bg-white/35 p-4 text-sm font-semibold text-emerald-950/70">
+                {t("rss.noPosts", "暂无最新文章")}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </Card>
-  )
+  );
 }

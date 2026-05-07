@@ -1,91 +1,105 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // 导入 authOptions
+import fs from "fs/promises";
+import path from "path";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-// Determine the path to settings.json, assuming it's in the project root
-const settingsFilePath = path.resolve(process.cwd(), 'settings.json');
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-/**
- * Handles GET requests to fetch footer settings.
- * 公开可访问，因为页脚通常不包含敏感隐私信息。
- */
-export async function GET() {
+const settingsFilePath = path.resolve(process.cwd(), "settings.json");
+
+const defaultFooterItems = [
+  {
+    type: "beian",
+    icpBeian:
+      '<span style="display: inline-flex; align-items: center; white-space: nowrap;">   <img src="https://img.viper3.top/user/ICP.ico" alt="ICP" style="height: 1em; margin-right: 0.25em;">   京ICP备2023015801号 </span>',
+    mengIcpBeian:
+      '<span style="display: inline-flex; align-items: center; white-space: nowrap;">   <img src="https://img.viper3.top/user/cuteICP.ico" alt="萌ICP" style="height: 1em; margin-right: 0.25em;">   萌ICP备20251217号 </span>',
+    icpBeianUrl: "https://beian.miit.gov.cn/",
+    mengIcpBeianUrl: "https://icp.gov.moe/?keyword=20251217",
+  },
+  {
+    type: "copyright",
+    authorName: "Viper373",
+    startYear: 2025,
+  },
+  {
+    type: "customText",
+    text: '<div style="font-size:15px;font-weight:bold;background:linear-gradient(90deg,#ff0000 0%,#ff8000 6.25%,#ffff00 12.5%,#80ff00 18.75%,#00ff00 25%,#00ff80 31.25%,#00ffff 37.5%,#0080ff 43.75%,#0000ff 50%,#8000ff 56.25%,#ff00ff 62.5%,#ff0080 68.75%,#ff0000 75%,#ff8000 81.25%,#ffff00 87.5%,#80ff00 93.75%,#00ff00 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rainbow 6s linear infinite;text-align:center;font-family:sans-serif;padding:0.5em">平平无奇的爬虫开发者</div> <style> @keyframes rainbow{   0%{background-position:0% 50%}   100%{background-position:200% 50%} } </style>',
+  },
+];
+
+async function readSettings() {
   try {
-    // Read the settings.json file
-    let fileContents;
-    try {
-      fileContents = await fs.readFile(settingsFilePath, 'utf8');
-    } catch (readError: any) {
-      if (readError.code === 'ENOENT') {
-        // settings.json does not exist, return default empty footer structure
-        console.warn("settings.json not found. Returning default empty footer.");
-        return NextResponse.json({ items: [] });
-      }
-      throw readError; // Re-throw other read errors
-    }
-    
-    const settings = JSON.parse(fileContents);
-
-    // Return the footer part of the settings, or a default if it doesn't exist
-    return NextResponse.json(settings.footer || { items: [] });
-
-  } catch (error) {
-    console.error("Error processing GET /api/footer:", error);
-    return NextResponse.json({ message: 'Error reading footer settings' }, { status: 500 });
+    const fileContents = await fs.readFile(settingsFilePath, "utf8");
+    return JSON.parse(fileContents);
+  } catch (error: any) {
+    if (error?.code === "ENOENT") return {};
+    throw error;
   }
 }
 
-/**
- * Handles PUT requests to update footer settings.
- * 需要认证，只有管理员才能修改页脚设置。
- */
-export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions); // 使用 NextAuth.js 获取会话
+function normalizeFooter(rawFooter: any) {
+  if (Array.isArray(rawFooter?.items)) {
+    const items = rawFooter.items.map((item: any) => ({ ...item }));
+    if (!items.some((item: any) => item.type === "copyright")) {
+      items.push({ type: "copyright", authorName: rawFooter?.authorName || "Viper373", startYear: 2025 });
+    }
+    return { items };
+  }
 
-  // 检查用户是否已登录且是管理员
-  if (!session || (session.user as any)?.role !== "admin") { // 假设 admin 角色已在 authOptions 的 session callback 中设置
-    return NextResponse.json({ message: 'Unauthorized: Access Denied' }, { status: 403 });
+  return {
+    items: defaultFooterItems.map((item) =>
+      item.type === "copyright"
+        ? { ...item, authorName: rawFooter?.authorName || "Viper373" }
+        : { ...item },
+    ),
+  };
+}
+
+export async function GET() {
+  try {
+    const settings = await readSettings();
+    return NextResponse.json(normalizeFooter(settings.footer));
+  } catch (error) {
+    console.error("[Footer API] Failed to read settings:", error);
+    return NextResponse.json({ message: "读取页脚配置失败" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || (session.user as any)?.role !== "admin") {
+    return NextResponse.json({ message: "未授权" }, { status: 403 });
   }
 
   try {
-    const newFooterData = await request.json();
+    const body = await request.json();
+    const settings = await readSettings();
+    const currentFooter = normalizeFooter(settings.footer);
 
-    // Validate the incoming data structure if necessary
-    if (!newFooterData || typeof newFooterData !== 'object' || !Array.isArray(newFooterData.items)) {
-      return NextResponse.json({ message: 'Invalid footer data format. Expected { items: [...] }.' }, { status: 400 });
-    }
-
-    let settings;
-    try {
-      // Read the current settings.json file
-      const fileContents = await fs.readFile(settingsFilePath, 'utf8');
-      settings = JSON.parse(fileContents);
-    } catch (readError: any) {
-      if (readError.code === 'ENOENT') {
-         // settings.json does not exist, create a new one with the footer data
-        console.warn("settings.json not found during PUT. Creating a new one.");
-        settings = {}; // Initialize empty settings
-      } else {
-        throw readError; // Re-throw other read errors
+    let nextFooter;
+    if (Array.isArray(body?.items)) {
+      nextFooter = normalizeFooter(body);
+    } else {
+      const authorName = String(body?.authorName || "").trim();
+      if (!authorName) {
+        return NextResponse.json({ message: "作者名不能为空" }, { status: 400 });
       }
+      const startYear = Number(body?.startYear) || 2025;
+      nextFooter = {
+        items: currentFooter.items.map((item: any) =>
+          item.type === "copyright" ? { ...item, authorName, startYear } : item,
+        ),
+      };
     }
-    
-    // Update the footer part of the settings
-    settings.footer = newFooterData;
 
-    // Write the updated settings back to settings.json
-    await fs.writeFile(settingsFilePath, JSON.stringify(settings, null, 2), 'utf8');
-    
-    console.log("页脚设置已成功更新于 settings.json"); // Log in Chinese too if you prefer
-    return NextResponse.json({ message: '页脚设置已成功更新。' }); //  <--- 修改这里为中文
+    settings.footer = nextFooter;
+    await fs.writeFile(settingsFilePath, JSON.stringify(settings, null, 2), "utf8");
 
+    return NextResponse.json(nextFooter);
   } catch (error) {
-    console.error("处理 PUT /api/footer 时出错:", error);
-    if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        return NextResponse.json({ message: '请求体中的JSON格式无效。' }, { status: 400 });
-    }
-    return NextResponse.json({ message: '更新页脚设置时出错。' }, { status: 500 }); // 也可考虑将错误消息改为中文
+    console.error("[Footer API] Failed to update settings:", error);
+    return NextResponse.json({ message: "更新页脚配置失败" }, { status: 500 });
   }
-} 
+}

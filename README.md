@@ -1,6 +1,6 @@
-![ZeroHome](https://socialify.git.ci/Viper373/ZeroHome/image?description=1&forks=1&issues=1&logo=https://img.viper3.top/ZeroHome/logo.png&name=1&owner=1&pulls=1&stargazers=1&theme=Auto)
+![HuoYu](https://socialify.git.ci/Flames1217/HuoYu/image?description=1&forks=1&language=1&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
-# 🏝️ ZeroHome
+# 🏝️ HuoYu
 
 ## 1. 项目概述
 一款更加流行的个人主页
@@ -51,8 +51,8 @@
 ### 4.2. 本地开发
 ```bash
 # 1. 克隆项目
-git clone https://github.com/Viper373/ZeroHome.git
-cd ZeroHome
+git clone https://github.com/Flames1217/HuoYu.git
+cd HuoYu
 
 # 2. 安装依赖
 pnpm install
@@ -114,7 +114,7 @@ docker-compose down
 
 1.  **构建镜像**:
     ```bash
-    docker build -t zero-home .
+    docker build -t huoyu .
     ```
 2.  **运行容器**:
     您需要在 `docker run` 命令中传递所有必要的环境变量。**请注意将 `"http://yourdomain.com"` 替换为您的实际部署 URL。**
@@ -127,7 +127,7 @@ docker-compose down
       -e ADMIN_PASSWORD="your_admin_password" \
       -e STEAM_API_KEY="your_steam_api_key" \
       -e NETEASE_MUSIC_U="your_netease_music_u_cookie" \
-      zero-home
+      huoyu
     ```
     这种方式环境变量管理较为繁琐，推荐使用 Docker Compose 配合 `env_file`。
 
@@ -141,9 +141,9 @@ docker-compose down
 
 ### 5.4. ▲ Vercel 部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FViper373%2FZeroHome&env=ADMIN_USERNAME,ADMIN_PASSWORD,STEAM_API_KEY,NETEASE_MUSIC_U,NEXTAUTH_SECRET)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FFlames1217%2FHuoYu&env=PASSWORD,STEAM_API_KEY,NETEASE_MUSIC_U,NEXTAUTH_SECRET)
 1. 注册并登录 [Vercel](https://vercel.com/)。
-2. 点击 "New Project"，导入您的 GitHub 仓库（如 Viper373/ZeroHome）。
+2. 点击 "New Project"，导入您的 GitHub 仓库（如 Flames1217/HuoYu）。
 3. 选择 Next.js 框架，保持默认构建设置。
 4. 在 **Settings → Environment Variables** 中，**手动添加所有环境变量**（与 `.env.example` 保持一致）。
 5. 部署即可，访问分配的 Vercel 域名（如 `https://your-vercel-domain.vercel.app`）。
@@ -154,7 +154,7 @@ docker-compose down
 
 ### 5.5. 🌐 Netlify 部署
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https%3A%2F%2Fgithub.com%2FViper373%2FZeroHome)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https%3A%2F%2Fgithub.com%2FFlames1217%2FHuoYu)
 
 
 1. 注册并登录 [Netlify](https://www.netlify.com/)。

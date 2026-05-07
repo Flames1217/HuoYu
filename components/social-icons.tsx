@@ -1,7 +1,7 @@
 "use client";
+
 import type React from "react";
 import { memo, Suspense, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import {
@@ -24,7 +24,6 @@ interface ProfileApiResponse {
 }
 
 export const SocialIcons = memo(function SocialIcons() {
-    const { t } = useTranslation();
     const [links, setLinks] = useState<SocialLinkData[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -51,11 +50,11 @@ export const SocialIcons = memo(function SocialIcons() {
 
     if (loading) {
         return (
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
                 {[...Array(5)].map((_, i) => (
                     <div
                         key={i}
-                        className="w-10 h-10 rounded-full bg-white/20 animate-pulse"
+                        className="h-10 w-10 rounded-full bg-white/20 animate-pulse"
                     />
                 ))}
             </div>
@@ -68,52 +67,69 @@ export const SocialIcons = memo(function SocialIcons() {
 
     return (
         <TooltipProvider delayDuration={100}>
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
                 {links.map((social, index) => {
+                    const accentColor = social.color || "#8b5cf6";
+
                     return (
                         <Tooltip key={index}>
                             <TooltipTrigger asChild>
-                            <motion.a
+                                <motion.a
                                     layout
                                     href={social.url}
-                                    className="w-10 h-10 rounded-full bg-secondary backdrop-blur-sm flex items-center justify-center hover:bg-accent transition-colors duration-200 ease-out"
+                                    className="group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/[0.08] text-white shadow-sm shadow-black/20 backdrop-blur-md transition-colors duration-200 ease-out hover:bg-white/[0.14]"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={social.name}
-                                    style={{
-                                        opacity: 1,
-                                    }}
-                                    initial={{ scale: 1, rotate: 0 }}
-                                    animate={{ scale: 1, rotate: 0 }}
+                                    style={
+                                        {
+                                            "--social-accent": accentColor,
+                                            opacity: 1,
+                                        } as React.CSSProperties
+                                    }
+                                    initial={{ scale: 1, y: 0 }}
+                                    animate={{ scale: 1, y: 0 }}
                                     whileHover={{
-                                        scale:    [1,   0.7,  1.2, 1], 
-                                        rotate:   [0,   0,    10,  0],
-                                        transition: { // 这个 transition 只作用于 whileHover 动画的内部阶段
-                                            duration: 0.6, 
-                                            ease: "easeInOut",
-                                            times:    [0,   0.6,  0.8, 1] 
-                                        }
+                                        scale: 1.08,
+                                        y: -3,
+                                        borderColor: accentColor,
+                                        boxShadow: "0 12px 24px rgba(15, 23, 42, 0.35), 0 0 22px rgba(125, 92, 255, 0.28)",
                                     }}
-                                    transition={{ // 这个 transition 作用于从 whileHover 恢复到 animate 状态
-                                        duration: 0.3, // 恢复动画可以快一些
-                                        ease: "easeOut"
+                                    whileTap={{ scale: 0.96, y: 0 }}
+                                    transition={{
+                                        type: "spring",
+                                        stiffness: 360,
+                                        damping: 24,
                                     }}
                                 >
-                                    <Suspense
-                                        fallback={
-                                            <AiOutlineLoading3Quarters
-                                                size={20}
-                                                className="animate-spin text-muted-foreground"
-                                            />
-                                        }
+                                    <span
+                                        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                                        style={{
+                                            background: "radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--social-accent) 32%, transparent), transparent 62%)",
+                                        }}
+                                    />
+                                    <motion.span
+                                        className="relative z-10 flex items-center justify-center"
+                                        initial={{ scale: 1 }}
+                                        whileHover={{ scale: 1.08 }}
+                                        transition={{ type: "spring", stiffness: 420, damping: 22 }}
                                     >
-                                        {getSocialIconComponent(
-                                            social.icon,
-                                            20,
-                                            social.color,
-                                            "text-foreground"
-                                        )}
-                                    </Suspense>
+                                        <Suspense
+                                            fallback={
+                                                <AiOutlineLoading3Quarters
+                                                    size={20}
+                                                    className="animate-spin text-muted-foreground"
+                                                />
+                                            }
+                                        >
+                                            {getSocialIconComponent(
+                                                social.icon,
+                                                20,
+                                                social.color,
+                                                "text-foreground"
+                                            )}
+                                        </Suspense>
+                                    </motion.span>
                                 </motion.a>
                             </TooltipTrigger>
                             <TooltipContent>

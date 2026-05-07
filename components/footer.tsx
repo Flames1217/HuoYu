@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { useTranslation } from "react-i18next"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-// 定义 settings.json 中 footer.items 内对象的类型 (可选但推荐)
 interface FooterItemBase {
   type: string;
 }
+
 interface BeianItem extends FooterItemBase {
   type: "beian";
   icpBeian?: string;
@@ -15,20 +15,24 @@ interface BeianItem extends FooterItemBase {
   icpBeianUrl?: string;
   mengIcpBeianUrl?: string;
 }
+
 interface CopyrightItem extends FooterItemBase {
   type: "copyright";
   authorName: string;
-  startYear: number;
+  startYear?: number;
 }
+
 interface CustomTextItem extends FooterItemBase {
   type: "customText";
   text: string;
 }
+
 interface Link {
   text: string;
   url: string;
   title?: string;
 }
+
 interface CustomLinksItem extends FooterItemBase {
   type: "customLinks";
   links: Link[];
@@ -36,105 +40,104 @@ interface CustomLinksItem extends FooterItemBase {
 
 type FooterItem = BeianItem | CopyrightItem | CustomTextItem | CustomLinksItem;
 
-// 新增: 定义 API 响应的类型
 interface FooterSettings {
   items: FooterItem[];
 }
 
 export function Footer() {
-  const { t, i18n, ready } = useTranslation();
+  const { t, ready } = useTranslation();
   const currentYear = new Date().getFullYear();
-
-  // 新增: State for footer items, loading, and error
   const [footerItems, setFooterItems] = useState<FooterItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 新增: useEffect to fetch footer data
   useEffect(() => {
-    const fetchFooterSettings = async () => {
+    let cancelled = false;
+
+    async function fetchFooterSettings() {
       try {
-        // console.log("[Footer Component] Fetching footer settings..."); // Logs can be kept or removed
-        const response = await fetch('/api/footer');
-        // console.log("[Footer Component] API Response Status:", response.status);
+        const response = await fetch("/api/footer");
         if (!response.ok) {
-          let errorText = `Failed to fetch footer settings: ${response.statusText}`;
-          try {
-            const errorData = await response.json();
-            errorText = errorData.message || errorText;
-            // console.error("[Footer Component] API Error Data:", errorData);
-          } catch (e) { /* ignore */ }
-          throw new Error(errorText);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Failed to fetch footer settings: ${response.statusText}`);
         }
         const data: FooterSettings = await response.json();
-        setFooterItems(data.items || []);
+        if (!cancelled) setFooterItems(data.items || []);
       } catch (err: any) {
-        setError(err.message || "An unknown error occurred");
-        setFooterItems([]);
+        if (!cancelled) {
+          setError(err.message || "An unknown error occurred");
+          setFooterItems([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
-    };
+    }
+
     fetchFooterSettings();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!ready) {
-    return <div>Loading...</div>;
-  }
+  if (!ready) return null;
+
+  const formatCopyrightYears = (startYear?: number) => {
+    const start = startYear || currentYear;
+    return start < currentYear ? `${start}-${currentYear}` : String(currentYear);
+  };
 
   const renderFooterItem = (item: FooterItem, index: number) => {
     switch (item.type) {
-      case "beian":
-        const beian = item as BeianItem;
-        const icpDisplay = beian.icpBeian && beian.icpBeian.trim() !== "";
-        const mengIcpDisplay = beian.mengIcpBeian && beian.mengIcpBeian.trim() !== "";
-        if (!icpDisplay && !mengIcpDisplay) return null;
+      case "beian": {
+        const hasIcp = Boolean(item.icpBeian?.trim());
+        const hasMengIcp = Boolean(item.mengIcpBeian?.trim());
+        if (!hasIcp && !hasMengIcp) return null;
+
         return (
-          <div key={index} className="text-xs mt-1 px-4 flex items-center justify-center flex-wrap sm:flex-nowrap">
-            {icpDisplay && (
-              <a 
-                href={beian.icpBeianUrl || 'https://beian.miit.gov.cn/'} 
-                target="_blank" 
+          <div key={index} className="mt-1 flex flex-wrap items-center justify-center px-4 text-xs">
+            {hasIcp && (
+              <a
+                href={item.icpBeianUrl || "https://beian.miit.gov.cn/"}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary transition-colors whitespace-nowrap mx-1 inline-flex items-center"
+                className="mx-1 inline-flex items-center whitespace-nowrap transition-colors hover:text-primary"
               >
-                <span dangerouslySetInnerHTML={{ __html: beian.icpBeian || '' }} />
+                <span dangerouslySetInnerHTML={{ __html: item.icpBeian || "" }} />
               </a>
             )}
-            {icpDisplay && mengIcpDisplay && <span className="mx-2 shrink-0">|</span>}
-            {mengIcpDisplay && (
-              <a 
-                href={beian.mengIcpBeianUrl || '#'} 
-                target="_blank" 
+            {hasIcp && hasMengIcp && <span className="mx-2 shrink-0">|</span>}
+            {hasMengIcp && (
+              <a
+                href={item.mengIcpBeianUrl || "#"}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary transition-colors whitespace-nowrap mx-1 inline-flex items-center"
+                className="mx-1 inline-flex items-center whitespace-nowrap transition-colors hover:text-primary"
               >
-                <span dangerouslySetInnerHTML={{ __html: beian.mengIcpBeian || '' }} />
+                <span dangerouslySetInnerHTML={{ __html: item.mengIcpBeian || "" }} />
               </a>
             )}
           </div>
         );
+      }
 
       case "customText":
-        const customTextItem = item as CustomTextItem;
         return (
-          <div 
-            key={index} 
-            className="mt-1 px-4 w-full text-center" 
-            dangerouslySetInnerHTML={{ __html: customTextItem.text }} 
+          <div
+            key={index}
+            className="mt-1 w-full px-4 text-center"
+            dangerouslySetInnerHTML={{ __html: item.text }}
           />
         );
 
       case "customLinks":
-        const customLinks = item as CustomLinksItem;
-        if (!customLinks.links || customLinks.links.length === 0) return null;
+        if (!item.links?.length) return null;
         return (
-          <div key={index} className="mt-1 flex items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1 flex-wrap px-4">
-            {customLinks.links.map((link, linkIndex) => (
-              <a 
-                key={linkIndex} 
-                href={link.url} 
-                className="hover:text-primary transition-colors text-xs sm:text-sm whitespace-nowrap"
+          <div key={index} className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4">
+            {item.links.map((link, linkIndex) => (
+              <a
+                key={linkIndex}
+                href={link.url}
+                className="whitespace-nowrap text-xs transition-colors hover:text-primary sm:text-sm"
                 target="_blank"
                 rel="noopener noreferrer"
                 title={link.title || link.text}
@@ -144,51 +147,48 @@ export function Footer() {
             ))}
           </div>
         );
+
+      case "copyright":
+        return (
+          <div key={index} className="mt-1 px-4">
+            Copyright &copy; {formatCopyrightYears(item.startYear)} @{" "}
+            <a
+              href="https://viper3.top"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              {item.authorName || "Viper373"}
+            </a>
+          </div>
+        );
+
       default:
-        // console.warn("[Footer Component] Unknown footer item type:", (item as any).type);
         return null;
     }
   };
 
   if (isLoading) {
+    return <motion.footer className="w-full py-6 text-center text-sm text-gray-600 dark:text-gray-400">Loading...</motion.footer>;
+  }
+
+  if (error) {
     return (
-      <motion.footer className="w-full py-6 mt-auto text-center text-sm text-gray-600 dark:text-gray-400">
-        Loading...
+      <motion.footer className="w-full py-6 text-center text-sm text-red-600 dark:text-red-400">
+        {t("footer.error", "Error loading footer")}: {error}
       </motion.footer>
     );
   }
 
-  if (error) {
-    // console.log("[Footer Component] Rendering: Error State");
-    return (
-      <motion.footer className="w-full py-6 mt-auto text-center text-sm text-red-600 dark:text-red-400">
-        {t('footer.error', 'Error loading footer')}: {error}
-      </motion.footer>
-    );
-  }
-  
   return (
     <motion.footer
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="w-full py-6 mt-auto text-center text-sm text-black dark:text-gray-300 flex flex-col items-center"
+      className="site-footer mt-auto flex w-full flex-col items-center py-6 text-center text-sm text-black dark:text-gray-300"
     >
       {footerItems.map((item, index) => renderFooterItem(item, index))}
-      
-      {/* MODIFIED Hardcoded Copyright Section */}
-      <div className="mt-1 px-4">
-        Copyright © 2025 @ 
-        <a 
-          href="https://viper3.top" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="text-primary hover:underline mx-1"
-        >
-          Viper373
-        </a>
-      </div>
     </motion.footer>
   );
 }

@@ -52,7 +52,7 @@
     "followButtonText": "订阅"
   },
   "steam": {
-    "title": "因为热爱",
+    "title": "第九艺术",
     "recentActivity": "最近游玩",
     "topOwnedGames": "最爱玩",
     "hoursPlayedRecent": "最近游玩 {{hours}} 小时",
@@ -327,7 +327,7 @@
     "frontPage": "返回前台"
   },
   "neteaseMusic": {
-    "title": "网易云音乐排行",
+    "title": "聆听世界",
     "unburdenHeart": "解开超载的心",
     "noUserId": "未配置网易云用户ID，请在settings.json中设置netease_user_id字段",
     "noRecords": "未获取到听歌记录",

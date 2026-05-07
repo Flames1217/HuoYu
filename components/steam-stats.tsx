@@ -1,218 +1,199 @@
 "use client"
 
-import { useState, useEffect, memo } from "react"
+import { memo, useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { SiSteam } from "react-icons/si";
+import { SiSteam } from "react-icons/si"
 
 interface GameData {
   appid: number
   name: string
   playtime_forever: number
-  img_icon_url: string
+  img_icon_url?: string
   playtime_2weeks?: number
 }
 
-// 检查是否为强制刷新 (Ctrl+F5)
+const STEAM_CACHE_KEY = "steam_stats_data"
+const CACHE_EXPIRY = 4 * 60 * 60 * 1000
+
+function formatCacheTime(ms?: number) {
+  const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
+  const hours = Math.floor(remainingMinutes / 60)
+  const minutes = remainingMinutes % 60
+  return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
+}
+
+function showSteamCacheToast(ms?: number) {
+  toast.success(`使用 Steam 缓存数据，剩余 ${formatCacheTime(ms)}`, {
+    position: "top-center",
+    duration: 3000,
+    id: "steam-cache-info",
+    icon: <SiSteam className="h-4 w-4" />,
+    style: { maxWidth: "400px", width: "max-content" },
+  })
+}
+
+function formatSteamCacheTime(ms?: number) {
+  const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
+  const hours = Math.floor(remainingMinutes / 60)
+  const minutes = remainingMinutes % 60
+  return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
+}
+
+function showReadableSteamCacheToast(ms?: number) {
+  toast.success(`使用 Steam 缓存数据，剩余 ${formatSteamCacheTime(ms)}`, {
+    position: "top-center",
+    duration: 3000,
+    id: "steam-cache-info",
+    icon: <SiSteam className="h-4 w-4" />,
+    style: { maxWidth: "400px", width: "max-content" },
+  })
+}
+
 function isHardReload() {
-  if (typeof window !== 'undefined') {
-    // 改进检测方法：使用navigation.type和currentEntry.type的组合检测
-    const isReloadNavigation = window.performance && 
-      window.performance.navigation && 
-      window.performance.navigation.type === 1;
-      
-    const isReloadEntry = window.performance && 
-      window.performance.getEntriesByType && 
-      window.performance.getEntriesByType("navigation").length > 0 && 
-      (window.performance.getEntriesByType("navigation")[0] as any)?.type === 'reload';
-
-    // 检查特定的Cache-Control头，通常在硬刷新时会发送
-    const hasCacheControlHeaders = !!sessionStorage.getItem('force_refresh');
-    
-    // 执行硬刷新时，所有这些条件通常会同时满足
-    return (isReloadNavigation || isReloadEntry) && hasCacheControlHeaders;
-  }
-  return false;
+  if (typeof window === "undefined") return false
+  const navigation = window.performance?.getEntriesByType?.("navigation")?.[0] as PerformanceNavigationTiming | undefined
+  return navigation?.type === "reload" && window.sessionStorage.getItem("force_refresh") === "true"
 }
 
-// 设置一个监听器来检测强制刷新
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    // 在页面卸载前检测是否按住了Ctrl键
-    if (window.event && (window.event as any).ctrlKey) {
-      sessionStorage.setItem('force_refresh', 'true');
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", (event) => {
+    if ((event as any).ctrlKey) {
+      sessionStorage.setItem("force_refresh", "true")
     }
-  });
-  
-  window.addEventListener('load', () => {
-    // 页面加载完成后移除标记
-    setTimeout(() => {
-      sessionStorage.removeItem('force_refresh');
-    }, 1000);
-  });
+  })
+
+  window.addEventListener("load", () => {
+    window.setTimeout(() => sessionStorage.removeItem("force_refresh"), 1000)
+  })
 }
 
-// 缓存键
-const STEAM_CACHE_KEY = 'steam_stats_data';
-// 缓存过期时间（6小时）
-const CACHE_EXPIRY = 6 * 60 * 60 * 1000;
-
-// 使用memo优化组件，避免不必要的重新渲染
 export const SteamStats = memo(function SteamStats() {
   const [games, setGames] = useState<GameData[]>([])
   const [ownedGames, setOwnedGames] = useState<GameData[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [steamProfileUrl, setSteamProfileUrl] = useState<string | null>(null)
-  const [cacheUsed, setCacheUsed] = useState(false)
-  const [profileData, setProfileData] = useState<any>(null)
   const { t, ready } = useTranslation()
 
-  // 从 /api/profile-public 获取 steam_user_id，并使用它来调用 /api/steam
   useEffect(() => {
-    const fetchProfileConfigAndStats = async () => {
-      setLoading(true);
-      setError(null);
-      
-      // 检查本地缓存
-      const now = Date.now();
-      const cachedData = localStorage.getItem(STEAM_CACHE_KEY);
-      const isForceRefresh = isHardReload();
+    setMounted(true)
+  }, [])
 
-      // 如果有缓存且未过期且不是强制刷新，使用缓存数据
-      if (cachedData && !isForceRefresh) {
+  useEffect(() => {
+    async function fetchSteamStats() {
+      setLoading(true)
+      setError(null)
+
+      const now = Date.now()
+      const cachedData = localStorage.getItem(STEAM_CACHE_KEY)
+      const forceRefresh = isHardReload()
+      let parsedCache: any = null
+
+      if (cachedData && !forceRefresh) {
         try {
-          const parsed = JSON.parse(cachedData);
-          
-          if (parsed.timestamp && (now - parsed.timestamp < CACHE_EXPIRY)) {
-            const remainingMinutes = Math.round((parsed.timestamp + CACHE_EXPIRY - now) / (60 * 1000));
-            const hours = Math.floor(remainingMinutes / 60);
-            const minutes = remainingMinutes % 60;
-            
-            // 格式化显示时间，支持国际化
-            let timeDisplay;
-            if (hours > 0) {
-              timeDisplay = t("cacheTimeFormat.hoursAndMinutes", { hours, minutes });
-            } else {
-              timeDisplay = t("cacheTimeFormat.minutes", { minutes });
-            }
-              
-            console.log('使用Steam缓存数据，剩余有效时间:', hours, '小时', minutes, '分钟');
-            
-            setGames(parsed.data?.recentGames || []);
-            setOwnedGames(parsed.data?.topOwnedGames || []);
-            setSteamProfileUrl(parsed.steamProfileUrl || null);
-            setLoading(false);
-            setCacheUsed(true);
-            
-            // 显示缓存命中提示 - 改为success类型(绿色)
-            toast.success(`${t("cacheTimeFormat.steamCacheUsed")} ${timeDisplay}`, {
-              position: 'top-center',
-              duration: 3000,
-              id: 'steam-cache-info',
-              icon: <SiSteam className="h-4 w-4" />,
-              style: { maxWidth: '400px', width: 'max-content' }
-            });
-            
-            return;
-          } else if (parsed.timestamp) {
-            console.log('Steam缓存已过期，已过期:', Math.round((now - parsed.timestamp - CACHE_EXPIRY) / (60 * 1000)), '分钟');
+          parsedCache = JSON.parse(cachedData)
+          if (parsedCache.timestamp && now - parsedCache.timestamp < CACHE_EXPIRY) {
+            setGames(parsedCache.data?.recentGames || [])
+            setOwnedGames(parsedCache.data?.topOwnedGames || [])
+            setSteamProfileUrl(parsedCache.steamProfileUrl || null)
+            setLoading(false)
+            showReadableSteamCacheToast(parsedCache.timestamp + CACHE_EXPIRY - now)
+            return
           }
-        } catch (e) {
-          console.error('解析缓存数据失败', e);
-          // 缓存解析失败，继续获取新数据
+        } catch {
+          localStorage.removeItem(STEAM_CACHE_KEY)
         }
-      } else if (isForceRefresh) {
-        console.log('Steam - 强制刷新，跳过缓存');
-      } else if (!cachedData) {
-        console.log('Steam - 未找到缓存数据');
       }
-      
-      setCacheUsed(false);
-      
-      try {
-        // 1. 从 /api/profile-public 获取配置
-        const res = await fetch('/api/profile-public');
-        if (!res.ok) throw new Error('Failed to fetch profile data');
-        const profileData = await res.json();
-        setProfileData(profileData); // 保存整个配置数据
-        const userId = profileData.steam_user_id;
-        const apiKey = profileData.steam_api_key; // Assuming your /api/steam needs apiKey
 
-        // 查找 steam 社交链接
-        if (Array.isArray(profileData.socialLinks)) {
-          const steamLink = profileData.socialLinks.find((l: any) => l.type?.toLowerCase() === 'steam');
-          if (steamLink && steamLink.url) setSteamProfileUrl(steamLink.url);
-        } else if (Array.isArray(profileData.social_links)) {
-          const steamLink = profileData.social_links.find((l: any) => l.type?.toLowerCase() === 'steam');
-          if (steamLink && steamLink.url) setSteamProfileUrl(steamLink.url);
-        }
+      try {
+        const profileResponse = await fetch("/api/profile-public", { cache: "no-store" })
+        if (!profileResponse.ok) throw new Error("Failed to fetch profile data")
+        const profileData = await profileResponse.json()
+        const userId = profileData.steam_user_id
+        const apiKey = profileData.steam_api_key
+
+        const socialLinks = Array.isArray(profileData.socialLinks)
+          ? profileData.socialLinks
+          : Array.isArray(profileData.social_links)
+            ? profileData.social_links
+            : []
+        const steamLink = socialLinks.find((link: any) => link.type?.toLowerCase() === "steam")
+        if (steamLink?.url) setSteamProfileUrl(steamLink.url)
 
         if (!userId) {
-          // 如果没有配置 userId，显示错误或不显示组件
-          setError(t("steam.userIdMissing"));
-          setGames([]); // Clear old data
-          setOwnedGames([]);
-          return; // Stop here if no user ID
+          setError(t("steam.userIdMissing"))
+          setGames([])
+          setOwnedGames([])
+          return
         }
 
-        // 2. 使用配置调用 /api/steam 接口
-        const steamApiResponse = await fetch(`/api/steam?userId=${userId}&apiKey=${apiKey}`); 
-        
-        if (!steamApiResponse.ok) {
-           const errorData = await steamApiResponse.json().catch(() => ({ message: t("steam.errorFetching") }));
-           throw new Error(errorData.message || t("steam.errorFetching"));
+        const steamResponse = await fetch(`/api/steam?userId=${encodeURIComponent(userId)}&apiKey=${encodeURIComponent(apiKey || "")}`)
+        const result = await steamResponse.json().catch(() => null)
+        if (!steamResponse.ok || !result?.success) {
+          throw new Error(result?.message || t("steam.errorFetching"))
         }
 
-        const data = await steamApiResponse.json();
+        setGames(result.data?.recentGames || [])
+        setOwnedGames(result.data?.topOwnedGames || [])
 
-        if (data.success && data.data) {
-           setGames(data.data.recentGames || []); 
-           setOwnedGames(data.data.topOwnedGames || []);
-           
-           // 保存到本地缓存
-           localStorage.setItem(STEAM_CACHE_KEY, JSON.stringify({
-             data: data.data,
-             steamProfileUrl: steamProfileUrl,
-             timestamp: now
-           }));
-        } else {
-          console.error("Unexpected data structure from /api/steam:", data);
-          setError(t("steam.errorApiStructure"));
-          setGames([]);
-          setOwnedGames([]);
+        if (result.cached) {
+          showReadableSteamCacheToast(result.expiresInMs)
         }
 
-      } catch (err: any) {
-        console.error("Error fetching Steam stats:", err);
-        setError(err.message || t("steam.errorFetching"));
-        setGames([]);
-        setOwnedGames([]);
+        localStorage.setItem(
+          STEAM_CACHE_KEY,
+          JSON.stringify({
+            data: result.data,
+            steamProfileUrl: steamLink?.url || steamProfileUrl,
+            timestamp: now,
+          })
+        )
+      } catch (err) {
+        if (parsedCache?.data && !forceRefresh) {
+          setGames(parsedCache.data?.recentGames || [])
+          setOwnedGames(parsedCache.data?.topOwnedGames || [])
+          setSteamProfileUrl(parsedCache.steamProfileUrl || null)
+          setError(null)
+          toast.warning("Steam 接口请求失败，已使用本地旧缓存数据", {
+            position: "top-center",
+            duration: 3500,
+            id: "steam-cache-info",
+            icon: <SiSteam className="h-4 w-4" />,
+            style: { maxWidth: "420px", width: "max-content" },
+          })
+          return
+        }
+        setError(err instanceof Error ? err.message : t("steam.errorFetching"))
+        setGames([])
+        setOwnedGames([])
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchProfileConfigAndStats();
-  }, [t, ready]); // Add t to dependencies as it's used in error messages
+    }
 
-  if (loading || !ready) { // Wait for i18n to be ready
+    if (ready) fetchSteamStats()
+  }, [ready, t])
+
+  if (!mounted || loading || !ready) {
     return (
-      <Card className="bg-white/[.60] dark:bg-black/[.30] dark:bg-black/[.30] border border-white/10 shadow-xl rounded-2xl transition-all hover:shadow-2xl hover:scale-[1.01] w-full h-full">
+      <Card className="life-glass-card w-full overflow-hidden">
         <CardHeader className="bg-transparent">
-          <CardTitle className="flex items-center justify-center gap-2 text-xl bg-transparent">
+          <CardTitle className="flex items-center justify-center gap-2 bg-transparent text-xl">
             <SiSteam className="h-7 w-7" />
-            {t('steam.title')}
+            Steam
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-center py-4">
+        <CardContent className="flex flex-1 flex-col justify-center py-4">
           <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div className="h-10 w-10 bg-muted rounded" />
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="flex animate-pulse items-center gap-3">
+                <div className="h-10 w-10 rounded bg-muted" />
                 <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-muted rounded w-3/4" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+                  <div className="h-4 w-3/4 rounded bg-muted" />
+                  <div className="h-3 w-1/2 rounded bg-muted" />
                 </div>
               </div>
             ))}
@@ -222,67 +203,62 @@ export const SteamStats = memo(function SteamStats() {
     )
   }
 
+  const renderGame = (game: GameData, mode: "recent" | "total") => (
+    <li key={`${mode}-${game.appid}`} className="min-w-0">
+      <a
+        href={`https://store.steampowered.com/app/${game.appid}/`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex min-w-0 flex-row items-center rounded-lg p-2 transition hover:bg-white/20 dark:hover:bg-black/30"
+      >
+        <img
+          src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
+          alt={game.name}
+          className="h-10 w-10 shrink-0 rounded object-cover shadow"
+          onError={(event) => {
+            event.currentTarget.src = "/images/vapo.gif"
+          }}
+        />
+        <div className="ml-3 min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-foreground">{game.name}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {mode === "recent"
+              ? t("steam.hoursPlayedRecent", { hours: game.playtime_2weeks !== undefined ? (game.playtime_2weeks / 60).toFixed(1) : "N/A" })
+              : t("steam.hoursPlayedTotal", { hours: game.playtime_forever !== undefined ? (game.playtime_forever / 60).toFixed(1) : "N/A" })}
+          </span>
+        </div>
+      </a>
+    </li>
+  )
+
   return (
-    <Card className="bg-white/[.60] dark:bg-black/[.30] border border-white/10 shadow-xl rounded-2xl transition-all hover:shadow-2xl hover:scale-[1.01] w-full h-full">
+    <Card className="life-glass-card w-full overflow-hidden">
       <CardHeader className="bg-transparent pb-2">
-        <CardTitle className="flex items-center justify-center gap-3 text-2xl font-bold bg-transparent">
+        <CardTitle className="flex items-center justify-center gap-3 bg-transparent text-2xl font-bold">
           <SiSteam className="h-8 w-8" />
-          {t('steam.title')}
+          {t("steam.title")}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 py-3 bg-transparent">
-        {/* 最近游玩 */}
+      <CardContent className="flex flex-col gap-4 bg-transparent py-3">
+        {error ? <p className="rounded-xl bg-white/20 p-3 text-sm font-semibold text-muted-foreground">{error}</p> : null}
+
         <div>
-          <h4 className="text-md font-semibold mb-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-blue-500" />{t("steam.recentActivity")}</h4>
-          <ul className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-3">
-            {games.map((game) => (
-              <li key={game.appid}>
-                <a href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noopener noreferrer" className="flex flex-row items-center group hover:bg-white/20 dark:hover:bg-black/30 rounded-lg p-2 transition">
-                  <img
-                    src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
-                    alt={game.name}
-                    className="h-10 w-10 rounded shadow object-cover"
-                    onError={(e) => (e.currentTarget.src = "/images/vapo.gif")}
-                  />
-                  <div className="ml-3 flex-1 w-auto">
-                    <span className="block font-medium text-sm text-foreground whitespace-nowrap">{game.name}</span>
-                    <span 
-                      className="block text-xs text-muted-foreground whitespace-nowrap" 
-                      style={{ textShadow: '0px 0px 5px rgba(0,0,0,0.7)' }}
-                    >
-                      {t("steam.hoursPlayedRecent", { hours: game.playtime_2weeks !== undefined ? (game.playtime_2weeks / 60).toFixed(1) : 'N/A' })}
-                    </span>
-                  </div>
-                </a>
-              </li>
-            ))}
+          <h4 className="mb-2 flex items-center gap-2 text-md font-semibold">
+            <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
+            {t("steam.recentActivity")}
+          </h4>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {games.map((game) => renderGame(game, "recent"))}
           </ul>
         </div>
-        {/* 最爱玩 */}
+
         <div>
-          <h4 className="text-md font-semibold mb-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-green-500" />{t("steam.topOwnedGames")}</h4>
-          <ul className="grid grid-cols-[repeat(3,minmax(0,1fr))] gap-3">
-            {ownedGames.map((game) => (
-              <li key={game.appid}>
-                <a href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noopener noreferrer" className="flex flex-row items-center group hover:bg-white/20 dark:hover:bg-black/30 rounded-lg p-2 transition">
-                  <img
-                    src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
-                    alt={game.name}
-                    className="h-10 w-10 rounded shadow object-cover"
-                    onError={(e) => (e.currentTarget.src = "/images/vapo.gif")}
-                  />
-                  <div className="ml-3 flex-1 w-auto">
-                    <span className="block font-medium text-sm text-foreground whitespace-nowrap">{game.name}</span>
-                    <span 
-                      className="block text-xs text-muted-foreground whitespace-nowrap" 
-                      style={{ textShadow: '0px 0px 5px rgba(0,0,0,0.7)' }}
-                    >
-                      {t("steam.hoursPlayedTotal", { hours: game.playtime_forever !== undefined ? (game.playtime_forever / 60).toFixed(1) : 'N/A' })}
-                    </span>
-                  </div>
-                </a>
-              </li>
-            ))}
+          <h4 className="mb-2 flex items-center gap-2 text-md font-semibold">
+            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+            {t("steam.topOwnedGames")}
+          </h4>
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {ownedGames.map((game) => renderGame(game, "total"))}
           </ul>
         </div>
       </CardContent>

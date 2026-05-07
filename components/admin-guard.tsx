@@ -10,12 +10,12 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (status === "loading") return;
-    if (!session?.user && pathname !== "/admin/login") {
-      router.replace("/admin/login");
+    if (!session?.user && pathname !== "/admin") {
+      router.replace("/admin");
     }
   }, [session, status, pathname, router]);
 
-  if (status === "loading" || (!session?.user && pathname !== "/admin/login")) return null;
+  if (status === "loading" || (!session?.user && pathname !== "/admin")) return null;
 
   return <>{children}</>;
-} 
+}

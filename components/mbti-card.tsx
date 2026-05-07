@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect, memo } from "react"
+import { memo, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 interface MBTIProfile {
-  mbti_type?: string;
-  mbti_image_url?: string;
-  mbti_traits?: string[];
-  mbti_title?: string;
+  mbti_type?: string
+  mbti_image_url?: string
+  mbti_traits?: string[]
+  mbti_title?: string
 }
 
 export const MBTICard = memo(function MBTICard() {
@@ -16,95 +16,92 @@ export const MBTICard = memo(function MBTICard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchMbti = async () => {
+    async function fetchMbti() {
       setLoading(true)
       try {
-        const res = await fetch('/api/profile-public')
-        if (!res.ok) throw new Error('MBTI fetch failed')
+        const res = await fetch("/api/profile-public")
+        if (!res.ok) throw new Error("MBTI fetch failed")
         const data = await res.json()
         setMbti({
-          mbti_type: data.mbti_type || '',
-          mbti_image_url: data.mbti_image_url || '',
+          mbti_type: data.mbti_type || "",
+          mbti_image_url: data.mbti_image_url || "",
           mbti_traits: Array.isArray(data.mbti_traits) ? data.mbti_traits : [],
-          mbti_title: data.mbti_title || '',
+          mbti_title: data.mbti_title || "",
         })
-      } catch (e) {
+      } catch {
         setMbti(null)
       } finally {
         setLoading(false)
       }
     }
+
     fetchMbti()
   }, [])
 
   if (loading) {
     return (
-      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-lg w-full flex items-center justify-center min-h-[300px] h-full">
-        <div className="h-8 w-3/4 bg-muted animate-pulse rounded mb-4" />
+      <div className="life-glass-card flex min-h-[360px] w-full items-center justify-center p-7">
+        <div className="h-8 w-3/4 animate-pulse rounded bg-white/20" />
       </div>
     )
   }
 
-  // 降级：无后台配置时用翻译文本
-  const mbtiType = mbti?.mbti_type || t('mbti.type')
-  const mbtiTitle = mbti?.mbti_title || t('mbti.title')
-  const mbtiTraits = mbti?.mbti_traits && mbti.mbti_traits.length > 0
-    ? mbti.mbti_traits
-    : [t('mbti.trait1'), t('mbti.trait2'), t('mbti.trait3'), t('mbti.trait4')]
-  const mbtiImage = mbti?.mbti_image_url || '/images/mbti-avatar.png'
-  const learnMoreText = t('mbti.learnMoreLinkText', { personalityType: mbtiTitle })
+  const mbtiType = mbti?.mbti_type || t("mbti.type")
+  const mbtiTitle = "拥抱世界"
+  const mbtiTraits =
+    mbti?.mbti_traits && mbti.mbti_traits.length > 0
+      ? mbti.mbti_traits
+      : [t("mbti.trait1"), t("mbti.trait2"), t("mbti.trait3"), t("mbti.trait4")]
+  const mbtiImage = mbti?.mbti_image_url || "/images/mbti-avatar.png"
+  const mbtiTitleIcon = "/images/ODF.png"
+  const personalityLogo = "https://www.16personalities.com/static/images/system/logo.svg"
+  const traitEmoji = ["🎨", "🌱", "🤝", "🧭"]
 
   return (
-    <div className="bg-white/[.60] dark:bg-black/[.30] border border-white/10 shadow-xl rounded-2xl p-6 transition-all hover:shadow-2xl hover:scale-[1.01] w-full h-full relative">
-      {/* 16Personalities Logo Top Right */}
-      <div className="absolute top-4 right-4">
-        <img 
-          src="https://www.16personalities.com/static/images/system/logo.svg" 
-          alt="16Personalities Logo" 
-          className="h-8 opacity-50"
-        />
+    <div className="life-glass-card group relative flex min-h-[380px] w-full flex-col overflow-hidden p-7 transition duration-300">
+      <div className="mb-7 flex items-center justify-center gap-3">
+        <img src={mbtiTitleIcon} alt="" className="h-8 w-8 shrink-0 object-contain" loading="lazy" />
+        <h2 className="text-2xl font-black tracking-tight text-emerald-950 dark:text-white">
+          {mbtiTitle}
+        </h2>
       </div>
-      
-      {/* 标题区域 */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">{mbtiType} {mbtiTitle}</h2>
-      </div>
-      
-      {/* 性格特征区域 */}
-      <div className="mb-2">
-        <h4 className="text-md font-medium mb-2">{t('mbti.traitsHeaderTitle')}</h4>
-        <ul className="space-y-3 list-disc list-inside pl-1">
-          {mbtiTraits.map((trait, index) => (
-            <li key={index} className="text-sm flex items-start">
-              <span className="inline-block h-1 w-1 rounded-full bg-gray-400 mt-2 mr-2"></span>
-              <span>{trait}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      {/* 右侧图片 - 使用绝对定位 */}
-      <div className="absolute bottom-4 right-1">
-        <img 
+
+      <div className="grid flex-1 items-center gap-7 sm:grid-cols-[1fr_136px]">
+        <div className="space-y-5">
+          <h4 className="text-sm font-black tracking-wide text-emerald-950/84 dark:text-zinc-100">
+            {mbtiType} 性格特征
+          </h4>
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {mbtiTraits.slice(0, 4).map((trait, index) => (
+              <li
+                key={index}
+                className="flex min-h-14 items-center gap-3 rounded-xl border border-emerald-900/10 bg-white/32 px-4 py-3 text-sm font-semibold leading-6 text-emerald-950/82 shadow-sm dark:border-white/10 dark:bg-white/[.08] dark:text-zinc-200"
+              >
+                <span className="text-lg leading-none">{traitEmoji[index] || "✨"}</span>
+                <span>{trait}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <img
           src={mbtiImage}
           alt={`${mbtiType} Avatar`}
-          className="h-40 w-40"
+          className="mx-auto h-32 w-32 object-contain opacity-95 sm:mx-0"
           loading="lazy"
         />
       </div>
-      
-      {/* 底部链接 */}
-      <div className="absolute bottom-6 left-0 w-full text-center">
-        <a 
-          href="https://www.16personalities.com/" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="text-xs text-muted-foreground hover:text-primary transition-colors"
-          style={{ textShadow: '0px 0px 5px rgba(0,0,0,0.7)' }}
-        >
-          {learnMoreText}
-        </a>
-      </div>
+
+      <a
+        href="https://www.16personalities.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-auto flex items-center justify-center gap-2 pt-6 text-center text-xs font-semibold text-emerald-950/62 transition hover:text-emerald-900 dark:text-zinc-400 dark:hover:text-violet-200"
+      >
+        <span>在</span>
+        <img src={personalityLogo} alt="16personalities" className="h-5 w-auto object-contain" loading="lazy" />
+        <span>了解更多关于 {mbtiType} 性格</span>
+      </a>
     </div>
   )
 })
