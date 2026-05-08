@@ -1,8 +1,5 @@
-import fs from "fs/promises";
-import path from "path";
 import { Redis } from "@upstash/redis";
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json");
 const SETTINGS_KEY = process.env.SETTINGS_REDIS_KEY || "huoyu:settings";
 
 type Settings = Record<string, any>;
@@ -29,17 +26,6 @@ function getRedis() {
   return redisClient;
 }
 
-async function readLocalSettings(defaultSettings: Settings = {}) {
-  try {
-    const fileContents = await fs.readFile(SETTINGS_PATH, "utf8");
-    return JSON.parse(fileContents);
-  } catch (error: any) {
-    if (error?.code === "ENOENT") return defaultSettings;
-    console.error("[SettingsStore] Failed to read local settings.json:", error);
-    return defaultSettings;
-  }
-}
-
 function normalizeStoredSettings(value: unknown, defaultSettings: Settings) {
   if (!value) return null;
   if (typeof value === "string") {
@@ -56,27 +42,22 @@ export async function getSettings(defaultSettings: Settings = {}) {
   const redis = getRedis();
 
   if (!redis) {
-    return readLocalSettings(defaultSettings);
+    if (process.env.VERCEL) {
+      throw new Error("Upstash Redis env vars are missing. Check KV_REST_API_URL/KV_REST_API_TOKEN or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN in Vercel.");
+    }
+
+    return defaultSettings;
   }
 
   const storedSettings = normalizeStoredSettings(await redis.get(SETTINGS_KEY), defaultSettings);
-  if (storedSettings) return storedSettings;
-
-  const localSettings = await readLocalSettings(defaultSettings);
-  await redis.set(SETTINGS_KEY, localSettings);
-  return localSettings;
+  return storedSettings || defaultSettings;
 }
 
 export async function saveSettings(settings: Settings) {
   const redis = getRedis();
 
   if (!redis) {
-    if (process.env.VERCEL) {
-      throw new Error("Upstash Redis env vars are missing. Check KV_REST_API_URL/KV_REST_API_TOKEN or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN in Vercel.");
-    }
-
-    await fs.writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2), "utf8");
-    return settings;
+    throw new Error("Upstash Redis env vars are missing. Check KV_REST_API_URL/KV_REST_API_TOKEN or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN.");
   }
 
   await redis.set(SETTINGS_KEY, settings);

@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "settings:seed": "node scripts/seed-settings-to-upstash.mjs"
+    "start": "next start"
   },
   "dependencies": {
     "@cloudflare/workers-types": "latest",

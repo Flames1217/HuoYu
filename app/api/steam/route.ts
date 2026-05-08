@@ -121,7 +121,7 @@ async function getOwnedGames(apiKey: string, steamId: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-  const apiKey = searchParams.get('apiKey');
+  const apiKey = process.env.STEAM_API_KEY || searchParams.get('apiKey');
   const isForceRefresh = isHardReload(request);
 
   if (!userId) {
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, message: 'Missing Steam apiKey' }, { status: 400 });
   }
 
-  const cacheKey = `steam-${userId}-${apiKey.slice(0, 8)}`;
+  const cacheKey = `steam-${userId}`;
   const now = Date.now();
   const cached = steamCache[cacheKey];
   if (cached && now - cached.timestamp < CACHE_DURATION && !isForceRefresh) {

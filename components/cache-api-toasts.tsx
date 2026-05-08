@@ -23,8 +23,8 @@ export const CacheApiToasts = memo(function CacheApiToasts() {
         const profile = await profileResponse.json()
         const requests: Promise<void>[] = []
 
-        if (profile.steam_user_id && profile.steam_api_key) {
-          const steamUrl = `/api/steam?userId=${encodeURIComponent(profile.steam_user_id)}&apiKey=${encodeURIComponent(profile.steam_api_key)}`
+        if (profile.steam_user_id) {
+          const steamUrl = `/api/steam?userId=${encodeURIComponent(profile.steam_user_id)}`
           requests.push(
             fetch(steamUrl)
               .then((response) => response.json())

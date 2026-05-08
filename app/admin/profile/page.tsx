@@ -512,7 +512,7 @@ export default function AdminProfilePage() {
             placeholder="用于同步本人 GitHub 仓库，需要 repo/read:user 权限"
             autoComplete="off"
           />
-          <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 GITHUB_TOKEN，后台只读取环境变量，不再写入 settings.json。</p>
+          <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 GITHUB_TOKEN，后台只读取环境变量，不写入站点配置。</p>
           <p className="text-xs text-muted-foreground mt-1">请先在 GitHub Settings &gt; Developer settings &gt; Personal access tokens 生成后再粘贴。</p>
         </div>
 

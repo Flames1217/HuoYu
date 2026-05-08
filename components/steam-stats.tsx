@@ -113,7 +113,6 @@ export const SteamStats = memo(function SteamStats() {
         if (!profileResponse.ok) throw new Error("Failed to fetch profile data")
         const profileData = await profileResponse.json()
         const userId = profileData.steam_user_id
-        const apiKey = profileData.steam_api_key
 
         const socialLinks = Array.isArray(profileData.socialLinks)
           ? profileData.socialLinks
@@ -130,7 +129,7 @@ export const SteamStats = memo(function SteamStats() {
           return
         }
 
-        const steamResponse = await fetch(`/api/steam?userId=${encodeURIComponent(userId)}&apiKey=${encodeURIComponent(apiKey || "")}`)
+        const steamResponse = await fetch(`/api/steam?userId=${encodeURIComponent(userId)}`)
         const result = await steamResponse.json().catch(() => null)
         if (!steamResponse.ok || !result?.success) {
           throw new Error(result?.message || t("steam.errorFetching"))

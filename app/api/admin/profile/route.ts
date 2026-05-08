@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     const settings = await getSettings({ profile: {} })
     const profileFromSettings = settings.profile || {}
     
-    // Sensitive credentials live in env files. Keep them out of settings.json.
+    // Sensitive credentials live in env files. Keep them out of site settings.
     const steam_api_key = process.env.STEAM_API_KEY || ''
     const netease_music_u = process.env.NETEASE_MUSIC_U || ''
     const github_token = process.env.GITHUB_TOKEN || ''
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     const dataFromClient: ProfileData = await request.json()
     const settings = await getSettings({ profile: {} })
 
-    // Keep credentials out of settings.json. Configure them in .env.local / deployment env.
+    // Keep credentials out of site settings. Configure them in .env.local / deployment env.
     const {
       steam_api_key,
       netease_music_u,
