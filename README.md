@@ -1,6 +1,6 @@
 ![HuoYu](https://socialify.git.ci/Flames1217/HuoYu/image?description=1&forks=1&language=1&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
-# HuoYu
+# 🔥 HuoYu
 
 HuoYu 是一个个人主页和数据展示站点。前台集中展示个人资料、社交入口、技能、游戏、音乐、阅读、项目、GitHub 与 WakaTime 数据；后台用于维护站点资料、项目展示和页脚信息。
 
