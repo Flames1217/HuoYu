@@ -43,7 +43,7 @@ export async function getSettings(defaultSettings: Settings = {}) {
 
   if (!redis) {
     if (process.env.VERCEL) {
-      throw new Error("Upstash Redis env vars are missing. Check KV_REST_API_URL/KV_REST_API_TOKEN or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN in Vercel.");
+      throw new Error("缺少 Upstash Redis 环境变量，请在 Vercel 中检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。");
     }
 
     return defaultSettings;
@@ -57,7 +57,7 @@ export async function saveSettings(settings: Settings) {
   const redis = getRedis();
 
   if (!redis) {
-    throw new Error("Upstash Redis env vars are missing. Check KV_REST_API_URL/KV_REST_API_TOKEN or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN.");
+    throw new Error("缺少 Upstash Redis 环境变量，请检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。");
   }
 
   await redis.set(SETTINGS_KEY, settings);

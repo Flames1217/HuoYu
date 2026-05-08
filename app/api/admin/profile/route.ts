@@ -5,7 +5,7 @@ import { getSettings, saveSettings } from '@/lib/settings-store'
 
 export const dynamic = 'force-dynamic'
 
-// Interface matches the one in profile-public and database structure
+// 与公开资料接口和历史数据结构保持一致。
 interface ProfileData {
   site_title?: string | null;
   favicon_url?: string | null;
@@ -27,7 +27,7 @@ interface ProfileData {
   wegame_tgp_id?: string | null;
   wegame_cookie?: string | null;
   wakatime_api_key?: string | null;
-  // created_at and updated_at are managed by DB
+  // created_at 和 updated_at 由存储层维护。
 }
 
 export async function GET(request: Request) {
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     const settings = await getSettings({ profile: {} })
     const profileFromSettings = settings.profile || {}
     
-    // Sensitive credentials live in env files. Keep them out of site settings.
+    // 敏感凭据只从环境变量读取，不写入站点配置。
     const steam_api_key = process.env.STEAM_API_KEY || ''
     const netease_music_u = process.env.NETEASE_MUSIC_U || ''
     const github_token = process.env.GITHUB_TOKEN || ''
@@ -49,11 +49,11 @@ export async function GET(request: Request) {
     const wegame_cookie = process.env.WEGAME_COOKIE || ''
     const wakatime_api_key = process.env.WAKATIME_API_KEY || ''
 
-    // The profile data sent to frontend will include rss_url if it's in settings.profile
+    // 返回给后台表单的数据会合并可编辑资料和环境变量中的只读密钥。
     const responsePayload: ProfileData = {
-      ...profileFromSettings, // This spread includes rss_url if present in settings.profile
-      steam_api_key,          // Add env var explicitly
-      netease_music_u,        // Add env var explicitly
+      ...profileFromSettings,
+      steam_api_key,
+      netease_music_u,
       github_token,
       wegame_tgp_id,
       wegame_cookie,
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     const dataFromClient: ProfileData = await request.json()
     const settings = await getSettings({ profile: {} })
 
-    // Keep credentials out of site settings. Configure them in .env.local / deployment env.
+    // 敏感凭据不保存到站点配置，请在 .env.local 或部署平台环境变量中配置。
     const {
       steam_api_key,
       netease_music_u,
@@ -89,13 +89,12 @@ export async function POST(request: Request) {
       ...profileDataToSave
     } = dataFromClient
 
-    // Ensure settings.profile exists
+    // 确保 profile 容器存在。
     if (!settings.profile) {
       settings.profile = {}
     }
 
-    // Merge the received profile data (which includes rss_url) into settings.profile
-    // rss_url from dataFromClient will correctly update settings.profile.rss_url
+    // 将后台提交的可编辑资料合并回 Upstash 中的站点配置。
     settings.profile = { ...settings.profile, ...profileDataToSave }
 
     await saveSettings(settings)
