@@ -1,18 +1,7 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { getSettings, saveSettings } from '@/lib/settings-store';
 
-const SETTINGS_PATH = path.resolve(process.cwd(), 'settings.json');
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify({ contents: [] }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
-}
-function writeSettings(settings: any) {
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
-}
+export const dynamic = 'force-dynamic';
 
 /**
  * 处理创建新内容的请求
@@ -42,7 +31,7 @@ export async function POST(request: Request) {
          technologiesDbArray = techArray;
       }
     }
-    const settings = readSettings();
+    const settings = await getSettings({ contents: [] });
     const now = new Date().toISOString();
     const newId = (settings.contents?.[0]?.id || 0) + 1;
     const newContent = {
@@ -59,8 +48,8 @@ export async function POST(request: Request) {
       updatedAt: now
     };
     settings.contents = [newContent, ...(settings.contents || [])];
-    writeSettings(settings);
-    return NextResponse.json({ success: true, message: 'Content created successfully and saved to settings.json.', data: newContent }, { status: 201 });
+    await saveSettings(settings);
+    return NextResponse.json({ success: true, message: 'Content created successfully.', data: newContent }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Internal Server Error while creating content.', errorDetails: (error as Error).message }, { status: 500 });
   }
@@ -73,7 +62,7 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const settings = readSettings();
+    const settings = await getSettings({ contents: [] });
     return NextResponse.json({ success: true, message: 'Content fetched successfully.', data: settings.contents || [] }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Internal Server Error while fetching content.', errorDetails: (error as Error).message }, { status: 500 });

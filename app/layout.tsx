@@ -1,17 +1,13 @@
 import type React from "react";
-import fs from "fs";
-import path from "path";
 import "./globals.css";
 import { RootClientShell } from "@/components/root-client-shell";
+import { getSettings } from "@/lib/settings-store";
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json");
+export const dynamic = "force-dynamic";
 
-function readSiteMeta() {
+async function readSiteMeta() {
   try {
-    if (!fs.existsSync(SETTINGS_PATH)) {
-      return { title: "HuoYu", favicon: "/images/logo.png" };
-    }
-    const settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf-8"));
+    const settings = await getSettings({ profile: {} });
     const profile = settings.profile || {};
     return {
       title: String(profile.site_title || "HuoYu").trim() || "HuoYu",
@@ -22,12 +18,12 @@ function readSiteMeta() {
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const siteMeta = readSiteMeta();
+  const siteMeta = await readSiteMeta();
 
   return (
     <html lang="zh" suppressHydrationWarning>

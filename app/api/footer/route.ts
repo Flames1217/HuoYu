@@ -1,11 +1,10 @@
-import fs from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getSettings, saveSettings } from "@/lib/settings-store";
 
-const settingsFilePath = path.resolve(process.cwd(), "settings.json");
+export const dynamic = "force-dynamic";
 
 const defaultFooterItems = [
   {
@@ -28,16 +27,6 @@ const defaultFooterItems = [
   },
 ];
 
-async function readSettings() {
-  try {
-    const fileContents = await fs.readFile(settingsFilePath, "utf8");
-    return JSON.parse(fileContents);
-  } catch (error: any) {
-    if (error?.code === "ENOENT") return {};
-    throw error;
-  }
-}
-
 function normalizeFooter(rawFooter: any) {
   if (Array.isArray(rawFooter?.items)) {
     const items = rawFooter.items.map((item: any) => ({ ...item }));
@@ -58,7 +47,7 @@ function normalizeFooter(rawFooter: any) {
 
 export async function GET() {
   try {
-    const settings = await readSettings();
+    const settings = await getSettings({});
     return NextResponse.json(normalizeFooter(settings.footer));
   } catch (error) {
     console.error("[Footer API] Failed to read settings:", error);
@@ -75,7 +64,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
-    const settings = await readSettings();
+    const settings = await getSettings({});
     const currentFooter = normalizeFooter(settings.footer);
 
     let nextFooter;
@@ -95,7 +84,7 @@ export async function PUT(request: Request) {
     }
 
     settings.footer = nextFooter;
-    await fs.writeFile(settingsFilePath, JSON.stringify(settings, null, 2), "utf8");
+    await saveSettings(settings);
 
     return NextResponse.json(nextFooter);
   } catch (error) {

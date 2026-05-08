@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import { getSettings } from "@/lib/settings-store"
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json")
+export const dynamic = "force-dynamic"
+
 const CACHE_DURATION = 4 * 60 * 60 * 1000
 const contributionsCache: Record<string, { data: any; timestamp: number }> = {}
 
@@ -19,15 +19,8 @@ function isHardReload(request: Request): boolean {
   return Boolean(cacheControl?.includes("no-cache") || cacheControl?.includes("max-age=0"))
 }
 
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    return { profile: {} }
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf-8"))
-}
-
-function resolveGithubConfig(username?: string | null) {
-  const settings = readSettings()
+async function resolveGithubConfig(username?: string | null) {
+  const settings = await getSettings({ profile: {} })
   const profile = settings.profile || {}
   const configuredUsername = profile.githubUsername || settings.githubUsername || ""
   const normalizedUsername = username && username !== "GitHub" ? username : configuredUsername
@@ -40,7 +33,7 @@ function resolveGithubConfig(username?: string | null) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const requestedUsername = searchParams.get("username")
-  const { username, token } = resolveGithubConfig(requestedUsername)
+  const { username, token } = await resolveGithubConfig(requestedUsername)
 
   if (!username) {
     return NextResponse.json({ success: false, message: "Missing GitHub username" }, { status: 400 })

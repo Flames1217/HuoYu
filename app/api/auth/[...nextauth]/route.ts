@@ -2,20 +2,7 @@ import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
-import fs from "fs";
-import path from "path";
-
-const SETTINGS_PATH = path.join(process.cwd(), "settings.json");
-
-function readSettings() {
-  try {
-    if (!fs.existsSync(SETTINGS_PATH)) return { profile: {} };
-    return JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf8"));
-  } catch (error) {
-    console.error("[NextAuth] Error reading settings.json:", error);
-    return { profile: {} };
-  }
-}
+import { getSettings } from "@/lib/settings-store";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -37,7 +24,7 @@ export const authOptions: AuthOptions = {
           return null;
         }
 
-        const settings = readSettings();
+        const settings = await getSettings({ profile: {} });
         return {
           id: "admin",
           name: "admin",

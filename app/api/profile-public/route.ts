@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { getSettings } from '@/lib/settings-store';
 
-const SETTINGS_PATH = path.resolve(process.cwd(), 'settings.json');
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify({}, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const settings = readSettings();
+    const settings = await getSettings({});
     const profile = settings.profile || {};
     const social_links = profile.social_links || [];
     const rss_url = profile.rss_url || '';

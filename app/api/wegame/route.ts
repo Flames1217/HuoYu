@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import { getSettings } from "@/lib/settings-store"
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json")
+export const dynamic = "force-dynamic"
+
 const WEGAME_API_URL = "https://www.wegame.com.cn/api/v1/wegame.rail.game.UserCenter/GetAllGameInfo"
 const CACHE_DURATION = 4 * 60 * 60 * 1000
 const wegameCache: Record<string, { data: any; timestamp: number }> = {}
@@ -28,13 +28,6 @@ function isHardReload(request: Request): boolean {
   return Boolean(cacheControl?.includes("no-cache") || cacheControl?.includes("max-age=0"))
 }
 
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    return { profile: {} }
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf-8"))
-}
-
 function toNumber(value: unknown) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
@@ -57,7 +50,7 @@ function mapGame(game: RawWeGameInfo) {
 
 export async function GET(request: Request) {
   try {
-    const settings = readSettings()
+    const settings = await getSettings({ profile: {} })
     const profile = settings.profile || {}
     const cookie = String(process.env.WEGAME_COOKIE || profile.wegame_cookie || "").trim()
     const tgpId = String(process.env.WEGAME_TGP_ID || profile.wegame_tgp_id || "").trim()

@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server"
-import fs from 'fs';
-import path from 'path';
+import { getSettings } from "@/lib/settings-store";
 
-const SETTINGS_PATH = path.resolve(process.cwd(), 'settings.json');
+export const dynamic = "force-dynamic";
+
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 const readmeCoverCache: Record<string, { imageUrl: string; timestamp: number }> = {};
 const repoMetaCache: Record<string, { repo: any; timestamp: number }> = {};
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify({}, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'));
-}
 
 function normalizeGithubUrl(url?: string) {
   return (url || "")
@@ -162,8 +155,7 @@ function dedupeProjects(projects: any[]) {
 export async function GET(request: Request) {
   try {
 
-    // 从settings.json中读取项目数据而不是使用SQL
-    const settings = readSettings();
+    const settings = await getSettings({});
     const token = process.env.GITHUB_TOKEN || settings.profile?.github_token || "";
     const projects = dedupeProjects(settings.projects || [])
       .filter((project: any) => project.showOnHome === true && project.status !== 'archived')

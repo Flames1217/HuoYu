@@ -1,22 +1,9 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getSettings, saveSettings } from '@/lib/settings-store'
 
-const SETTINGS_PATH = path.resolve(process.cwd(), 'settings.json')
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    // Initialize with a basic structure if the file doesn't exist
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify({ profile: {} }, null, 2))
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf-8'))
-}
-
-function writeSettings(settings: any) {
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2))
-}
+export const dynamic = 'force-dynamic'
 
 // Interface matches the one in profile-public and database structure
 interface ProfileData {
@@ -51,7 +38,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const settings = readSettings()
+    const settings = await getSettings({ profile: {} })
     const profileFromSettings = settings.profile || {}
     
     // Sensitive credentials live in env files. Keep them out of settings.json.
@@ -89,7 +76,7 @@ export async function POST(request: Request) {
 
   try {
     const dataFromClient: ProfileData = await request.json()
-    const settings = readSettings()
+    const settings = await getSettings({ profile: {} })
 
     // Keep credentials out of settings.json. Configure them in .env.local / deployment env.
     const {
@@ -111,7 +98,7 @@ export async function POST(request: Request) {
     // rss_url from dataFromClient will correctly update settings.profile.rss_url
     settings.profile = { ...settings.profile, ...profileDataToSave }
 
-    writeSettings(settings)
+    await saveSettings(settings)
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 })
   } catch (error) {
     console.error("[API Admin Profile] Error updating profile data:", error)

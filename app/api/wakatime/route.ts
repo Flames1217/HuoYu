@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import { getSettings } from "@/lib/settings-store"
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json")
+export const dynamic = "force-dynamic"
+
 const WAKATIME_SUMMARIES_URL = "https://wakatime.com/api/v1/users/current/summaries"
 const WAKATIME_ALL_TIME_URL = "https://wakatime.com/api/v1/users/current/all_time_since_today"
 const TIME_ZONE = "Asia/Shanghai"
@@ -14,13 +14,6 @@ type AnyRecord = Record<string, any>
 function isHardReload(request: Request): boolean {
   const cacheControl = request.headers.get("Cache-Control")
   return Boolean(cacheControl?.includes("no-cache") || cacheControl?.includes("max-age=0"))
-}
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    return { profile: {} }
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf-8"))
 }
 
 function numberValue(value: unknown) {
@@ -160,7 +153,7 @@ function aggregateAi(days: AnyRecord[], projects: AnyRecord[], editors: AnyRecor
 
 export async function GET(request: Request) {
   try {
-    const settings = readSettings()
+    const settings = await getSettings({ profile: {} })
     const apiKey = String(process.env.WAKATIME_API_KEY || settings.profile?.wakatime_api_key || "").trim()
 
     if (!apiKey) {

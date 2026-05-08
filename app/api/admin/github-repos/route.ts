@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import fs from "fs";
-import path from "path";
+import { getSettings, saveSettings } from "@/lib/settings-store";
 
-const SETTINGS_PATH = path.resolve(process.cwd(), "settings.json");
+export const dynamic = "force-dynamic";
+
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 const githubReposCache: Record<string, { viewer: any; repos: any[]; timestamp: number }> = {};
 const readmeCoverCache: Record<string, { imageUrl: string; timestamp: number }> = {};
@@ -33,17 +33,6 @@ type Project = {
   updatedAt?: string;
   pushedAt?: string;
 };
-
-function readSettings() {
-  if (!fs.existsSync(SETTINGS_PATH)) {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify({ profile: {}, projects: [] }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(SETTINGS_PATH, "utf-8"));
-}
-
-function writeSettings(settings: any) {
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
-}
 
 function repoId(fullName: string) {
   return `github:${fullName}`;
@@ -381,7 +370,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const settings = readSettings();
+    const settings = await getSettings({ profile: {}, projects: [] });
     const token = process.env.GITHUB_TOKEN || settings.profile?.github_token || "";
     if (!token) {
       return NextResponse.json({ message: "GitHub token is not configured." }, { status: 400 });
@@ -439,7 +428,7 @@ export async function POST(request: Request) {
     });
 
     settings.projects = [...syncedProjects, ...manualProjects];
-    writeSettings(settings);
+    await saveSettings(settings);
 
     return NextResponse.json({
       message: "Repositories synced.",
