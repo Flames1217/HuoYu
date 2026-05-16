@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useLocaleText } from "@/lib/use-locale-text";
 
 interface FooterItemBase {
   id?: string;
@@ -71,6 +72,7 @@ function withIds(items: FooterItem[]) {
 }
 
 export default function FooterAdminPage() {
+  const { t } = useLocaleText();
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2000 + 1 }, (_, index) => currentYear - index);
   const [footerSettings, setFooterSettings] = useState<FooterSettings>({ items: withIds(fallbackItems) });
@@ -87,12 +89,12 @@ export default function FooterAdminPage() {
       setLoading(true);
       try {
         const response = await fetch("/api/footer");
-        if (!response.ok) throw new Error("读取页脚配置失败");
+        if (!response.ok) throw new Error(t("adminFooter.toastFetchError", "读取页脚配置失败"));
         const data = await response.json();
         const items = Array.isArray(data.items) && data.items.length ? data.items : fallbackItems;
         setFooterSettings({ items: withIds(items) });
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "读取页脚配置失败");
+        toast.error(error instanceof Error ? error.message : t("adminFooter.toastFetchError", "读取页脚配置失败"));
       } finally {
         setLoading(false);
       }
@@ -155,8 +157,8 @@ export default function FooterAdminPage() {
       type === "beian"
         ? { id: crypto.randomUUID(), type, icpBeian: "", icpBeianUrl: "https://beian.miit.gov.cn/", mengIcpBeian: "", mengIcpBeianUrl: "" }
         : type === "customText"
-          ? { id: crypto.randomUUID(), type, text: "新的自定义文本" }
-          : { id: crypto.randomUUID(), type, links: [{ text: "新链接", url: "#", title: "" }] };
+          ? { id: crypto.randomUUID(), type, text: t("adminFooter.newCustomText", "新的自定义文本") }
+          : { id: crypto.randomUUID(), type, links: [{ text: t("adminFooter.newLinkText", "新链接"), url: "#", title: "" }] };
 
     setFooterSettings((current) => ({ items: [...current.items, nextItem] }));
   }
@@ -176,62 +178,62 @@ export default function FooterAdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }),
       });
-      if (!response.ok) throw new Error("保存页脚配置失败");
-      toast.success("页脚配置已保存");
+      if (!response.ok) throw new Error(t("adminFooter.toastSaveError", "保存页脚配置失败"));
+      toast.success(t("adminFooter.toastSuccess", "页脚配置已保存"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "保存页脚配置失败");
+      toast.error(error instanceof Error ? error.message : t("adminFooter.toastSaveError", "保存页脚配置失败"));
     } finally {
       setSaving(false);
     }
   }
 
   if (loading) {
-    return <div className="flex min-h-[360px] items-center justify-center text-lg font-bold">正在加载页脚配置...</div>;
+    return <div className="flex min-h-[360px] items-center justify-center text-lg font-bold">{t("adminFooter.loadingInitial", "正在加载页脚配置...")}</div>;
   }
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-5 py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="admin-kicker">Footer</div>
-          <h1 className="mt-2 text-3xl font-black">页脚管理</h1>
-          <p className="mt-2 text-sm text-slate-400">维护备案、自定义文本、链接组；版权格式固定，只填写作者名。</p>
+          <div className="admin-kicker">{t("adminFooter.kicker", "Footer")}</div>
+          <h1 className="mt-2 text-3xl font-black">{t("adminFooter.titleMain", "页脚管理")}</h1>
+          <p className="mt-2 text-sm text-slate-400">{t("adminFooter.descriptionMain", "维护备案、自定义文本、链接组；版权格式固定，只填写作者名。")}</p>
         </div>
         <Button onClick={saveFooter} disabled={saving} className="bg-cyan-500 text-white hover:bg-cyan-400">
           <FiSave className="mr-2 h-4 w-4" />
-          {saving ? "保存中..." : "保存页脚"}
+          {saving ? t("adminFooter.savingButton", "保存中...") : t("adminFooter.saveButton", "保存页脚")}
         </Button>
       </div>
 
       <div className="flex flex-wrap gap-3">
         <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("beian")}>
-          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加备案
+          <FiPlusCircle className="mr-2 h-4 w-4" /> {t("adminFooter.addItemButtonBeian", "添加备案")}
         </Button>
         <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("customText")}>
-          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加文本
+          <FiPlusCircle className="mr-2 h-4 w-4" /> {t("adminFooter.addItemButtonCustomText", "添加文本")}
         </Button>
         <Button type="button" variant="outline" className="admin-secondary-button" onClick={() => addItem("customLinks")}>
-          <FiPlusCircle className="mr-2 h-4 w-4" /> 添加链接组
+          <FiPlusCircle className="mr-2 h-4 w-4" /> {t("adminFooter.addItemButtonCustomLinks", "添加链接组")}
         </Button>
       </div>
 
       <Card className="zero-admin-surface">
         <CardHeader>
-          <CardTitle>版权作者</CardTitle>
+          <CardTitle>{t("adminFooter.copyrightTitle", "版权作者")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <div className="space-y-2">
-              <label htmlFor="footer-author" className="text-sm font-bold">作者名</label>
+              <label htmlFor="footer-author" className="text-sm font-bold">{t("adminFooter.copyrightLabelAuthor", "作者名")}</label>
               <Input
                 id="footer-author"
                 value={copyrightItem?.authorName ?? ""}
                 onChange={(event) => updateCopyrightAuthor(event.target.value)}
-                placeholder="例如：Viper373"
+                placeholder={t("adminFooter.copyrightPlaceholderAuthor", "例如：Viper373")}
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="footer-year" className="text-sm font-bold">起始年份</label>
+              <label htmlFor="footer-year" className="text-sm font-bold">{t("adminFooter.copyrightLabelStartYear", "起始年份")}</label>
               <select
                 id="footer-year"
                 value={copyrightItem?.startYear ?? currentYear}
@@ -247,7 +249,7 @@ export default function FooterAdminPage() {
             </div>
           </div>
           <div className="rounded-xl border border-cyan-300/20 p-4 text-sm text-slate-300">
-            预览：Copyright © {formatCopyrightYears(copyrightItem?.startYear)} @ {copyrightItem?.authorName || "Viper373"}
+            {t("adminFooter.previewLabel", "预览")}：Copyright © {formatCopyrightYears(copyrightItem?.startYear)} @ {copyrightItem?.authorName || "Viper373"}
           </div>
         </CardContent>
       </Card>
@@ -259,9 +261,13 @@ export default function FooterAdminPage() {
           <Card key={item.id || index} className="zero-admin-surface">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <CardTitle>
-                {item.type === "beian" ? "备案信息" : item.type === "customText" ? "自定义文本" : "链接组"}
+                {item.type === "beian"
+                  ? t("adminFooter.itemTypeBeian", "备案信息")
+                  : item.type === "customText"
+                    ? t("adminFooter.itemTypeCustomText", "自定义文本")
+                    : t("adminFooter.itemTypeCustomLinks", "链接组")}
               </CardTitle>
-              <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} aria-label="删除">
+              <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} aria-label={t("adminFooter.ariaLabelRemoveItem", "删除")}>
                 <FiTrash2 className="h-4 w-4 text-red-500" />
               </Button>
             </CardHeader>
@@ -269,28 +275,48 @@ export default function FooterAdminPage() {
               {item.type === "beian" && (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">ICP备案号</label>
-                    <Input value={item.icpBeian || ""} onChange={(event) => updateItem(index, { icpBeian: event.target.value } as Partial<FooterItem>)} />
+                    <label className="text-sm font-bold">{t("adminFooter.beianLabelIcpBeian", "ICP备案号")}</label>
+                    <Input
+                      value={item.icpBeian || ""}
+                      onChange={(event) => updateItem(index, { icpBeian: event.target.value } as Partial<FooterItem>)}
+                      placeholder={t("adminFooter.beianPlaceholderIcpBeian", "例如：京ICP备xxxxxxxx号-x")}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">ICP备案链接</label>
-                    <Input value={item.icpBeianUrl || ""} onChange={(event) => updateItem(index, { icpBeianUrl: event.target.value } as Partial<FooterItem>)} />
+                    <label className="text-sm font-bold">{t("adminFooter.beianLabelIcpBeianUrl", "ICP备案链接")}</label>
+                    <Input
+                      value={item.icpBeianUrl || ""}
+                      onChange={(event) => updateItem(index, { icpBeianUrl: event.target.value } as Partial<FooterItem>)}
+                      placeholder={t("adminFooter.beianPlaceholderIcpBeianUrl", "例如：https://beian.miit.gov.cn/")}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">萌ICP备案号</label>
-                    <Input value={item.mengIcpBeian || ""} onChange={(event) => updateItem(index, { mengIcpBeian: event.target.value } as Partial<FooterItem>)} />
+                    <label className="text-sm font-bold">{t("adminFooter.beianLabelMengIcpBeian", "萌ICP备案号")}</label>
+                    <Input
+                      value={item.mengIcpBeian || ""}
+                      onChange={(event) => updateItem(index, { mengIcpBeian: event.target.value } as Partial<FooterItem>)}
+                      placeholder={t("adminFooter.beianPlaceholderMengIcpBeian", "例如：萌ICP备xxxxxxxx号")}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold">萌ICP备案链接</label>
-                    <Input value={item.mengIcpBeianUrl || ""} onChange={(event) => updateItem(index, { mengIcpBeianUrl: event.target.value } as Partial<FooterItem>)} />
+                    <label className="text-sm font-bold">{t("adminFooter.beianLabelMengIcpBeianUrl", "萌ICP备案链接")}</label>
+                    <Input
+                      value={item.mengIcpBeianUrl || ""}
+                      onChange={(event) => updateItem(index, { mengIcpBeianUrl: event.target.value } as Partial<FooterItem>)}
+                      placeholder={t("adminFooter.beianPlaceholderMengIcpBeianUrl", "例如：https://meng.icp.gov.moe/")}
+                    />
                   </div>
                 </div>
               )}
 
               {item.type === "customText" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-bold">文本内容</label>
-                  <Input value={item.text || ""} onChange={(event) => updateItem(index, { text: event.target.value } as Partial<FooterItem>)} />
+                  <label className="text-sm font-bold">{t("adminFooter.customTextLabel", "文本内容")}</label>
+                  <Input
+                    value={item.text || ""}
+                    onChange={(event) => updateItem(index, { text: event.target.value } as Partial<FooterItem>)}
+                    placeholder={t("adminFooter.customTextPlaceholder", "输入您想显示的任何HTML文本内容")}
+                  />
                 </div>
               )}
 
@@ -298,9 +324,21 @@ export default function FooterAdminPage() {
                 <div className="space-y-4">
                   {item.links.map((link, linkIndex) => (
                     <div key={linkIndex} className="grid gap-3 rounded-xl border border-slate-500/20 p-3 md:grid-cols-3">
-                      <Input value={link.text} onChange={(event) => updateCustomLink(index, linkIndex, { text: event.target.value })} placeholder="链接文字" />
-                      <Input value={link.url} onChange={(event) => updateCustomLink(index, linkIndex, { url: event.target.value })} placeholder="链接 URL" />
-                      <Input value={link.title || ""} onChange={(event) => updateCustomLink(index, linkIndex, { title: event.target.value })} placeholder="悬停提示" />
+                      <Input
+                        value={link.text}
+                        onChange={(event) => updateCustomLink(index, linkIndex, { text: event.target.value })}
+                        placeholder={t("adminFooter.customLinksPlaceholderLinkText", "链接文字")}
+                      />
+                      <Input
+                        value={link.url}
+                        onChange={(event) => updateCustomLink(index, linkIndex, { url: event.target.value })}
+                        placeholder={t("adminFooter.customLinksPlaceholderLinkUrl", "链接 URL")}
+                      />
+                      <Input
+                        value={link.title || ""}
+                        onChange={(event) => updateCustomLink(index, linkIndex, { title: event.target.value })}
+                        placeholder={t("adminFooter.customLinksPlaceholderLinkTitle", "悬停提示")}
+                      />
                     </div>
                   ))}
                   <Button
@@ -309,11 +347,11 @@ export default function FooterAdminPage() {
                     size="sm"
                     onClick={() =>
                       updateItem(index, {
-                        links: [...item.links, { text: "新链接", url: "#", title: "" }],
+                        links: [...item.links, { text: t("adminFooter.newLinkText", "新链接"), url: "#", title: "" }],
                       } as Partial<FooterItem>)
                     }
                   >
-                    <FiPlusCircle className="mr-2 h-4 w-4" /> 添加链接
+                    <FiPlusCircle className="mr-2 h-4 w-4" /> {t("adminFooter.customLinksButtonAddLink", "添加链接")}
                   </Button>
                 </div>
               )}

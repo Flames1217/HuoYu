@@ -1,4 +1,4 @@
-import type React from "react";
+import * as React from "react";
 import "./globals.css";
 import { RootClientShell } from "@/components/root-client-shell";
 import { getSettings } from "@/lib/settings-store";
@@ -24,9 +24,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const siteMeta = await readSiteMeta();
-
+  
   return (
-    <html lang="zh" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <title>{siteMeta.title}</title>
         <meta name="description" content="HuoYu personal homepage and dashboard." />
@@ -35,7 +35,7 @@ export default async function RootLayout({
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/jetbrains-mono@5.2.6/index.min.css" />
       </head>
       <body className="custom-font flex flex-col min-h-screen">
-        <RootClientShell>{children}</RootClientShell>
+        <RootClientShell initialSiteMeta={siteMeta}>{children}</RootClientShell>
       </body>
     </html>
   );

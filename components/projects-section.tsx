@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FiExternalLink, FiGithub, FiSearch } from "react-icons/fi";
 import { GoRepoForked, GoStar } from "react-icons/go";
+import { useLocaleText } from "@/lib/use-locale-text";
 
 interface Project {
   id: string;
@@ -79,6 +80,7 @@ function ProjectLanguage({ language }: { language?: string | null }) {
 }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const { t } = useLocaleText();
   const hasGithubStats = Boolean(project.repoFullName);
 
   return (
@@ -104,7 +106,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
         <h3 className="text-lg font-bold tracking-tight text-white">{project.title}</h3>
         <ProjectLanguage language={project.language} />
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-400">{project.description || "这个仓库还没有简介。"}</p>
+        <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-400">{project.description || t("projectsSection.noDescription", "This repository has no description yet.")}</p>
 
         <div className="mt-4 flex flex-wrap gap-2">
           {(project.tags || []).map((tag) => (
@@ -122,7 +124,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
                 <GitHubActionStat type="fork" count={project.forks || 0} />
               </>
             ) : (
-              <span className="text-xs text-zinc-500">{project.language || "项目"}</span>
+              <span className="text-xs text-zinc-500">{project.language || t("projectsSection.projectFallback", "Project")}</span>
             )}
           </div>
 
@@ -131,7 +133,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               <Button asChild size="sm" variant="outline" className="flex-1 border-white/10 bg-white/5 text-zinc-100 hover:border-cyan-300/35 hover:bg-white/10">
                 <a href={project.githubUrl} target="_blank" rel="noreferrer">
                   <FiGithub className="mr-1.5 h-4 w-4" />
-                  源码
+                  {t("projectsSection.source", "Source")}
                 </a>
               </Button>
             )}
@@ -139,7 +141,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               <Button asChild size="sm" className="flex-1 bg-cyan-500 text-white hover:bg-cyan-400">
                 <a href={project.demoUrl} target="_blank" rel="noreferrer">
                   <FiExternalLink className="mr-1.5 h-4 w-4" />
-                  预览
+                  {t("projectsSection.preview", "Preview")}
                 </a>
               </Button>
             )}
@@ -151,6 +153,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 }
 
 export function ProjectsSection() {
+  const { t, locale } = useLocaleText();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,14 +164,14 @@ export function ProjectsSection() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/api/projects");
-        if (!response.ok) throw new Error("项目加载失败");
+        const response = await fetch(`/api/projects?lang=${locale}`);
+        if (!response.ok) throw new Error(t("projectsSection.loadError", "Failed to load projects"));
         const rawData = await response.json();
         const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.data) ? rawData.data : [];
         setProjects(
           list.map((project: any) => ({
             id: String(project.id || project.repoFullName || crypto.randomUUID()),
-            title: String(project.title || project.repoName || "未命名项目"),
+            title: String(project.title || project.repoName || t("projectsSection.untitled", "Untitled project")),
             description: String(project.description || ""),
             imageUrl: project.imageUrl || "",
             tags: Array.isArray(project.tags) ? project.tags.map(String) : [],
@@ -182,14 +185,14 @@ export function ProjectsSection() {
           }))
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : "项目加载失败");
+        setError(err instanceof Error ? err.message : t("projectsSection.loadError", "Failed to load projects"));
       } finally {
         setLoading(false);
       }
     }
 
     fetchProjects();
-  }, []);
+  }, [locale, t]);
 
   const filteredProjects = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -204,7 +207,7 @@ export function ProjectsSection() {
   }, [projects, query]);
 
   if (loading) {
-    return <div className="rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center text-zinc-400">正在加载项目...</div>;
+    return <div className="rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center text-zinc-400">{t("projectsSection.loading", "Loading projects...")}</div>;
   }
 
   if (error) {
@@ -214,20 +217,20 @@ export function ProjectsSection() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-4 rounded-lg border border-slate-400/16 bg-slate-950/58 p-5 shadow-xl shadow-black/24 md:flex-row md:items-center md:justify-between">
-        <h3 className="text-2xl font-bold text-white">精选项目</h3>
+        <h3 className="text-2xl font-bold text-white">{t("projectsSection.title", "Selected projects")}</h3>
         <div className="relative w-full md:w-80">
           <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索项目、语言、标签"
+            placeholder={t("projectsSection.searchPlaceholder", "Search projects, languages or tags")}
             className="h-10 w-full rounded-md border border-white/10 bg-black/34 pl-9 pr-4 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/60"
           />
         </div>
       </div>
 
       {filteredProjects.length === 0 ? (
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center text-zinc-500">暂无可展示项目。</div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-8 text-center text-zinc-500">{t("projectsSection.empty", "No projects to show.")}</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredProjects.map((project, index) => (

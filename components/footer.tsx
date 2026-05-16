@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useLocaleText } from "@/lib/use-locale-text";
 
 interface FooterItemBase {
   type: string;
@@ -45,7 +45,7 @@ interface FooterSettings {
 }
 
 export function Footer() {
-  const { t, ready } = useTranslation();
+  const { t, ready } = useLocaleText();
   const currentYear = new Date().getFullYear();
   const [footerItems, setFooterItems] = useState<FooterItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { useTranslation } from "react-i18next"
+import { useLocaleText } from "@/lib/use-locale-text"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FiRss } from "react-icons/fi"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ interface FeedItem extends Parser.Item {
 }
 
 export function RSSSection() {
-  const { t } = useTranslation()
+  const { t } = useLocaleText()
   const [rssItems, setRssItems] = useState<RSSItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

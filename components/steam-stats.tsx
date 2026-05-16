@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useTranslation } from "react-i18next"
+import { useLocaleText } from "@/lib/use-locale-text"
 import { toast } from "sonner"
 import { SiSteam } from "react-icons/si"
 
@@ -14,35 +14,33 @@ interface GameData {
   playtime_2weeks?: number
 }
 
+interface SteamSocialLink {
+  type?: string
+  url?: string
+}
+
+interface SteamStatsProps {
+  initialProfile?: {
+    steam_user_id?: string
+    social_links?: SteamSocialLink[]
+    socialLinks?: SteamSocialLink[]
+  }
+}
+
 const STEAM_CACHE_KEY = "steam_stats_data"
 const CACHE_EXPIRY = 4 * 60 * 60 * 1000
 
-function formatCacheTime(ms?: number) {
+type Translate = ReturnType<typeof useLocaleText>["t"]
+
+function formatCacheTime(ms: number | undefined, t: Translate) {
   const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
   const hours = Math.floor(remainingMinutes / 60)
   const minutes = remainingMinutes % 60
-  return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
+  return hours > 0 ? t("cache.timeHoursMinutes", "{{hours}}h {{minutes}}m", { hours, minutes }) : t("cache.timeMinutes", "{{minutes}}m", { minutes })
 }
 
-function showSteamCacheToast(ms?: number) {
-  toast.success(`使用 Steam 缓存数据，剩余 ${formatCacheTime(ms)}`, {
-    position: "top-center",
-    duration: 3000,
-    id: "steam-cache-info",
-    icon: <SiSteam className="h-4 w-4" />,
-    style: { maxWidth: "400px", width: "max-content" },
-  })
-}
-
-function formatSteamCacheTime(ms?: number) {
-  const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
-  const hours = Math.floor(remainingMinutes / 60)
-  const minutes = remainingMinutes % 60
-  return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
-}
-
-function showReadableSteamCacheToast(ms?: number) {
-  toast.success(`使用 Steam 缓存数据，剩余 ${formatSteamCacheTime(ms)}`, {
+function showReadableSteamCacheToast(ms: number | undefined, t: Translate) {
+  toast.success(t("cache.steam", "Using cached Steam data, {{time}} remaining", { time: formatCacheTime(ms, t) }), {
     position: "top-center",
     duration: 3000,
     id: "steam-cache-info",
@@ -69,14 +67,14 @@ if (typeof window !== "undefined") {
   })
 }
 
-export const SteamStats = memo(function SteamStats() {
+export const SteamStats = memo(function SteamStats({ initialProfile }: SteamStatsProps) {
   const [games, setGames] = useState<GameData[]>([])
   const [ownedGames, setOwnedGames] = useState<GameData[]>([])
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [steamProfileUrl, setSteamProfileUrl] = useState<string | null>(null)
-  const { t, ready } = useTranslation()
+  const { t, ready, locale } = useLocaleText()
 
   useEffect(() => {
     setMounted(true)
@@ -100,7 +98,7 @@ export const SteamStats = memo(function SteamStats() {
             setOwnedGames(parsedCache.data?.topOwnedGames || [])
             setSteamProfileUrl(parsedCache.steamProfileUrl || null)
             setLoading(false)
-            showReadableSteamCacheToast(parsedCache.timestamp + CACHE_EXPIRY - now)
+            showReadableSteamCacheToast(parsedCache.timestamp + CACHE_EXPIRY - now, t)
             return
           }
         } catch {
@@ -109,9 +107,13 @@ export const SteamStats = memo(function SteamStats() {
       }
 
       try {
-        const profileResponse = await fetch("/api/profile-public", { cache: "no-store" })
-        if (!profileResponse.ok) throw new Error("Failed to fetch profile data")
-        const profileData = await profileResponse.json()
+        const profileData = initialProfile
+          ? initialProfile
+          : await (async () => {
+              const profileResponse = await fetch("/api/profile-public", { cache: "no-store" })
+              if (!profileResponse.ok) throw new Error("Failed to fetch profile data")
+              return profileResponse.json()
+            })()
         const userId = profileData.steam_user_id
 
         const socialLinks = Array.isArray(profileData.socialLinks)
@@ -129,7 +131,7 @@ export const SteamStats = memo(function SteamStats() {
           return
         }
 
-        const steamResponse = await fetch(`/api/steam?userId=${encodeURIComponent(userId)}`)
+        const steamResponse = await fetch(`/api/steam?userId=${encodeURIComponent(userId)}&lang=${locale}`)
         const result = await steamResponse.json().catch(() => null)
         if (!steamResponse.ok || !result?.success) {
           throw new Error(result?.message || t("steam.errorFetching"))
@@ -139,7 +141,7 @@ export const SteamStats = memo(function SteamStats() {
         setOwnedGames(result.data?.topOwnedGames || [])
 
         if (result.cached) {
-          showReadableSteamCacheToast(result.expiresInMs)
+          showReadableSteamCacheToast(result.expiresInMs, t)
         }
 
         localStorage.setItem(
@@ -156,7 +158,7 @@ export const SteamStats = memo(function SteamStats() {
           setOwnedGames(parsedCache.data?.topOwnedGames || [])
           setSteamProfileUrl(parsedCache.steamProfileUrl || null)
           setError(null)
-          toast.warning("Steam 接口请求失败，已使用本地旧缓存数据", {
+          toast.warning(t("steam.localCacheFallback", "Steam request failed, using older local cache data"), {
             position: "top-center",
             duration: 3500,
             id: "steam-cache-info",
@@ -174,7 +176,7 @@ export const SteamStats = memo(function SteamStats() {
     }
 
     if (ready) fetchSteamStats()
-  }, [ready, t])
+  }, [initialProfile, locale, ready, t])
 
   if (!mounted || loading || !ready) {
     return (

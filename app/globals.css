@@ -878,6 +878,7 @@ html {
 .hero-lyric-line-top {
   color: rgba(255, 255, 255, 0.96);
   transform: translateX(-0.08em);
+  animation: heroLyricFloatTop 4.8s ease-in-out infinite;
 }
 
 .hero-lyric-line-bottom {
@@ -888,6 +889,7 @@ html {
   background-clip: text;
   color: transparent;
   text-shadow: none;
+  animation: heroLyricFloatBottom 5.2s ease-in-out infinite;
 }
 
 .light .front-landing {
@@ -1139,6 +1141,7 @@ html {
 }
 
 .flame-motto-art {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -1149,6 +1152,45 @@ html {
   line-height: 1;
   letter-spacing: 0.08em;
   filter: drop-shadow(0 12px 24px rgba(154, 52, 18, 0.24));
+}
+
+.flame-motto-art::before,
+.flame-motto-art::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.flame-motto-art::before {
+  left: -0.85rem;
+  right: -0.85rem;
+  top: -0.72rem;
+  bottom: -0.64rem;
+  z-index: -2;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 12% 76%, rgba(255, 245, 158, 0.62) 0 9%, transparent 24%),
+    radial-gradient(ellipse at 26% 42%, rgba(251, 146, 60, 0.5) 0 12%, transparent 30%),
+    radial-gradient(ellipse at 47% 72%, rgba(249, 115, 22, 0.48) 0 11%, transparent 31%),
+    radial-gradient(ellipse at 68% 38%, rgba(239, 68, 68, 0.34) 0 10%, transparent 28%),
+    radial-gradient(ellipse at 86% 72%, rgba(250, 204, 21, 0.38) 0 8%, transparent 26%),
+    linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.18) 18%, rgba(239, 68, 68, 0.2) 50%, rgba(251, 191, 36, 0.14) 82%, transparent);
+  filter: blur(9px);
+  opacity: 0.76;
+  animation: flameMottoBurn 2.2s ease-in-out infinite;
+}
+
+.flame-motto-art::after {
+  left: -0.45rem;
+  right: -0.45rem;
+  bottom: -0.45rem;
+  z-index: -1;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(251, 146, 60, 0.72), rgba(250, 204, 21, 0.48), rgba(239, 68, 68, 0.42), transparent);
+  filter: blur(2.2px);
+  opacity: 0.78;
+  animation: flameMottoCoal 1.7s ease-in-out infinite alternate;
 }
 
 .flame-motto-art span {
@@ -1167,15 +1209,15 @@ html {
 }
 
 .flame-motto-art span:first-child {
-  transform: translateY(-0.08em);
+  animation: flameMottoTextLift 2.6s ease-in-out infinite;
 }
 
 .flame-motto-art span:last-child {
-  transform: translateY(0.08em);
   background:
     linear-gradient(180deg, #ecfeff 0%, #5eead4 25%, #facc15 58%, #fb7185 100%);
   -webkit-background-clip: text;
   background-clip: text;
+  animation: flameMottoTextLift 2.6s ease-in-out -0.82s infinite;
 }
 
 .flame-motto-art span::after {
@@ -1195,6 +1237,90 @@ html {
     0 1px 0 rgba(255, 255, 255, 0.5),
     0 0 16px rgba(251, 146, 60, 0.28),
     0 8px 22px rgba(20, 83, 45, 0.18);
+}
+
+@keyframes flameMottoBurn {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translateY(0.08rem) scaleX(0.96) scaleY(0.9);
+    filter: blur(10px);
+  }
+
+  32% {
+    opacity: 0.88;
+    transform: translateY(-0.18rem) scaleX(1.04) scaleY(1.08);
+    filter: blur(7px);
+  }
+
+  64% {
+    opacity: 0.68;
+    transform: translateY(-0.06rem) scaleX(1.01) scaleY(0.98);
+    filter: blur(8.5px);
+  }
+}
+
+@keyframes flameMottoCoal {
+  from {
+    opacity: 0.48;
+    transform: scaleX(0.82);
+  }
+
+  to {
+    opacity: 0.86;
+    transform: scaleX(1.06);
+  }
+}
+
+@keyframes flameMottoTextLift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  42% {
+    transform: translateY(-0.05em);
+  }
+}
+
+@keyframes heroLyricFloatTop {
+  0%,
+  100% {
+    transform: translateX(-0.08em) translateY(0);
+  }
+
+  45% {
+    transform: translateX(-0.08em) translateY(-0.08em);
+  }
+
+  70% {
+    transform: translateX(-0.08em) translateY(0.035em);
+  }
+}
+
+@keyframes heroLyricFloatBottom {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  42% {
+    transform: translateY(0.075em);
+  }
+
+  72% {
+    transform: translateY(-0.04em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-lyric-line-top,
+  .hero-lyric-line-bottom,
+  .flame-motto-art::before,
+  .flame-motto-art::after,
+  .flame-motto-art span {
+    animation: none;
+  }
 }
 
 .github-metric-frame {
@@ -2994,6 +3120,28 @@ html {
 .dark .front-landing .wakatime-card [class*="rounded"][class*="bg-"],
 .dark .front-landing .rss-showcase-card [class*="rounded"][class*="bg-"] {
   background-color: rgba(2, 6, 23, 0.24) !important;
+}
+
+.light .front-landing .rss-action-copy {
+  border-color: rgba(21, 128, 61, 0.24) !important;
+  background: rgba(240, 253, 244, 0.64) !important;
+  color: #14532d !important;
+}
+
+.light .front-landing .rss-action-folo {
+  border-color: rgba(217, 119, 6, 0.24) !important;
+  background: rgba(255, 247, 237, 0.72) !important;
+  color: #9a3412 !important;
+}
+
+.light .front-landing .rss-action-copy:hover {
+  background: rgba(220, 252, 231, 0.82) !important;
+  color: #052e16 !important;
+}
+
+.light .front-landing .rss-action-folo:hover {
+  background: rgba(254, 215, 170, 0.86) !important;
+  color: #7c2d12 !important;
 }
 
 .light .front-landing .zero-panel:hover,

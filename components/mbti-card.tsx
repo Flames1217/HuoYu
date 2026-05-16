@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { useLocaleText } from "@/lib/use-locale-text"
 
 interface MBTIProfile {
   mbti_type?: string
@@ -10,12 +10,24 @@ interface MBTIProfile {
   mbti_title?: string
 }
 
-export const MBTICard = memo(function MBTICard() {
-  const { t } = useTranslation()
-  const [mbti, setMbti] = useState<MBTIProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+interface MBTICardProps {
+  initialMbti?: MBTIProfile | null
+}
+
+const advocateTitleAliases = ["提倡者"]
+
+export const MBTICard = memo(function MBTICard({ initialMbti }: MBTICardProps) {
+  const { t, locale } = useLocaleText()
+  const [mbti, setMbti] = useState<MBTIProfile | null>(initialMbti || null)
+  const [loading, setLoading] = useState(!initialMbti)
 
   useEffect(() => {
+    if (initialMbti) {
+      setMbti(initialMbti)
+      setLoading(false)
+      return
+    }
+
     async function fetchMbti() {
       setLoading(true)
       try {
@@ -36,7 +48,7 @@ export const MBTICard = memo(function MBTICard() {
     }
 
     fetchMbti()
-  }, [])
+  }, [initialMbti])
 
   if (loading) {
     return (
@@ -47,7 +59,12 @@ export const MBTICard = memo(function MBTICard() {
   }
 
   const mbtiType = mbti?.mbti_type || t("mbti.type")
-  const mbtiTitle = "拥抱世界"
+  const mbtiTitle = t("mbti.cardTitle", "Embrace the World")
+  const rawMbtiPersonalityTitle = mbti?.mbti_title || t("mbti.title", "Advocate")
+  const mbtiPersonalityTitle =
+    locale !== "cn" && advocateTitleAliases.includes(rawMbtiPersonalityTitle)
+      ? t("mbti.title", "Advocate")
+      : rawMbtiPersonalityTitle
   const mbtiTraits =
     mbti?.mbti_traits && mbti.mbti_traits.length > 0
       ? mbti.mbti_traits
@@ -69,7 +86,7 @@ export const MBTICard = memo(function MBTICard() {
       <div className="grid flex-1 items-center gap-7 sm:grid-cols-[1fr_136px]">
         <div className="space-y-5">
           <h4 className="text-sm font-black tracking-wide text-emerald-950/84 dark:text-zinc-100">
-            {mbtiType} 性格特征
+            {mbtiType} {mbtiPersonalityTitle}
           </h4>
           <ul className="grid gap-4 sm:grid-cols-2">
             {mbtiTraits.slice(0, 4).map((trait, index) => (
@@ -77,7 +94,7 @@ export const MBTICard = memo(function MBTICard() {
                 key={index}
                 className="flex min-h-14 items-center gap-3 rounded-xl border border-emerald-900/10 bg-white/32 px-4 py-3 text-sm font-semibold leading-6 text-emerald-950/82 shadow-sm dark:border-white/10 dark:bg-white/[.08] dark:text-zinc-200"
               >
-                <span className="text-lg leading-none">{traitEmoji[index] || "✨"}</span>
+                <span className="text-lg leading-none">{traitEmoji[index] || "✓"}</span>
                 <span>{trait}</span>
               </li>
             ))}
@@ -98,9 +115,9 @@ export const MBTICard = memo(function MBTICard() {
         rel="noopener noreferrer"
         className="mt-auto flex items-center justify-center gap-2 pt-6 text-center text-xs font-semibold text-emerald-950/62 transition hover:text-emerald-900 dark:text-zinc-400 dark:hover:text-violet-200"
       >
-        <span>在</span>
+        <span>{t("mbti.learnMorePrefix", "Learn more at")}</span>
         <img src={personalityLogo} alt="16personalities" className="h-5 w-auto object-contain" loading="lazy" />
-        <span>了解更多关于 {mbtiType} 性格</span>
+        <span>{t("mbti.learnMoreSuffix", "about {{type}} personality", { type: mbtiType })}</span>
       </a>
     </div>
   )

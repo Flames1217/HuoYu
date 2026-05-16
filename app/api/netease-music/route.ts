@@ -3,6 +3,14 @@ import { NextResponse } from 'next/server';
 const neteaseCache: Record<string, { data: any; timestamp: number }> = {};
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get('lang') === 'en' ? 'en' : 'cn';
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === 'en' ? en : cn;
+}
+
 function isHardReload(request: Request): boolean {
   const cacheControl = request.headers.get('Cache-Control');
   return Boolean(cacheControl?.includes('no-cache') || cacheControl?.includes('max-age=0'));
@@ -10,17 +18,18 @@ function isHardReload(request: Request): boolean {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const locale = localeFromRequest(request);
   const uid = searchParams.get('uid') || process.env.NETEASE_USER_ID;
   const musicU = process.env.NETEASE_MUSIC_U;
   const baseURL = 'https://neteasecloudmusicapi.viper3.top';
   const isForceRefresh = isHardReload(request);
 
   if (!uid) {
-    return NextResponse.json({ code: 400, message: 'Missing uid parameter' }, { status: 400 });
+    return NextResponse.json({ code: 400, message: msg(locale, '缺少 uid 参数', 'Missing uid parameter') }, { status: 400 });
   }
 
   if (!musicU) {
-    return NextResponse.json({ code: 400, message: 'MUSIC_U is not configured' }, { status: 400 });
+    return NextResponse.json({ code: 400, message: msg(locale, 'MUSIC_U 未配置', 'MUSIC_U is not configured') }, { status: 400 });
   }
 
   const cacheKey = `netease-${uid}-${musicU.slice(0, 8)}`;
@@ -46,7 +55,7 @@ export async function GET(request: Request) {
 
     const data = await res.json();
     if (data.code !== 200) {
-      return NextResponse.json({ code: data.code, message: data.message || 'NetEase API error' }, { status: 500 });
+      return NextResponse.json({ code: data.code, message: data.message || msg(locale, '网易云音乐 API 错误', 'NetEase API error') }, { status: 500 });
     }
 
     const weekData = data.weekData || [];
@@ -69,6 +78,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ code: 200, cached: false, data: top10 });
   } catch (error: any) {
     console.error('[API NetEase] Request failed:', error);
-    return NextResponse.json({ code: 500, message: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ code: 500, message: error.message || msg(locale, '服务器内部错误', 'Internal Server Error') }, { status: 500 });
   }
 }

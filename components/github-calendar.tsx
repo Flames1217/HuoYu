@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, memo } from "react"
-import { useTranslation } from "react-i18next"
+import { useLocaleText } from "@/lib/use-locale-text"
 import { useTheme } from "next-themes"
 import ReactGitHubCalendar from "react-github-calendar"
 import React from "react"
@@ -16,7 +16,7 @@ interface ContributionDay {
 // 使用memo优化组件，避免不必要的重新渲染
 export const GitHubCalendar = memo(function GitHubCalendar() {
   const { theme } = useTheme()
-  const { t, i18n } = useTranslation()
+  const { t, i18n } = useLocaleText()
   // Initialize username as empty or undefined, and add loading state
   const [username, setUsername] = useState<string | undefined>(undefined) 
   const [isLoading, setIsLoading] = useState(true);

@@ -11,6 +11,14 @@ const wakatimeCache: Record<string, { data: any; timestamp: number }> = {}
 
 type AnyRecord = Record<string, any>
 
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get("lang") === "en" ? "en" : "cn"
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === "en" ? en : cn
+}
+
 function isHardReload(request: Request): boolean {
   const cacheControl = request.headers.get("Cache-Control")
   return Boolean(cacheControl?.includes("no-cache") || cacheControl?.includes("max-age=0"))
@@ -152,13 +160,14 @@ function aggregateAi(days: AnyRecord[], projects: AnyRecord[], editors: AnyRecor
 }
 
 export async function GET(request: Request) {
+  const locale = localeFromRequest(request)
   try {
     const settings = await getSettings({ profile: {} })
     const apiKey = String(process.env.WAKATIME_API_KEY || settings.profile?.wakatime_api_key || "").trim()
 
     if (!apiKey) {
       return NextResponse.json(
-        { success: false, message: "WakaTime API Key 未配置" },
+        { success: false, message: msg(locale, "WakaTime API Key 未配置", "WakaTime API Key is not configured") },
         { status: 400 }
       )
     }
@@ -195,14 +204,14 @@ export async function GET(request: Request) {
 
     if (!summariesResponse.ok) {
       return NextResponse.json(
-        { success: false, message: `WakaTime summaries 请求失败：${summariesResponse.status}` },
+        { success: false, message: `${msg(locale, "WakaTime summaries 请求失败", "WakaTime summaries request failed")}: ${summariesResponse.status}` },
         { status: summariesResponse.status }
       )
     }
 
     if (!allTimeResponse.ok) {
       return NextResponse.json(
-        { success: false, message: `WakaTime 总时长请求失败：${allTimeResponse.status}` },
+        { success: false, message: `${msg(locale, "WakaTime 总时长请求失败", "WakaTime all-time request failed")}: ${allTimeResponse.status}` },
         { status: allTimeResponse.status }
       )
     }
@@ -244,7 +253,7 @@ export async function GET(request: Request) {
         range: {
           start: range.start,
           end: range.end,
-          text: "last 7 days",
+          text: msg(locale, "最近 7 天", "last 7 days"),
         },
         languages,
         editors,
@@ -259,7 +268,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("[API WakaTime] Error fetching WakaTime data:", error)
     return NextResponse.json(
-      { success: false, message: error instanceof Error ? error.message : "WakaTime 数据获取失败" },
+      { success: false, message: error instanceof Error ? error.message : msg(locale, "WakaTime 数据获取失败", "Failed to fetch WakaTime data") },
       { status: 500 }
     )
   }

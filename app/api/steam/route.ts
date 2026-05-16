@@ -15,6 +15,14 @@ const steamCache: Record<string, { data: any; timestamp: number }> = {};
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
 const STEAM_BASE_URL = 'https://api.steampowered.com';
 
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get('lang') === 'en' ? 'en' : 'cn';
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === 'en' ? en : cn;
+}
+
 function isHardReload(request: Request): boolean {
   const cacheControl = request.headers.get('Cache-Control');
   return Boolean(cacheControl?.includes('no-cache') || cacheControl?.includes('max-age=0'));
@@ -120,16 +128,17 @@ async function getOwnedGames(apiKey: string, steamId: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const locale = localeFromRequest(request);
   const userId = searchParams.get('userId');
   const apiKey = process.env.STEAM_API_KEY || searchParams.get('apiKey');
   const isForceRefresh = isHardReload(request);
 
   if (!userId) {
-    return NextResponse.json({ success: false, message: 'Missing Steam userId' }, { status: 400 });
+    return NextResponse.json({ success: false, message: msg(locale, '缺少 Steam userId', 'Missing Steam userId') }, { status: 400 });
   }
 
   if (!apiKey) {
-    return NextResponse.json({ success: false, message: 'Missing Steam apiKey' }, { status: 400 });
+    return NextResponse.json({ success: false, message: msg(locale, '缺少 Steam apiKey', 'Missing Steam apiKey') }, { status: 400 });
   }
 
   const cacheKey = `steam-${userId}`;
@@ -160,7 +169,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error('[API Steam] Error fetching data:', error);
     return NextResponse.json(
-      { success: false, message: `Failed to fetch Steam data: ${error.message}` },
+      { success: false, message: `${msg(locale, 'Steam 数据获取失败', 'Failed to fetch Steam data')}: ${error.message}` },
       { status: 500 }
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useLocaleText } from "@/lib/use-locale-text";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -20,9 +20,10 @@ interface Post {
 
 interface RSSSubscriptionProps {
   placement?: "hero" | "section";
+  initialFoloUrl?: string | null;
 }
 
-export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps) {
+export function RSSSubscription({ placement = "section", initialFoloUrl = null }: RSSSubscriptionProps) {
   const [copied, setCopied] = useState(false);
   const [rssUrl, setRssUrl] = useState<string | null>(null);
   const [foloUrl, setFoloUrl] = useState<string | null>(null);
@@ -30,10 +31,17 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
   const [latestPosts, setLatestPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const { t, locale } = useLocaleText();
 
   useEffect(() => {
     const fetchRssUrl = async () => {
+      if (initialFoloUrl !== null) {
+        setRssUrl(RSS_FEED_URL);
+        setFoloUrl(initialFoloUrl);
+        setRssLoading(false);
+        return;
+      }
+
       try {
         setRssLoading(true);
         const res = await fetch("/api/profile-public");
@@ -54,7 +62,7 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
       try {
         setPostsLoading(true);
         setPostsError(null);
-        const res = await fetch("/api/latest-posts");
+        const res = await fetch(`/api/latest-posts?lang=${locale}`);
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({ message: "Failed to fetch latest posts" }));
           throw new Error(errorData.message || "Failed to fetch latest posts");
@@ -71,7 +79,7 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
 
     fetchRssUrl();
     fetchLatestPosts();
-  }, []);
+  }, [initialFoloUrl, locale]);
 
   const handleCopy = () => {
     if (!rssUrl) return;
@@ -122,12 +130,12 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
               </span>
               <div className="text-left">
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-700/70">RSS Preview</p>
-                <h3 className="text-xl font-black tracking-tight text-emerald-950 md:text-2xl">订阅小霜南风</h3>
+                <h3 className="text-xl font-black tracking-tight text-emerald-950 md:text-2xl">{t("rss.subscribeTitle", "Subscribe to Xiaoshuang Nanfeng")}</h3>
               </div>
             </div>
 
             <p className="mb-4 text-left text-sm font-semibold leading-6 text-emerald-950/78">
-              散落一些碎花，凝结一些轻痕。
+              {t("rss.subscribeDescription", "Scattered petals and quiet notes.")}
             </p>
 
             <div className="rss-feed-url mb-3 flex items-center gap-2 rounded-2xl px-4 py-2.5">
@@ -148,7 +156,7 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
           </div>
 
           {isHero && <div className="rss-note rounded-2xl p-4 text-left text-sm leading-6 text-emerald-950/72">
-            用阅读器订阅后，可以第一时间看到博客更新；当前预览直接读取 Typecho 的 RSS 内容。
+            {t("rss.readerNote", "Subscribe with a reader to get blog updates as soon as they publish. This preview reads the Typecho RSS feed directly.")}
           </div>}
         </div>
 
@@ -156,7 +164,7 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
           <div className="mb-3 flex items-center justify-between gap-4">
             <h4 className="flex items-center text-base font-black text-emerald-950">
               <FiFileText className="mr-2 h-5 w-5 text-emerald-700" />
-              最新文章
+              {t("rss.latestPosts", "Latest posts")}
             </h4>
             <span className="rounded-full border border-emerald-700/18 bg-white/48 px-3 py-1 text-xs font-bold text-emerald-900/70">
               {latestPosts.length} posts
@@ -207,7 +215,7 @@ export function RSSSubscription({ placement = "section" }: RSSSubscriptionProps)
               </ul>
             ) : (
               <p className="rounded-2xl border border-emerald-900/10 bg-white/35 p-4 text-sm font-semibold text-emerald-950/70">
-                {t("rss.noPosts", "暂无最新文章")}
+                {t("rss.noPosts", "No latest posts yet")}
               </p>
             )}
           </div>

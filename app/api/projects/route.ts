@@ -4,8 +4,17 @@ import { getSettings } from "@/lib/settings-store";
 export const dynamic = "force-dynamic";
 
 const CACHE_DURATION = 4 * 60 * 60 * 1000;
+const GITHUB_FETCH_TIMEOUT = 4000;
 const readmeCoverCache: Record<string, { imageUrl: string; timestamp: number }> = {};
 const repoMetaCache: Record<string, { repo: any; timestamp: number }> = {};
+
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get("lang") === "en" ? "en" : "cn";
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === "en" ? en : cn;
+}
 
 function normalizeGithubUrl(url?: string) {
   return (url || "")
@@ -69,6 +78,22 @@ function extractFirstReadmeImage(markdown: string, repoFullName: string, readmeD
   return "";
 }
 
+async function fetchWithTimeout(input: string, init?: RequestInit) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GITHUB_FETCH_TIMEOUT);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+      next: { revalidate: Math.floor(CACHE_DURATION / 1000) },
+      cache: "force-cache",
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function fetchReadmeCoverImage(project: any, token?: string) {
   const repoFullName = githubFullNameFromProject(project);
   if (!repoFullName) return "";
@@ -81,9 +106,8 @@ async function fetchReadmeCoverImage(project: any, token?: string) {
   }
 
   try {
-    const response = await fetch(`https://api.github.com/repos/${repoFullName}/readme`, {
+    const response = await fetchWithTimeout(`https://api.github.com/repos/${repoFullName}/readme`, {
       headers: githubHeaders(token),
-      cache: "no-store",
     });
 
     if (!response.ok) return "";
@@ -113,9 +137,8 @@ async function fetchGithubRepoMeta(project: any, token?: string) {
   }
 
   try {
-    const response = await fetch(`https://api.github.com/repos/${repoFullName}`, {
+    const response = await fetchWithTimeout(`https://api.github.com/repos/${repoFullName}`, {
       headers: githubHeaders(token),
-      cache: "no-store",
     });
 
     if (!response.ok) return null;
@@ -153,6 +176,7 @@ function dedupeProjects(projects: any[]) {
  * @returns NextResponse
  */
 export async function GET(request: Request) {
+  const locale = localeFromRequest(request);
   try {
 
     const settings = await getSettings({});
@@ -192,7 +216,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Published projects fetched successfully.',
+        message: msg(locale, '项目获取成功。', 'Published projects fetched successfully.'),
         data: projectsWithGithubData,
       },
       { status: 200 }
@@ -201,7 +225,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('[API /api/projects GET] Error fetching published projects:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal Server Error while fetching published projects.', errorDetails: (error as Error).message },
+      { success: false, message: msg(locale, '获取项目时服务器内部错误。', 'Internal Server Error while fetching published projects.'), errorDetails: (error as Error).message },
       { status: 500 }
     );
   }

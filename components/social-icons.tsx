@@ -23,11 +23,21 @@ interface ProfileApiResponse {
     social_links?: SocialLinkData[];
 }
 
-export const SocialIcons = memo(function SocialIcons() {
-    const [links, setLinks] = useState<SocialLinkData[]>([]);
-    const [loading, setLoading] = useState(true);
+interface SocialIconsProps {
+    initialLinks?: SocialLinkData[];
+}
+
+export const SocialIcons = memo(function SocialIcons({ initialLinks }: SocialIconsProps) {
+    const [links, setLinks] = useState<SocialLinkData[]>(initialLinks || []);
+    const [loading, setLoading] = useState(!initialLinks);
 
     useEffect(() => {
+        if (initialLinks) {
+            setLinks(initialLinks);
+            setLoading(false);
+            return;
+        }
+
         const fetchSocialLinks = async () => {
             setLoading(true);
             try {
@@ -46,7 +56,7 @@ export const SocialIcons = memo(function SocialIcons() {
         };
 
         fetchSocialLinks();
-    }, []);
+    }, [initialLinks]);
 
     if (loading) {
         return (

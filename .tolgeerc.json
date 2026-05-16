@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/@tolgee/cli/schema.json",
+  "apiUrl": "https://app.tolgee.io",
+  "projectId": "$TOLGEE_PROJECT_ID",
+  "patterns": [
+    "./app/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}"
+  ],
+  "parser": "react",
+  "strictNamespace": false,
+  "push": {
+    "files": [
+      {
+        "path": "./lib/locales/cn.json",
+        "language": "zh-CN"
+      },
+      {
+        "path": "./lib/locales/en.json",
+        "language": "en"
+      }
+    ],
+    "forceMode": "OVERRIDE_CONFLICTING"
+  },
+  "pull": {
+    "path": "./lib/locales",
+    "languages": [
+      "zh-CN",
+      "en"
+    ],
+    "fileStructureTemplate": "{languageTag}.json",
+    "delimiter": "."
+  },
+  "sync": {
+    "continueOnWarning": true
+  }
+}

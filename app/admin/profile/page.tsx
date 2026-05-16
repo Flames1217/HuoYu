@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { FiPlusCircle, FiTrash2, FiMoreVertical } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { useTranslation } from 'react-i18next';
+import { useLocaleText } from '@/lib/use-locale-text';
 
 // DND Kit imports
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -65,11 +65,12 @@ interface ProfileData {
 }
 
 // SortableItem for Social Links - Restoring this component definition
-function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSocialLink }: {
+function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSocialLink, t }: {
   link: SocialLink;
   index: number;
   handleSocialLinkChange: (index: number, field: keyof Omit<SocialLink, 'id'>, value: string) => void;
   removeSocialLink: (index: number) => void;
+  t: (key: string, fallbackOrParams?: string | Record<string, unknown>, maybeParams?: Record<string, unknown>) => string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
   const style = {
@@ -90,7 +91,7 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
           type="text"
           value={link.name}
           onChange={(e) => handleSocialLinkChange(index, 'name', e.target.value)}
-          placeholder="名称（例如 GitHub）"
+          placeholder={t('adminProfile.socialLinkNamePlaceholder', '例如：GitHub')}
           className="w-full"
         />
       </div>
@@ -100,7 +101,7 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
           type="url"
           value={link.url}
           onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
-          placeholder="链接（例如 https://github.com/user）"
+          placeholder={t('adminProfile.socialLinkUrlPlaceholder', '例如：https://github.com/user')}
           className="w-full"
         />
       </div>
@@ -114,7 +115,7 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
       </div>
       {/* Color Input */}
       <div className="flex flex-row items-center justify-end w-32 sm:w-40 gap-2">
-        <span className="text-xs text-muted-foreground">颜色</span>
+        <span className="text-xs text-muted-foreground">{t('adminProfile.socialLinkColorLabel', '颜色')}</span>
         <Input
           type="color"
           value={link.color || '#000000'}
@@ -130,7 +131,7 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
           variant="ghost"
           size="icon"
           onClick={() => removeSocialLink(index)}
-          aria-label="移除社交链接"
+          aria-label={t('adminProfile.removeSocialLinkButton', '移除社交链接')}
         >
           <FiTrash2 className="h-4 w-4 text-destructive" />
         </Button>
@@ -140,14 +141,14 @@ function SortableSocialLinkItem({ link, index, handleSocialLinkChange, removeSoc
 }
 
 export default function AdminProfilePage() {
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useLocaleText();
   // Initialize state with snake_case keys and default empty/null values
   const [profile, setProfile] = useState<ProfileData>({ 
     site_title: 'HuoYu',
-    favicon_url: '/images/logo.png',
+    favicon_url: '/images/avatar.png',
     nickname: '🔥Flamez',
-    hero_title_line1: '心中有火',
-    hero_title_line2: '前方有光',
+    hero_title_line1: t('front.heroTitleLine1', '心中有火'),
+    hero_title_line2: t('front.heroTitleLine2', '前方有光'),
     skill_icon_row1: 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
     skill_icon_row2: 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
     avatar_url: '', 
@@ -192,10 +193,10 @@ export default function AdminProfilePage() {
         setProfile({
           ...data, // Spread all data first
           site_title: data.site_title || 'HuoYu',
-          favicon_url: data.favicon_url || '/images/logo.png',
+          favicon_url: data.favicon_url || '/images/avatar.png',
           nickname: data.nickname || '🔥Flamez',
-          hero_title_line1: data.hero_title_line1 || '心中有火',
-          hero_title_line2: data.hero_title_line2 || '前方有光',
+          hero_title_line1: data.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
+          hero_title_line2: data.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
           skill_icon_row1: data.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
           skill_icon_row2: data.skill_icon_row2 || 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
           avatar_url: data.avatar_url || '',
@@ -293,11 +294,11 @@ export default function AdminProfilePage() {
 
     const payload: ProfilePayload = {
       site_title: profile.site_title || 'HuoYu',
-      favicon_url: profile.favicon_url || '/images/logo.png',
+      favicon_url: profile.favicon_url || '/images/avatar.png',
       avatar_url: profile.avatar_url || null,
       nickname: profile.nickname || '🔥Flamez',
-      hero_title_line1: profile.hero_title_line1 || '心中有火',
-      hero_title_line2: profile.hero_title_line2 || '前方有光',
+      hero_title_line1: profile.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
+      hero_title_line2: profile.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
       skill_icon_row1: profile.skill_icon_row1 || null,
       skill_icon_row2: profile.skill_icon_row2 || null,
       introduction: profile.introduction || null,
@@ -335,10 +336,10 @@ export default function AdminProfilePage() {
         setProfile({
           ...updatedData,
           site_title: updatedData.site_title || 'HuoYu',
-          favicon_url: updatedData.favicon_url || '/images/logo.png',
+          favicon_url: updatedData.favicon_url || '/images/avatar.png',
           nickname: updatedData.nickname || '🔥Flamez',
-          hero_title_line1: updatedData.hero_title_line1 || '心中有火',
-          hero_title_line2: updatedData.hero_title_line2 || '前方有光',
+          hero_title_line1: updatedData.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
+          hero_title_line2: updatedData.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
           skill_icon_row1: updatedData.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
           skill_icon_row2: updatedData.skill_icon_row2 || 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr',
           social_links: (updatedData.social_links || []).map(link => ({ ...link, id: (link as any).id || crypto.randomUUID() }) ),
@@ -374,33 +375,33 @@ export default function AdminProfilePage() {
       <form onSubmit={handleSubmit} className="mt-6 space-y-8 max-w-5xl">
         <section className="zero-admin-surface rounded-lg p-4">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">站点信息</h2>
-            <p className="mt-1 text-sm text-muted-foreground">控制浏览器标签页标题和 favicon 图标。</p>
+            <h2 className="text-lg font-semibold text-foreground">{t('adminProfile.siteSectionTitle', '站点信息')}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t('adminProfile.siteSectionDescription', '控制浏览器标签页标题和 favicon 图标。')}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="site_title" className="block text-sm font-medium text-foreground mb-1">站点标题</label>
+              <label htmlFor="site_title" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.siteTitleLabel', '站点标题')}</label>
               <Input
                 type="text"
                 name="site_title"
                 id="site_title"
                 value={profile.site_title || ''}
                 onChange={handleInputChange}
-                placeholder="HuoYu"
+                placeholder={t('adminProfile.siteTitlePlaceholder', 'HuoYu')}
               />
             </div>
             <div>
-              <label htmlFor="favicon_url" className="block text-sm font-medium text-foreground mb-1">Favicon URL</label>
+              <label htmlFor="favicon_url" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.faviconUrlLabel', 'Favicon URL')}</label>
               <Input
                 type="text"
                 name="favicon_url"
                 id="favicon_url"
                 value={profile.favicon_url || ''}
                 onChange={handleInputChange}
-                placeholder="/images/logo.png"
+                placeholder={t('adminProfile.faviconUrlPlaceholder', '/images/avatar.png')}
               />
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                支持站内路径或完整图片地址，例如 <code className="rounded bg-muted px-1">/images/logo.png</code>、<code className="rounded bg-muted px-1">/favicon.ico</code>。
+                {t('adminProfile.faviconUrlHelpPrefix', '支持站内路径或完整图片地址，例如 ')}<code className="rounded bg-muted px-1">/images/avatar.png</code>{t('adminProfile.faviconUrlHelpMiddle', '、')}<code className="rounded bg-muted px-1">/favicon.ico</code>{t('adminProfile.faviconUrlHelpSuffix', '。')}
               </p>
             </div>
           </div>
@@ -408,71 +409,71 @@ export default function AdminProfilePage() {
 
         <section className="zero-admin-surface rounded-lg p-4">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">首页首屏信息</h2>
-            <p className="mt-1 text-sm text-muted-foreground">控制个人主页首屏的昵称、标题和技能图标。</p>
+            <h2 className="text-lg font-semibold text-foreground">{t('adminProfile.heroSectionTitle', '首页首屏信息')}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t('adminProfile.heroSectionDescription', '控制个人主页首屏的昵称、标题和技能图标。')}</p>
           </div>
           <div className="mb-4">
-            <label htmlFor="nickname" className="block text-sm font-medium text-foreground mb-1">昵称</label>
+            <label htmlFor="nickname" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.nicknameLabel', '昵称')}</label>
             <Input
               type="text"
               name="nickname"
               id="nickname"
               value={profile.nickname || ''}
               onChange={handleInputChange}
-              placeholder="🔥Flamez"
+              placeholder={t('adminProfile.nicknamePlaceholder', '🔥Flamez')}
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="hero_title_line1" className="block text-sm font-medium text-foreground mb-1">第一行</label>
+              <label htmlFor="hero_title_line1" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.heroTitleLine1Label', '第一行')}</label>
               <Input
                 type="text"
                 name="hero_title_line1"
                 id="hero_title_line1"
                 value={profile.hero_title_line1 || ''}
                 onChange={handleInputChange}
-                placeholder="心中有火"
+                placeholder={t('front.heroTitleLine1', '心中有火')}
               />
             </div>
             <div>
-              <label htmlFor="hero_title_line2" className="block text-sm font-medium text-foreground mb-1">第二行</label>
+              <label htmlFor="hero_title_line2" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.heroTitleLine2Label', '第二行')}</label>
               <Input
                 type="text"
                 name="hero_title_line2"
                 id="hero_title_line2"
                 value={profile.hero_title_line2 || ''}
                 onChange={handleInputChange}
-                placeholder="前方有光"
+                placeholder={t('front.heroTitleLine2', '前方有光')}
               />
             </div>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="skill_icon_row1" className="block text-sm font-medium text-foreground mb-1">技能图标第一行</label>
+              <label htmlFor="skill_icon_row1" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.skillIconRow1Label', '技能图标第一行')}</label>
               <Input
                 type="text"
                 name="skill_icon_row1"
                 id="skill_icon_row1"
                 value={profile.skill_icon_row1 || ''}
                 onChange={handleInputChange}
-                placeholder="html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch"
+                placeholder={t('adminProfile.skillIconRow1Placeholder', 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch')}
               />
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                到 <a href="https://github.com/tandpfun/skill-icons#readme" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">skill-icons README</a> 查看可用图标名，只填写 URL 里 <code className="rounded bg-muted px-1">i=</code> 后面的内容，多个用英文逗号分隔。
+                {t('adminProfile.skillIconHelpPrefix', '到 ')}<a href="https://github.com/tandpfun/skill-icons#readme" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">skill-icons README</a>{t('adminProfile.skillIconHelpMiddle', ' 查看可用图标名，只填写 URL 里 ')}<code className="rounded bg-muted px-1">i=</code>{t('adminProfile.skillIconHelpSuffix', ' 后面的内容，多个用英文逗号分隔。')}
               </p>
             </div>
             <div>
-              <label htmlFor="skill_icon_row2" className="block text-sm font-medium text-foreground mb-1">技能图标第二行</label>
+              <label htmlFor="skill_icon_row2" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.skillIconRow2Label', '技能图标第二行')}</label>
               <Input
                 type="text"
                 name="skill_icon_row2"
                 id="skill_icon_row2"
                 value={profile.skill_icon_row2 || ''}
                 onChange={handleInputChange}
-                placeholder="mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr"
+                placeholder={t('adminProfile.skillIconRow2Placeholder', 'mysql,postgres,mongodb,redis,kafka,rabbitmq,docker,linux,git,maven,vim,anaconda,ps,pr')}
               />
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                例如 <code className="rounded bg-muted px-1">docker,linux,git</code> 会生成 <code className="rounded bg-muted px-1">https://skillicons.dev/icons?i=docker,linux,git</code>。
+                {t('adminProfile.skillIconExamplePrefix', '例如 ')}<code className="rounded bg-muted px-1">docker,linux,git</code>{t('adminProfile.skillIconExampleMiddle', ' 会生成 ')}<code className="rounded bg-muted px-1">https://skillicons.dev/icons?i=docker,linux,git</code>{t('adminProfile.skillIconExampleSuffix', '。')}
               </p>
             </div>
           </div>
@@ -502,18 +503,18 @@ export default function AdminProfilePage() {
         </div>
 
         <div>
-          <label htmlFor="github_token" className="block text-sm font-medium text-foreground mb-1">GitHub Token</label>
+          <label htmlFor="github_token" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.githubTokenLabel', 'GitHub Token')}</label>
           <Input
             type="password"
             name="github_token"
             id="github_token"
             value={profile.github_token || ''}
             onChange={handleInputChange}
-            placeholder="用于同步本人 GitHub 仓库，需要 repo/read:user 权限"
+            placeholder={t('adminProfile.githubTokenPlaceholder', '用于同步本人 GitHub 仓库，需要 repo/read:user 权限')}
             autoComplete="off"
           />
-          <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 GITHUB_TOKEN，后台只读取环境变量，不写入站点配置。</p>
-          <p className="text-xs text-muted-foreground mt-1">请先在 GitHub Settings &gt; Developer settings &gt; Personal access tokens 生成后再粘贴。</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.githubTokenHelpEnv', '请配置到 .env.local 的 GITHUB_TOKEN，后台只读取环境变量，不写入站点配置。')}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.githubTokenHelpGenerate', '请先在 GitHub Settings > Developer settings > Personal access tokens 生成后再粘贴。')}</p>
         </div>
 
         <fieldset className="space-y-4">
@@ -521,12 +522,13 @@ export default function AdminProfilePage() {
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={profile.social_links?.map(link => link.id) || []} strategy={verticalListSortingStrategy}>
               {(profile.social_links || []).map((link, index) => (
-                <SortableSocialLinkItem 
-                  key={link.id} 
-                  link={link} 
-                  index={index} 
-                  handleSocialLinkChange={handleSocialLinkChange} 
-                  removeSocialLink={removeSocialLink} 
+                <SortableSocialLinkItem
+                  key={link.id}
+                  link={link}
+                  index={index}
+                  handleSocialLinkChange={handleSocialLinkChange}
+                  removeSocialLink={removeSocialLink}
+                  t={t}
                 />
               ))}
             </SortableContext>
@@ -536,7 +538,7 @@ export default function AdminProfilePage() {
           </Button>
         </fieldset>
 
-        {/* MBTI 閰嶇疆鍖哄煙 */}
+        {/* MBTI configuration */}
         <fieldset className="space-y-4 border rounded-md p-4 bg-muted/50">
           <legend className="text-lg font-semibold text-foreground mb-2">{t('adminProfile.mbtiSectionTitle')}</legend>
           <div>
@@ -547,7 +549,7 @@ export default function AdminProfilePage() {
               id="mbti_type"
               value={profile.mbti_type || ''}
               onChange={handleInputChange}
-              placeholder="例如：INFJ-T、ENFP"
+              placeholder={t('adminProfile.mbtiTypePlaceholder', '例如：INFJ-T、ENFP')}
               className="w-40"
             />
           </div>
@@ -559,7 +561,7 @@ export default function AdminProfilePage() {
               id="mbti_title"
               value={profile.mbti_title || ''}
               onChange={handleInputChange}
-              placeholder="例如：提倡者"
+              placeholder={t('adminProfile.mbtiTitlePlaceholder', '例如：提倡者')}
               className="w-60"
             />
           </div>
@@ -571,10 +573,10 @@ export default function AdminProfilePage() {
               id="mbti_image_url"
               value={profile.mbti_image_url || ''}
               onChange={handleInputChange}
-              placeholder="粘贴 MBTI 相关图片链接"
+              placeholder={t('adminProfile.mbtiImageUrlPlaceholder', '粘贴 MBTI 相关图片链接')}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground mt-1">如果使用图床或外部站点图片，请先生成可公开访问的直链后再粘贴。</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.mbtiImageUrlHelp', '如果使用图床或外部站点图片，请先生成可公开访问的直链后再粘贴。')}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.mbtiTraitsLabel')}</label>
@@ -585,7 +587,7 @@ export default function AdminProfilePage() {
                   type="text"
                   value={trait}
                   onChange={e => handleMbtiTraitChange(idx, e.target.value)}
-                  placeholder={`特质 ${idx + 1}`}
+                  placeholder={t('adminProfile.mbtiTraitPlaceholder', '特质 {{index}}', { index: idx + 1 })}
                   className="w-full"
                   maxLength={32}
                 />
@@ -595,7 +597,7 @@ export default function AdminProfilePage() {
           </div>
         </fieldset>
 
-        {/* RSS/Steam/缃戞槗浜戦煶涔?閰嶇疆鍖哄煙 */}
+        {/* RSS / Steam / Netease Music configuration */}
         <fieldset className="space-y-4 border rounded-md p-4 bg-muted/50">
           <legend className="text-lg font-semibold text-foreground mb-2">{t('adminProfile.mediaStatsTitle')}</legend>
           <div>
@@ -606,7 +608,7 @@ export default function AdminProfilePage() {
               id="rss_url"
               value={profile.rss_url || ''}
               onChange={handleInputChange}
-              placeholder="例如：https://yourblog.com/rss.xml"
+              placeholder={t('adminProfile.rssUrlPlaceholder', '例如：https://yourblog.com/rss.xml')}
               className="w-full"
             />
           </div>
@@ -618,10 +620,10 @@ export default function AdminProfilePage() {
               id="folo_url"
               value={profile.folo_url || ''}
               onChange={handleInputChange}
-              placeholder="例如：https://app.follow.is/share/feeds/your_feed_id"
+              placeholder={t('adminProfile.foloUrlPlaceholder', '例如：https://app.follow.is/share/feeds/your_feed_id')}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground mt-1">请先在 Follow/Folo 页面生成分享链接，再粘贴到这里。</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.foloUrlHelp', '请先在 Follow/Folo 页面生成分享链接，再粘贴到这里。')}</p>
           </div>
           <div>
             <label htmlFor="steam_user_id" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.steamUserIdLabel')}</label>
@@ -631,7 +633,7 @@ export default function AdminProfilePage() {
               id="steam_user_id"
               value={profile.steam_user_id || ''}
               onChange={handleInputChange}
-              placeholder="例如：7656119..."
+              placeholder={t('adminProfile.steamUserIdPlaceholder', '例如：7656119...')}
               className="w-full"
             />
           </div>
@@ -643,10 +645,10 @@ export default function AdminProfilePage() {
               id="steam_api_key"
               value={profile.steam_api_key || ''}
               onChange={handleInputChange}
-              placeholder="浣犵殑 Steam Web API Key"
+              placeholder={t('adminProfile.steamApiKeyPlaceholder', '你的 Steam Web API Key')}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 STEAM_API_KEY，避免把密钥写进仓库。</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.steamApiKeyHelp', '请配置到 .env.local 的 STEAM_API_KEY，避免把密钥写进仓库。')}</p>
           </div>
           <div>
             <label htmlFor="netease_user_id" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.neteaseUserIdLabel')}</label>
@@ -656,7 +658,7 @@ export default function AdminProfilePage() {
               id="netease_user_id"
               value={profile.netease_user_id || ''}
               onChange={handleInputChange}
-              placeholder="濡傦細12345678"
+              placeholder={t('adminProfile.neteaseUserIdPlaceholder', '例如：12345678')}
               className="w-full"
             />
           </div>
@@ -668,25 +670,25 @@ export default function AdminProfilePage() {
               id="netease_music_u"
               value={profile.netease_music_u || ''}
               onChange={handleInputChange}
-              placeholder="浣犵殑缃戞槗浜?MUSIC_U Cookie"
+              placeholder={t('adminProfile.neteaseMusicUPlaceholder', '你的网易云 MUSIC_U Cookie')}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground mt-1">请配置到 .env.local 的 NETEASE_MUSIC_U，避免把 Cookie 写进仓库。</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('adminProfile.neteaseMusicUHelp', '请配置到 .env.local 的 NETEASE_MUSIC_U，避免把 Cookie 写进仓库。')}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-[240px_1fr]">
             <div>
-              <label htmlFor="wegame_tgp_id" className="block text-sm font-medium text-foreground mb-1">WeGame TGP ID</label>
+              <label htmlFor="wegame_tgp_id" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.wegameTgpIdLabel', 'WeGame TGP ID')}</label>
               <Input
                 type="text"
                 name="wegame_tgp_id"
                 id="wegame_tgp_id"
                 value={profile.wegame_tgp_id || ''}
                 onChange={handleInputChange}
-                placeholder="例如：290717074"
+                placeholder={t('adminProfile.wegameTgpIdPlaceholder', '例如：290717074')}
                 className="w-full"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                登录
+                {t('adminProfile.wegameHelpPrefix', '登录')}
                 <a
                   href="https://www.wegame.com.cn/"
                   target="_blank"
@@ -695,21 +697,21 @@ export default function AdminProfilePage() {
                 >
                   WeGame
                 </a>
-                ，F12 查看 Cookie 中的 tgp_id，并配置到 .env.local 的 WEGAME_TGP_ID。
+                {t('adminProfile.wegameTgpIdHelpSuffix', '，F12 查看 Cookie 中的 tgp_id，并配置到 .env.local 的 WEGAME_TGP_ID。')}
               </p>
             </div>
             <div>
-              <label htmlFor="wegame_cookie" className="block text-sm font-medium text-foreground mb-1">WeGame Cookie</label>
+              <label htmlFor="wegame_cookie" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.wegameCookieLabel', 'WeGame Cookie')}</label>
               <Textarea
                 name="wegame_cookie"
                 id="wegame_cookie"
                 value={profile.wegame_cookie || ''}
                 onChange={handleInputChange}
-                placeholder="粘贴 GetAllGameInfo 请求里的完整 Cookie"
+                placeholder={t('adminProfile.wegameCookiePlaceholder', '粘贴 GetAllGameInfo 请求里的完整 Cookie')}
                 className="min-h-24 w-full"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                登录
+                {t('adminProfile.wegameHelpPrefix', '登录')}
                 <a
                   href="https://www.wegame.com.cn/"
                   target="_blank"
@@ -718,24 +720,24 @@ export default function AdminProfilePage() {
                 >
                   WeGame
                 </a>
-                ，F12 查看 Cookie 中的 tgp_id，并复制完整 Cookie 配置到 .env.local 的 WEGAME_COOKIE。
+                {t('adminProfile.wegameCookieHelpSuffix', '，F12 查看 Cookie 中的 tgp_id，并复制完整 Cookie 配置到 .env.local 的 WEGAME_COOKIE。')}
               </p>
             </div>
           </div>
           <div>
-            <label htmlFor="wakatime_api_key" className="block text-sm font-medium text-foreground mb-1">WakaTime API Key</label>
+            <label htmlFor="wakatime_api_key" className="block text-sm font-medium text-foreground mb-1">{t('adminProfile.wakatimeApiKeyLabel', 'WakaTime API Key')}</label>
             <Input
               type="password"
               name="wakatime_api_key"
               id="wakatime_api_key"
               value={profile.wakatime_api_key || ''}
               onChange={handleInputChange}
-              placeholder="粘贴 WakaTime Settings 里的 API Key"
+              placeholder={t('adminProfile.wakatimeApiKeyPlaceholder', '粘贴 WakaTime Settings 里的 API Key')}
               className="w-full"
               autoComplete="off"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              到 <a href="https://wakatime.com/settings/api-key" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">WakaTime API Key</a> 页面复制 API Key，并配置到 .env.local 的 WAKATIME_API_KEY。
+              {t('adminProfile.wakatimeHelpPrefix', '到 ')}<a href="https://wakatime.com/settings/api-key" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">WakaTime API Key</a>{t('adminProfile.wakatimeHelpSuffix', ' 页面复制 API Key，并配置到 .env.local 的 WAKATIME_API_KEY。')}
             </p>
           </div>
         </fieldset>

@@ -12,6 +12,14 @@ const RSS_URL = "https://blog.viper3.top/rss.xml"
 const SITEMAP_URL = "https://blog.viper3.top/sitemap.xml"
 const ARTICLE_URL_PATTERN = /^https:\/\/blog\.viper3\.top\/index\.php\/archives\/\d+\/?$/
 
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get("lang") === "en" ? "en" : "cn"
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === "en" ? en : cn
+}
+
 function createSummary(htmlContent: string | undefined, maxLength = 100): string | undefined {
   if (!htmlContent) return undefined
 
@@ -86,7 +94,8 @@ async function fetchPostTitle(url: string) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const locale = localeFromRequest(request)
   try {
     const parser = new Parser()
     const [rssXml, sitemapXml] = await Promise.all([
@@ -120,7 +129,7 @@ export async function GET() {
     const postsMissingTitle = [...postMap.values()].filter((post) => !post.title)
     const fetchedTitles = await Promise.all(postsMissingTitle.map((post) => fetchPostTitle(post.url)))
     postsMissingTitle.forEach((post, index) => {
-      post.title = fetchedTitles[index] || `文章 #${post.url.match(/\/archives\/(\d+)/)?.[1] || ""}`.trim()
+      post.title = fetchedTitles[index] || `${msg(locale, "文章", "Post")} #${post.url.match(/\/archives\/(\d+)/)?.[1] || ""}`.trim()
     })
 
     const posts = [...postMap.values()]
@@ -133,7 +142,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("Error fetching or parsing RSS feed:", error)
     return NextResponse.json(
-      { message: error.message || "Error fetching latest posts from RSS feed" },
+      { message: error.message || msg(locale, "获取最新文章失败", "Error fetching latest posts from RSS feed") },
       { status: 500 },
     )
   }

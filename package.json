@@ -5,7 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "tolgee:extract": "tolgee extract print -c ./.tolgeerc.cjs",
+    "tolgee:sync": "tolgee sync -c ./.tolgeerc.cjs --yes",
+    "tolgee:pull": "tolgee pull -c ./.tolgeerc.cjs",
+    "tolgee:push": "tolgee push -c ./.tolgeerc.cjs",
+    "translate:fill-en-defaults": "node scripts/fill-en-from-source-defaults.mjs",
+    "translate:fill-en": "node scripts/fill-missing-en-translations.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-types": "latest",
@@ -42,6 +48,8 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
+    "@tolgee/react": "^7.0.0",
+    "@tolgee/web": "^7.0.0",
     "@tsparticles/plugin-emitters": "^3.8.1",
     "@upstash/redis": "^1.38.0",
     "autoprefixer": "^10.4.21",
@@ -57,8 +65,6 @@
     "embla-carousel-react": "8.5.1",
     "framer-motion": "latest",
     "gel": "latest",
-    "i18next": "latest",
-    "i18next-browser-languagedetector": "latest",
     "input-otp": "1.4.1",
     "next": "15.5.8",
     "next-auth": "^4.24.11",
@@ -69,7 +75,6 @@
     "react-dom": "latest",
     "react-github-calendar": "^4.5.7",
     "react-hook-form": "^7.56.4",
-    "react-i18next": "latest",
     "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.16.0",
     "react-resizable-panels": "^2.1.9",
@@ -85,11 +90,11 @@
     "zod": "^3.25.42"
   },
   "devDependencies": {
+    "@tolgee/cli": "^2.16.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "i18next-parser": "^9.3.0",
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
     "typescript": "latest"

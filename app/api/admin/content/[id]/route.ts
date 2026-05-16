@@ -1,173 +1,164 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-interface DeleteParams {
-  params: {
-    id: string;
-  };
+import { getSettings, saveSettings } from "@/lib/settings-store";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+type ContentItem = {
+  id: number;
+  title: string;
+  contentType: string;
+  contentBody?: string;
+  status?: string;
+  coverImageUrl?: string;
+  demoUrl?: string;
+  sourceCodeUrl?: string;
+  technologies?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+function parseContentId(id: string) {
+  const parsed = Number.parseInt(id, 10);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-interface GetParams {
-  params: {
-    id: string;
-  };
+function getContentList(settings: Record<string, any>) {
+  return Array.isArray(settings.contents) ? (settings.contents as ContentItem[]) : [];
 }
 
-interface PutParams {
-  params: {
-    id: string;
-  };
-}
+export async function DELETE(_request: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const contentId = parseContentId(id);
 
-/**
- * 处理删除指定ID内容的请求
- * @param request Request (NextRequest in newer versions, but Request is general)
- * @param params  { params: { id: string } } (Destructured from the second argument)
- * @returns NextResponse
- */
-export async function DELETE(request: Request, { params }: DeleteParams) {
-  const { id } = params;
-  console.log(`[API /admin/content DELETE] Attempting to delete content with id: ${id}`);
-
-  if (!id || isNaN(parseInt(id))) {
-    return NextResponse.json(
-      { success: false, message: 'Invalid or missing content ID.' },
-      { status: 400 }
-    );
+  if (contentId === null) {
+    return NextResponse.json({ success: false, message: "Invalid or missing content ID." }, { status: 400 });
   }
 
   try {
-    const result = await sql`DELETE FROM contents WHERE id = ${parseInt(id)} RETURNING id;`;
+    const settings = await getSettings({ contents: [] });
+    const contents = getContentList(settings);
+    const nextContents = contents.filter((item) => item.id !== contentId);
 
-    if (result.rowCount === 0) {
-      return NextResponse.json(
-        { success: false, message: `Content with ID ${id} not found.` },
-        { status: 404 }
-      );
+    if (nextContents.length === contents.length) {
+      return NextResponse.json({ success: false, message: `Content with ID ${id} not found.` }, { status: 404 });
     }
 
-    console.log(`[API /admin/content DELETE] Content with id: ${id} deleted successfully.`);
+    settings.contents = nextContents;
+    await saveSettings(settings);
+
     return NextResponse.json(
-      { success: true, message: 'Content deleted successfully.', data: { id: parseInt(id) } },
-      { status: 200 } // 或 204 No Content 如果不返回body
-    );
-
-  } catch (error) {
-    console.error(`[API /admin/content DELETE] Error deleting content with id: ${id}:`, error);
-    return NextResponse.json(
-      { success: false, message: 'Internal Server Error while deleting content.', errorDetails: (error as Error).message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * 处理获取指定ID内容的请求
- * @param request Request
- * @param params { params: { id: string } }
- * @returns NextResponse
- */
-export async function GET(request: Request, { params }: GetParams) {
-  const { id } = params;
-  console.log(`[API /admin/content GET] Attempting to fetch content with id: ${id}`);
-
-  if (!id || isNaN(parseInt(id))) {
-    return NextResponse.json(
-      { success: false, message: 'Invalid or missing content ID.' },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const result = await sql`
-      SELECT id, title, content_type, content_body, status, created_at, updated_at 
-      FROM contents 
-      WHERE id = ${parseInt(id)};
-    `;
-
-    if (result.rowCount === 0) {
-      return NextResponse.json(
-        { success: false, message: `Content with ID ${id} not found.` },
-        { status: 404 }
-      );
-    }
-
-    console.log(`[API /admin/content GET] Content with id: ${id} fetched successfully.`);
-    return NextResponse.json(
-      { success: true, message: 'Content fetched successfully.', data: result.rows[0] },
+      { success: true, message: "Content deleted successfully.", data: { id: contentId } },
       { status: 200 }
     );
-
   } catch (error) {
-    console.error(`[API /admin/content GET] Error fetching content with id: ${id}:`, error);
     return NextResponse.json(
-      { success: false, message: 'Internal Server Error while fetching content.', errorDetails: (error as Error).message },
+      {
+        success: false,
+        message: "Internal Server Error while deleting content.",
+        errorDetails: (error as Error).message,
+      },
       { status: 500 }
     );
   }
 }
 
-/**
- * 处理更新指定ID内容的请求
- * @param request Request
- * @param params { params: { id: string } }
- * @returns NextResponse
- */
-export async function PUT(request: Request, { params }: PutParams) {
-  const { id } = params;
-  console.log(`[API /admin/content PUT] Attempting to update content with id: ${id}`);
+export async function GET(_request: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const contentId = parseContentId(id);
 
-  if (!id || isNaN(parseInt(id))) {
+  if (contentId === null) {
+    return NextResponse.json({ success: false, message: "Invalid or missing content ID." }, { status: 400 });
+  }
+
+  try {
+    const settings = await getSettings({ contents: [] });
+    const content = getContentList(settings).find((item) => item.id === contentId);
+
+    if (!content) {
+      return NextResponse.json({ success: false, message: `Content with ID ${id} not found.` }, { status: 404 });
+    }
+
     return NextResponse.json(
-      { success: false, message: 'Invalid or missing content ID for update.' },
-      { status: 400 }
+      { success: true, message: "Content fetched successfully.", data: content },
+      { status: 200 }
     );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal Server Error while fetching content.",
+        errorDetails: (error as Error).message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const contentId = parseContentId(id);
+
+  if (contentId === null) {
+    return NextResponse.json({ success: false, message: "Invalid or missing content ID for update." }, { status: 400 });
   }
 
   try {
     const body = await request.json();
     const { title, contentType, contentBody, status } = body;
 
-    // 基本的验证，确保至少有标题和类型
     if (!title || !contentType) {
       return NextResponse.json(
-        { success: false, message: 'Missing required fields (title, contentType) for update.' },
+        { success: false, message: "Missing required fields (title, contentType) for update." },
         { status: 400 }
       );
     }
 
-    const result = await sql`
-      UPDATE contents
-      SET 
-        title = ${title},
-        content_type = ${contentType},
-        content_body = ${contentBody},
-        status = ${status},
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${parseInt(id)}
-      RETURNING id, title, content_type, content_body, status, updated_at;
-    `;
+    const settings = await getSettings({ contents: [] });
+    const contents = getContentList(settings);
+    const existingIndex = contents.findIndex((item) => item.id === contentId);
 
-    if (result.rowCount === 0) {
+    if (existingIndex === -1) {
       return NextResponse.json(
         { success: false, message: `Content with ID ${id} not found for update.` },
         { status: 404 }
       );
     }
 
-    console.log(`[API /admin/content PUT] Content with id: ${id} updated successfully:`, result.rows[0]);
+    const updatedContent: ContentItem = {
+      ...contents[existingIndex],
+      title,
+      contentType,
+      contentBody,
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    settings.contents = [
+      ...contents.slice(0, existingIndex),
+      updatedContent,
+      ...contents.slice(existingIndex + 1),
+    ];
+    await saveSettings(settings);
+
     return NextResponse.json(
-      { success: true, message: 'Content updated successfully.', data: result.rows[0] },
+      { success: true, message: "Content updated successfully.", data: updatedContent },
       { status: 200 }
     );
-
   } catch (error) {
-    console.error(`[API /admin/content PUT] Error updating content with id: ${id}:`, error);
-    if (error instanceof SyntaxError) { // JSON 解析错误
-        return NextResponse.json({ success: false, message: 'Invalid JSON payload for update.' }, { status: 400 });
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ success: false, message: "Invalid JSON payload for update." }, { status: 400 });
     }
+
     return NextResponse.json(
-      { success: false, message: 'Internal Server Error while updating content.', errorDetails: (error as Error).message },
+      {
+        success: false,
+        message: "Internal Server Error while updating content.",
+        errorDetails: (error as Error).message,
+      },
       { status: 500 }
     );
   }
-} 
+}

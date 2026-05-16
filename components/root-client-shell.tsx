@@ -5,51 +5,48 @@ import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
-import { I18nProvider } from "@/components/i18n-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { AppTolgeeProvider } from "@/components/tolgee-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/footer";
 import { ConsoleBadge } from "@/components/console-badge";
 import useAutoThemeByBeijingTime from "@/hooks/use-auto-theme-by-beijing-time";
+import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/tolgee";
 
-export function RootClientShell({ children }: { children: React.ReactNode }) {
+export function RootClientShell({
+  children,
+  initialSiteMeta,
+}: {
+  children: React.ReactNode;
+  initialSiteMeta?: {
+    title?: string;
+    favicon?: string;
+  };
+}) {
   const pathname = usePathname();
-  const isAdminPage = pathname ? pathname.startsWith("/admin") : false;
+  const isAdminPage = isAdminPath(pathname);
+  const locale = getLocaleFromPathname(pathname);
 
   useAutoThemeByBeijingTime();
 
   useEffect(() => {
-    let cancelled = false;
+    document.documentElement.lang = localeToLanguageTag(locale);
+  }, [locale]);
 
-    async function loadSiteMeta() {
-      try {
-        const response = await fetch("/api/profile-public", { cache: "no-store" });
-        if (!response.ok) return;
-        const data = await response.json();
-        if (cancelled) return;
+  useEffect(() => {
+    const nextTitle = String(initialSiteMeta?.title || "HuoYu").trim() || "HuoYu";
+    const nextFavicon = String(initialSiteMeta?.favicon || "/images/logo.png").trim() || "/images/logo.png";
+    document.title = nextTitle;
 
-        const nextTitle = String(data.site_title || "HuoYu").trim() || "HuoYu";
-        const nextFavicon = String(data.favicon_url || "/images/logo.png").trim() || "/images/logo.png";
-        document.title = nextTitle;
-
-        let iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-        if (!iconLink) {
-          iconLink = document.createElement("link");
-          iconLink.rel = "icon";
-          document.head.appendChild(iconLink);
-        }
-        iconLink.href = nextFavicon;
-        iconLink.type = nextFavicon.endsWith(".svg") ? "image/svg+xml" : nextFavicon.endsWith(".ico") ? "image/x-icon" : "image/png";
-      } catch (error) {
-        console.error("[Site Meta] Failed to load site metadata:", error);
-      }
+    let iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!iconLink) {
+      iconLink = document.createElement("link");
+      iconLink.rel = "icon";
+      document.head.appendChild(iconLink);
     }
-
-    loadSiteMeta();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    iconLink.href = nextFavicon;
+    iconLink.type = nextFavicon.endsWith(".svg") ? "image/svg+xml" : nextFavicon.endsWith(".ico") ? "image/x-icon" : "image/png";
+  }, [initialSiteMeta?.favicon, initialSiteMeta?.title]);
 
   useEffect(() => {
     if (isAdminPage) {
@@ -64,7 +61,7 @@ export function RootClientShell({ children }: { children: React.ReactNode }) {
     <>
       <ConsoleBadge />
       <AuthProvider>
-        <I18nProvider>
+        <AppTolgeeProvider locale={locale}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             {isAdminPage ? (
               <div className="flex-grow">{children}</div>
@@ -90,7 +87,7 @@ export function RootClientShell({ children }: { children: React.ReactNode }) {
               }}
             />
           </ThemeProvider>
-        </I18nProvider>
+        </AppTolgeeProvider>
       </AuthProvider>
     </>
   );

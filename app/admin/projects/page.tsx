@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocaleText } from "@/lib/use-locale-text";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -103,16 +104,17 @@ function GitHubActionStat({ type, count }: { type: "star" | "fork"; count: numbe
   );
 }
 
-function LanguagePill({ language }: { language?: string | null }) {
+function LanguagePill({ language, unknownLabel }: { language?: string | null; unknownLabel: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/35 px-2 py-1 text-xs text-slate-300">
       <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: languageColor(language) }} />
-      {language || "Unknown"}
+      {language || unknownLabel}
     </span>
   );
 }
 
 export default function AdminProjectsPage() {
+  const { t } = useLocaleText();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,16 +125,16 @@ export default function AdminProjectsPage() {
     setLoading(true);
     try {
       const response = await fetch("/api/admin/projects");
-      if (!response.ok) throw new Error("项目数据加载失败");
+      if (!response.ok) throw new Error(t("adminProjects.toastFetchError", "项目数据加载失败"));
       const data = await response.json();
       setProjects(Array.isArray(data) ? data.map(normalizeProject) : []);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "项目数据加载失败");
+      toast.error(error instanceof Error ? error.message : t("adminProjects.toastFetchError", "项目数据加载失败"));
       setProjects([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchProjects();
@@ -191,11 +193,11 @@ export default function AdminProjectsPage() {
         headers: { "Cache-Control": "no-cache" },
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || "GitHub 仓库同步失败");
+      if (!response.ok) throw new Error(data.message || t("adminProjects.toastSyncError", "GitHub 仓库同步失败"));
       setProjects(Array.isArray(data.data) ? data.data.map(normalizeProject) : []);
-      toast.success(`已同步 ${data.count || 0} 个本人公开非 fork 仓库`);
+      toast.success(t("adminProjects.toastSyncSuccess", "已同步 {{count}} 个本人公开非 fork 仓库", { count: data.count || 0 }));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "GitHub 仓库同步失败");
+      toast.error(error instanceof Error ? error.message : t("adminProjects.toastSyncError", "GitHub 仓库同步失败"));
     } finally {
       setSyncing(false);
     }
@@ -215,10 +217,10 @@ export default function AdminProjectsPage() {
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || "保存失败");
-      toast.success("项目展示设置已保存");
+      if (!response.ok) throw new Error(data.message || t("adminProjects.toastSaveError", "保存失败"));
+      toast.success(t("adminProjects.toastSaveSuccess", "项目展示设置已保存"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "保存失败");
+      toast.error(error instanceof Error ? error.message : t("adminProjects.toastSaveError", "保存失败"));
     } finally {
       setSaving(false);
     }
@@ -228,7 +230,7 @@ export default function AdminProjectsPage() {
     return (
       <div className="flex min-h-[420px] items-center justify-center text-slate-300">
         <AiOutlineLoading3Quarters className="mr-3 h-8 w-8 animate-spin text-cyan-300" />
-        正在加载项目控制台...
+        {t("adminProjects.loadingProjectsInitial", "正在加载项目控制台...")}
       </div>
     );
   }
@@ -241,21 +243,21 @@ export default function AdminProjectsPage() {
             <div>
               <div className="admin-kicker">
                 <FiGithub className="h-4 w-4" />
-                GitHub 仓库同步
+                {t("adminProjects.githubSyncKicker", "GitHub 仓库同步")}
               </div>
-              <h1 className="mt-3 text-3xl font-black tracking-tight text-white">项目管理</h1>
+              <h1 className="mt-3 text-3xl font-black tracking-tight text-white">{t("adminProjects.titleMain", "项目管理")}</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-                只同步本人公开、非 fork、非 archived 的仓库。勾选“前台展示”后才会出现在主页。
+                {t("adminProjects.descriptionMain", "只同步本人公开、非 fork、非 archived 的仓库。勾选“前台展示”后才会出现在主页。")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={syncGithubRepos} disabled={syncing} size="sm" className="bg-cyan-500 text-white hover:bg-cyan-400">
                 {syncing ? <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" /> : <FiRefreshCw className="mr-2 h-4 w-4" />}
-                同步 GitHub
+                {t("adminProjects.syncGithubButton", "同步 GitHub")}
               </Button>
               <Button onClick={saveProjects} disabled={saving} size="sm" variant="outline" className="border-slate-500/40 bg-slate-800/55 text-slate-100 hover:bg-slate-700/65">
                 {saving ? <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" /> : <FiSave className="mr-2 h-4 w-4" />}
-                保存展示
+                {saving ? t("adminProjects.savingButton", "保存中...") : t("adminProjects.saveButton", "保存展示")}
               </Button>
             </div>
           </div>
@@ -263,15 +265,15 @@ export default function AdminProjectsPage() {
 
         <div className="grid gap-3 border-b border-slate-300/10 p-4 md:grid-cols-3">
           <div className="admin-metric">
-            <span>仓库数量</span>
+            <span>{t("adminProjects.metricRepos", "仓库数量")}</span>
             <strong>{stats.total}</strong>
           </div>
           <div className="admin-metric">
-            <span>前台展示</span>
+            <span>{t("adminProjects.metricVisible", "前台展示")}</span>
             <strong className="text-emerald-300">{stats.visible}</strong>
           </div>
           <div className="admin-metric">
-            <span>Stars</span>
+            <span>{t("adminProjects.metricStars", "Stars")}</span>
             <strong className="flex items-center gap-2 text-amber-300">
               <FiStar className="h-5 w-5" />
               {stats.stars}
@@ -283,7 +285,7 @@ export default function AdminProjectsPage() {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative max-w-2xl flex-1">
               <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索仓库、语言、标签..." className="pl-9" />
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("adminProjects.searchPlaceholder", "搜索仓库、语言、标签...")} className="pl-9" />
             </div>
             <label className="inline-flex items-center gap-2 rounded-xl border border-slate-500/20 bg-slate-950/35 px-3 py-2 text-xs text-slate-300">
               <Checkbox
@@ -291,7 +293,7 @@ export default function AdminProjectsPage() {
                 onCheckedChange={toggleSelectAllFiltered}
                 className="border-slate-500"
               />
-              全选当前列表（{selectedInFiltered}/{filteredProjects.length}）
+              {t("adminProjects.selectAllCurrent", "全选当前列表（{{selected}}/{{total}}）", { selected: selectedInFiltered, total: filteredProjects.length })}
             </label>
           </div>
         </div>
@@ -306,7 +308,7 @@ export default function AdminProjectsPage() {
                     onCheckedChange={(checked) => updateProject(project.id, { showOnHome: Boolean(checked) })}
                     className="border-slate-500"
                   />
-                  前台展示
+                  {t("adminProjects.showOnHomeLabel", "前台展示")}
                 </label>
 
                 <div className="space-y-2 rounded-xl border border-slate-500/20 bg-slate-950/28 p-3">
@@ -318,10 +320,10 @@ export default function AdminProjectsPage() {
                     <GitHubActionStat type="fork" count={project.forks || 0} />
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <LanguagePill language={project.language} />
+                    <LanguagePill language={project.language} unknownLabel={t("adminProjects.unknownLanguage", "Unknown")} />
                     {project.githubUrl && (
                       <a href={project.githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-200 hover:text-cyan-50">
-                        GitHub <FiExternalLink className="h-3 w-3" />
+                        {t("adminProjects.githubLinkLabel", "GitHub")} <FiExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>
@@ -333,7 +335,7 @@ export default function AdminProjectsPage() {
                 <Textarea
                   value={project.description}
                   onChange={(event) => updateProject(project.id, { description: event.target.value })}
-                  placeholder="仓库简介"
+                  placeholder={t("adminProjects.descriptionPlaceholder", "仓库简介")}
                   className="resize-y text-sm leading-6"
                 />
                 <Input
@@ -346,7 +348,7 @@ export default function AdminProjectsPage() {
                         .filter(Boolean),
                     })
                   }
-                  placeholder="标签，用英文逗号分隔"
+                  placeholder={t("adminProjects.tagsPlaceholder", "标签，用英文逗号分隔")}
                   className="text-sm"
                 />
               </div>
@@ -356,13 +358,13 @@ export default function AdminProjectsPage() {
                   type="number"
                   value={project.priority ?? 0}
                   onChange={(event) => updateProject(project.id, { priority: Number(event.target.value) })}
-                  title="排序值，越小越靠前"
+                  title={t("adminProjects.priorityTitle", "排序值，越小越靠前")}
                 />
-                <Input value={project.demoUrl || ""} onChange={(event) => updateProject(project.id, { demoUrl: event.target.value })} placeholder="演示地址" />
+                <Input value={project.demoUrl || ""} onChange={(event) => updateProject(project.id, { demoUrl: event.target.value })} placeholder={t("adminProjects.demoUrlPlaceholder", "演示地址")} />
                 {project.showOnHome === false && (
                   <div className="flex items-start gap-1.5 rounded-lg border border-amber-300/18 bg-amber-400/8 p-2 text-[11px] leading-4 text-amber-100">
                     <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    当前不会显示在前台。
+                    {t("adminProjects.hiddenHint", "当前不会显示在前台。")}
                   </div>
                 )}
               </div>

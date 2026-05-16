@@ -7,6 +7,14 @@ const WEGAME_API_URL = "https://www.wegame.com.cn/api/v1/wegame.rail.game.UserCe
 const CACHE_DURATION = 4 * 60 * 60 * 1000
 const wegameCache: Record<string, { data: any; timestamp: number }> = {}
 
+function localeFromRequest(request: Request) {
+  return new URL(request.url).searchParams.get("lang") === "en" ? "en" : "cn"
+}
+
+function msg(locale: string, cn: string, en: string) {
+  return locale === "en" ? en : cn
+}
+
 interface RawWeGameInfo {
   game_id?: string
   game_name?: string
@@ -36,7 +44,7 @@ function toNumber(value: unknown) {
 function mapGame(game: RawWeGameInfo) {
   return {
     gameId: game.game_id || "",
-    name: game.game_name || "未知游戏",
+    name: game.game_name || "Unknown game",
     slogan: game.slogan || "",
     iconUrl: game.banner_icon_url || game.game_banner_logo?.url || game.poster_url_h || game.poster_url_v || "",
     posterUrl: game.poster_url_h || game.poster_url_v || game.banner_icon_url || game.game_banner_logo?.url || "",
@@ -49,6 +57,7 @@ function mapGame(game: RawWeGameInfo) {
 }
 
 export async function GET(request: Request) {
+  const locale = localeFromRequest(request)
   try {
     const settings = await getSettings({ profile: {} })
     const profile = settings.profile || {}
@@ -57,7 +66,7 @@ export async function GET(request: Request) {
 
     if (!cookie || !tgpId) {
       return NextResponse.json(
-        { success: false, message: "WeGame TGP ID 或 Cookie 未配置" },
+        { success: false, message: msg(locale, "WeGame TGP ID 或 Cookie 未配置", "WeGame TGP ID or Cookie is not configured") },
         { status: 400 }
       )
     }
@@ -95,7 +104,7 @@ export async function GET(request: Request) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: `WeGame 请求失败：${response.status}` },
+        { success: false, message: `${msg(locale, "WeGame 请求失败", "WeGame request failed")}: ${response.status}` },
         { status: response.status }
       )
     }
@@ -103,7 +112,7 @@ export async function GET(request: Request) {
     const data = await response.json()
     if (data?.result?.error_code !== 0) {
       return NextResponse.json(
-        { success: false, message: data?.result?.error_message || "WeGame 返回错误" },
+        { success: false, message: data?.result?.error_message || msg(locale, "WeGame 返回错误", "WeGame returned an error") },
         { status: 502 }
       )
     }
@@ -131,7 +140,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("[API WeGame] Error fetching WeGame data:", error)
     return NextResponse.json(
-      { success: false, message: error instanceof Error ? error.message : "WeGame 数据获取失败" },
+      { success: false, message: error instanceof Error ? error.message : msg(locale, "WeGame 数据获取失败", "Failed to fetch WeGame data") },
       { status: 500 }
     )
   }

@@ -1,10 +1,13 @@
 import { Redis } from "@upstash/redis";
 
 const SETTINGS_KEY = process.env.SETTINGS_REDIS_KEY || "huoyu:settings";
+const SETTINGS_CACHE_TTL = 30 * 1000;
+const SETTINGS_FETCH_TIMEOUT = 2500;
 
 type Settings = Record<string, any>;
 
 let redisClient: Redis | null | undefined;
+let settingsCache: { value: Settings; timestamp: number } | null = null;
 
 function getRedisEnv() {
   return {
@@ -38,7 +41,29 @@ function normalizeStoredSettings(value: unknown, defaultSettings: Settings) {
   return value as Settings;
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Redis settings request timed out after ${ms}ms`)), ms);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
 export async function getSettings(defaultSettings: Settings = {}) {
+  const now = Date.now();
+  if (settingsCache && now - settingsCache.timestamp < SETTINGS_CACHE_TTL) {
+    return settingsCache.value;
+  }
+
   const redis = getRedis();
 
   if (!redis) {
@@ -46,11 +71,32 @@ export async function getSettings(defaultSettings: Settings = {}) {
       throw new Error("缺少 Upstash Redis 环境变量，请在 Vercel 中检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。");
     }
 
+    settingsCache = { value: defaultSettings, timestamp: now };
     return defaultSettings;
   }
 
-  const storedSettings = normalizeStoredSettings(await redis.get(SETTINGS_KEY), defaultSettings);
-  return storedSettings || defaultSettings;
+  try {
+    const storedSettings = normalizeStoredSettings(
+      await withTimeout(redis.get(SETTINGS_KEY), SETTINGS_FETCH_TIMEOUT),
+      defaultSettings
+    );
+    const resolvedSettings = storedSettings || defaultSettings;
+    settingsCache = { value: resolvedSettings, timestamp: Date.now() };
+    return resolvedSettings;
+  } catch (error) {
+    if (settingsCache) {
+      console.warn("[settings-store] Falling back to cached settings:", error);
+      return settingsCache.value;
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[settings-store] Falling back to default settings:", error);
+      settingsCache = { value: defaultSettings, timestamp: Date.now() };
+      return defaultSettings;
+    }
+
+    throw error;
+  }
 }
 
 export async function saveSettings(settings: Settings) {
@@ -61,6 +107,7 @@ export async function saveSettings(settings: Settings) {
   }
 
   await redis.set(SETTINGS_KEY, settings);
+  settingsCache = { value: settings, timestamp: Date.now() };
   return settings;
 }
 

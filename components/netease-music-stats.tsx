@@ -4,6 +4,7 @@ import { memo, useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SiNeteasecloudmusic } from "react-icons/si"
 import { toast } from "sonner"
+import { useLocaleText } from "@/lib/use-locale-text"
 
 interface SongRecord {
   rank: number
@@ -18,14 +19,19 @@ interface SongRecord {
 const CACHE_KEY = "netease_music_recent_records"
 const CACHE_EXPIRY = 4 * 60 * 60 * 1000
 
-function formatCacheTime(ms?: number) {
+interface NeteaseMusicStatsProps {
+  initialUserId?: string
+}
+
+function formatCacheTime(ms: number | undefined, t: ReturnType<typeof useLocaleText>["t"]) {
   const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
   const hours = Math.floor(remainingMinutes / 60)
   const minutes = remainingMinutes % 60
-  return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
+  return hours > 0 ? t("cache.timeHoursMinutes", "{{hours}}h {{minutes}}m", { hours, minutes }) : t("cache.timeMinutes", "{{minutes}}m", { minutes })
 }
 
-export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
+export const NeteaseMusicStats = memo(function NeteaseMusicStats({ initialUserId }: NeteaseMusicStatsProps) {
+  const { t, locale } = useLocaleText()
   const [records, setRecords] = useState<SongRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +49,7 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
           if (parsed.timestamp && now - parsed.timestamp < CACHE_EXPIRY) {
             setRecords(parsed.records || [])
             setLoading(false)
-            toast.success(`使用网易云音乐缓存数据，剩余 ${formatCacheTime(parsed.timestamp + CACHE_EXPIRY - now)}`, {
+            toast.success(t("neteaseMusic.cacheUsed", "Using cached NetEase Cloud Music data, {{time}} remaining", { time: formatCacheTime(parsed.timestamp + CACHE_EXPIRY - now, t) }), {
               position: "top-center",
               duration: 3000,
               id: "netease-cache-info",
@@ -58,24 +64,26 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
       }
 
       try {
-        const profileRes = await fetch("/api/profile-public", { cache: "no-store" })
-        const profile = await profileRes.json()
-        const uid = profile.netease_user_id
+        const uid = initialUserId || await (async () => {
+          const profileRes = await fetch("/api/profile-public", { cache: "no-store" })
+          const profile = await profileRes.json()
+          return profile.netease_user_id
+        })()
 
         if (!uid) {
-          setError("未配置网易云音乐用户 ID")
+          setError(t("neteaseMusic.noUserId", "NetEase Cloud Music user ID is not configured"))
           return
         }
 
-        const res = await fetch(`/api/netease-music?uid=${encodeURIComponent(uid)}`)
+        const res = await fetch(`/api/netease-music?uid=${encodeURIComponent(uid)}&lang=${locale}`)
         const data = await res.json()
         if (!res.ok || !Array.isArray(data.data)) {
-          throw new Error(data.message || "网易云音乐数据获取失败")
+          throw new Error(data.message || t("neteaseMusic.fetchError", "Failed to fetch NetEase Cloud Music data"))
         }
 
         setRecords(data.data)
         if (data.cached) {
-          toast.success(`使用网易云音乐缓存数据，剩余 ${formatCacheTime(data.expiresInMs)}`, {
+          toast.success(t("neteaseMusic.cacheUsed", "Using cached NetEase Cloud Music data, {{time}} remaining", { time: formatCacheTime(data.expiresInMs, t) }), {
             position: "top-center",
             duration: 3000,
             id: "netease-cache-info",
@@ -85,14 +93,14 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
         }
         localStorage.setItem(CACHE_KEY, JSON.stringify({ records: data.data, timestamp: now }))
       } catch (err) {
-        setError(err instanceof Error ? err.message : "网易云音乐数据获取失败")
+        setError(err instanceof Error ? err.message : t("neteaseMusic.fetchError", "Failed to fetch NetEase Cloud Music data"))
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [initialUserId, locale, t])
 
   const content = useMemo(() => {
     if (loading) {
@@ -116,7 +124,7 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
     }
 
     if (records.length === 0) {
-      return <p className="rounded-xl bg-white/20 p-4 text-sm font-semibold text-muted-foreground">暂无听歌记录</p>
+      return <p className="rounded-xl bg-white/20 p-4 text-sm font-semibold text-muted-foreground">{t("neteaseMusic.noRecords", "No listening records yet")}</p>
     }
 
     return (
@@ -133,7 +141,7 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-foreground">{song.name}</p>
                 <p className="truncate text-xs font-semibold text-muted-foreground">
-                  {song.artists.join(" / ")} · {song.playCount}次
+                  {song.artists.join(" / ")} · {song.playCount} {t("neteaseMusic.playCountUnit", "plays")}
                 </p>
               </div>
             </a>
@@ -141,20 +149,20 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats() {
         ))}
       </ul>
     )
-  }, [error, loading, records])
+  }, [error, loading, records, t])
 
   return (
     <Card className="life-glass-card flex w-full flex-col overflow-hidden">
       <CardHeader className="bg-transparent pb-2">
         <CardTitle className="flex items-center justify-center gap-3 text-2xl font-black">
           <SiNeteasecloudmusic className="h-8 w-8 text-red-500" />
-          聆听世界
+          {t("neteaseMusic.title", "Listening World")}
         </CardTitle>
       </CardHeader>
       <CardContent className="w-full bg-transparent pt-3">
         <h4 className="mb-3 flex items-center gap-2 text-md font-semibold">
           <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
-          最近一周听歌
+          {t("neteaseMusic.recentPlaysTitle", "Songs played this week")}
         </h4>
         {content}
       </CardContent>
