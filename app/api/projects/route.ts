@@ -33,6 +33,14 @@ function githubFullNameFromProject(project: any) {
   return match ? `${match[1]}/${match[2]}` : "";
 }
 
+function projectIdentityKey(project: any) {
+  if (project.githubRepoId) return `id:${String(project.githubRepoId)}`;
+  if (project.githubNodeId) return `node:${String(project.githubNodeId)}`;
+  if (project.repoFullName) return `repo:${String(project.repoFullName).toLowerCase()}`;
+  if (project.githubUrl) return `url:${normalizeGithubUrl(project.githubUrl)}`;
+  return `title:${String(project.title || project.id || "").toLowerCase()}`;
+}
+
 function githubHeaders(token?: string, accept = "application/vnd.github+json") {
   return {
     Accept: accept,
@@ -159,10 +167,7 @@ function githubTopicsFromRepo(repo: any) {
 function dedupeProjects(projects: any[]) {
   const seen = new Set<string>();
   return projects.filter((project) => {
-    const key =
-      (project.repoFullName && `repo:${String(project.repoFullName).toLowerCase()}`) ||
-      (project.githubUrl && `url:${normalizeGithubUrl(project.githubUrl)}`) ||
-      `title:${String(project.title || project.id || "").toLowerCase()}`;
+    const key = projectIdentityKey(project);
 
     if (seen.has(key)) return false;
     seen.add(key);
@@ -193,15 +198,27 @@ export async function GET(request: Request) {
       });
     const projectsWithGithubData = await Promise.all(
       projects.map(async (project: any) => {
-        const [imageUrl, repo] = await Promise.all([
-          fetchReadmeCoverImage(project, token),
-          fetchGithubRepoMeta(project, token),
-        ]);
+        const repo = await fetchGithubRepoMeta(project, token);
+        const imageUrl = await fetchReadmeCoverImage(
+          {
+            ...project,
+            repoFullName: repo?.full_name || project.repoFullName,
+            githubUrl: repo?.html_url || project.githubUrl,
+          },
+          token
+        );
         const repoTopics = githubTopicsFromRepo(repo);
 
         return {
           ...project,
+          title: repo?.name || project.title,
+          description: repo?.description || project.description,
           imageUrl,
+          githubUrl: repo?.html_url || project.githubUrl,
+          repoName: repo?.name || project.repoName,
+          repoFullName: repo?.full_name || project.repoFullName,
+          githubRepoId: repo?.id ? String(repo.id) : project.githubRepoId,
+          githubNodeId: repo?.node_id || project.githubNodeId,
           tags: repo ? repoTopics : Array.isArray(project.tags) ? project.tags : [],
           language: repo?.language ?? project.language ?? null,
           stars: typeof repo?.stargazers_count === "number" ? repo.stargazers_count : project.stars,

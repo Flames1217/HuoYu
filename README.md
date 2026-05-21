@@ -114,6 +114,34 @@ SETTINGS_REDIS_KEY=huoyu:settings
 
 如果同一个 Redis 里跑多个站点，记得把 `SETTINGS_REDIS_KEY` 改成不同值。
 
+### 5. 自动同步 GitHub 项目
+
+项目展示会自动同步 GitHub 仓库元数据。同步内容包括仓库名、简介、语言、topics、Star/Fork、GitHub 地址和最近更新时间。
+
+同步逻辑使用 GitHub 仓库 ID 作为稳定身份，不再只依赖 `owner/name`。所以仓库从 `claude-switcher` 改名为 `ClaudeHub` 后，后台原来勾选的“前台展示”、排序值和演示地址会保留，前台显示的库名与简介会跟随 GitHub 最新数据刷新。
+
+项目里已经提供内部同步接口：
+
+```text
+GET /api/cron/github-repos
+Authorization: Bearer your_random_cron_secret
+```
+
+部署时请配置：
+
+```env
+CRON_SECRET=your_random_cron_secret
+```
+
+仓库内置 GitHub Actions 定时任务：`.github/workflows/sync-github-repos.yml`。它会每 8 小时请求一次 `/api/cron/github-repos`，也就是每天 3 次。你需要在 GitHub 仓库 Settings -> Secrets and variables -> Actions 里配置：
+
+| Secret | 说明 |
+| --- | --- |
+| `SITE_URL` | 站点正式访问地址，例如 `https://huoyu.example.com` |
+| `CRON_SECRET` | 和部署平台环境变量里的 `CRON_SECRET` 保持一致 |
+
+如果你使用 Vercel Pro，也可以改用 Vercel Cron；但 Vercel Hobby 免费版 Cron 通常只支持每天一次，所以默认使用 GitHub Actions 来满足 8 小时同步一次的需求。
+
 ## 环境变量
 
 真实密钥只放在 `.env.local` 或部署平台环境变量中，不要提交到仓库。
@@ -124,6 +152,7 @@ SETTINGS_REDIS_KEY=huoyu:settings
 | --- | --- |
 | `PASSWORD` | 管理后台登录密码 |
 | `NEXTAUTH_SECRET` | NextAuth 会话签名密钥 |
+| `CRON_SECRET` | GitHub 项目自动同步接口使用的 Bearer Token |
 | `UPSTASH_REDIS_REST_URL` | Upstash REST URL，和 `KV_REST_API_URL` 二选一 |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash REST Token，和 `KV_REST_API_TOKEN` 二选一 |
 | `KV_REST_API_URL` | Vercel Marketplace Upstash REST URL，和 `UPSTASH_REDIS_REST_URL` 二选一 |

@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FiExternalLink, FiGithub, FiSearch } from "react-icons/fi";
+import { FiClock, FiExternalLink, FiGithub, FiSearch } from "react-icons/fi";
 import { GoRepoForked, GoStar } from "react-icons/go";
 import { useLocaleText } from "@/lib/use-locale-text";
 
@@ -17,10 +17,12 @@ interface Project {
   githubUrl?: string;
   demoUrl?: string;
   repoFullName?: string;
+  githubRepoId?: string;
   language?: string | null;
   stars?: number;
   forks?: number;
   updatedAt?: string;
+  pushedAt?: string;
 }
 
 function GitHubActionStat({
@@ -79,9 +81,23 @@ function ProjectLanguage({ language }: { language?: string | null }) {
   );
 }
 
+function formatProjectDate(value: string | undefined, locale: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const localeTag = locale === "cn" ? "zh-CN" : locale;
+  return new Intl.DateTimeFormat(localeTag, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
 function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const { t } = useLocaleText();
+  const { t, locale } = useLocaleText();
   const hasGithubStats = Boolean(project.repoFullName);
+  const updatedLabel = formatProjectDate(project.updatedAt || project.pushedAt, locale);
 
   return (
     <article className="group relative flex min-h-[320px] flex-col overflow-hidden rounded-lg border border-slate-400/18 bg-slate-950/60 shadow-xl shadow-black/24 transition duration-300 hover:-translate-y-1 hover:border-cyan-300/45 hover:bg-slate-900/75 hover:shadow-cyan-950/25">
@@ -105,7 +121,15 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
 
         <h3 className="text-lg font-bold tracking-tight text-white">{project.title}</h3>
-        <ProjectLanguage language={project.language} />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <ProjectLanguage language={project.language} />
+          {updatedLabel && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/15 bg-emerald-400/8 px-2.5 py-1 text-xs font-medium text-emerald-100/85">
+              <FiClock className="h-3.5 w-3.5" />
+              {t("common.lastUpdated", "Last updated")} {updatedLabel}
+            </span>
+          )}
+        </div>
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-zinc-400">{project.description || t("projectsSection.noDescription", "This repository has no description yet.")}</p>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -178,10 +202,12 @@ export function ProjectsSection() {
             githubUrl: project.githubUrl || "",
             demoUrl: project.demoUrl || "",
             repoFullName: project.repoFullName || "",
+            githubRepoId: project.githubRepoId ? String(project.githubRepoId) : "",
             language: project.language || null,
             stars: project.stars || 0,
             forks: project.forks || 0,
             updatedAt: project.updatedAt || project.pushedAt || "",
+            pushedAt: project.pushedAt || "",
           }))
         );
       } catch (err) {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FiAlertCircle, FiExternalLink, FiGithub, FiRefreshCw, FiSave, FiSearch, FiStar } from "react-icons/fi";
+import { FiAlertCircle, FiClock, FiExternalLink, FiGithub, FiRefreshCw, FiSave, FiSearch, FiStar } from "react-icons/fi";
 import { GoRepoForked, GoStar } from "react-icons/go";
 
 interface Project {
@@ -24,6 +24,8 @@ interface Project {
   priority?: number;
   repoName?: string;
   repoFullName?: string;
+  githubRepoId?: string;
+  githubNodeId?: string;
   language?: string | null;
   ownerLogin?: string;
   isFork?: boolean;
@@ -33,6 +35,7 @@ interface Project {
   openIssues?: number;
   updatedAt?: string;
   pushedAt?: string;
+  syncedAt?: string;
 }
 
 const languageColors: Record<string, string> = {
@@ -77,6 +80,8 @@ function normalizeProject(project: any, index: number): Project {
     priority: typeof project.priority === "number" ? project.priority : index,
     repoName: project.repoName || project.title || "",
     repoFullName: project.repoFullName || "",
+    githubRepoId: project.githubRepoId ? String(project.githubRepoId) : "",
+    githubNodeId: project.githubNodeId || "",
     language: project.language || null,
     ownerLogin: project.ownerLogin || "",
     isFork: project.isFork === true,
@@ -86,7 +91,21 @@ function normalizeProject(project: any, index: number): Project {
     openIssues: project.openIssues || 0,
     updatedAt: project.updatedAt || project.pushedAt || "",
     pushedAt: project.pushedAt || "",
+    syncedAt: project.syncedAt || "",
   };
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function GitHubActionStat({ type, count }: { type: "star" | "fork"; count: number }) {
@@ -321,6 +340,12 @@ export default function AdminProjectsPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <LanguagePill language={project.language} unknownLabel={t("adminProjects.unknownLanguage", "Unknown")} />
+                    {project.updatedAt && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/15 bg-emerald-400/8 px-2 py-1 text-xs text-emerald-100">
+                        <FiClock className="h-3 w-3" />
+                        {t("common.lastUpdated", "Last updated")} {formatDateTime(project.updatedAt)}
+                      </span>
+                    )}
                     {project.githubUrl && (
                       <a href={project.githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-cyan-200 hover:text-cyan-50">
                         {t("adminProjects.githubLinkLabel", "GitHub")} <FiExternalLink className="h-3 w-3" />
