@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import { useTolgee } from "@tolgee/react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,13 +20,34 @@ export function LanguageSwitcher() {
   const pathname = usePathname() || `/${defaultLocale}`
   const currentLocale = getLocaleFromPathname(pathname)
   const { t } = useLocaleText()
+  const routeTimerRef = useRef<number | null>(null)
+  const [isSwitching, setIsSwitching] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (routeTimerRef.current) {
+        window.clearTimeout(routeTimerRef.current)
+      }
+    }
+  }, [])
 
   const changeLanguage = (locale: Locale) => {
-    if (locale === currentLocale) return
+    if (locale === currentLocale || isSwitching) return
 
     const nextPath = withLocalePath(locale, pathname)
+    setIsSwitching(true)
+    window.dispatchEvent(new CustomEvent("huoyu:locale-transition-start"))
     void tolgee.changeLanguage(localeToLanguageTag(locale))
-    router.replace(nextPath, { scroll: false })
+
+    if (routeTimerRef.current) {
+      window.clearTimeout(routeTimerRef.current)
+    }
+
+    routeTimerRef.current = window.setTimeout(() => {
+      router.replace(nextPath, { scroll: false })
+      routeTimerRef.current = null
+      window.setTimeout(() => setIsSwitching(false), 360)
+    }, 140)
   }
 
   return (
@@ -41,7 +63,7 @@ export function LanguageSwitcher() {
           <DropdownMenuItem
             key={option.locale}
             onClick={() => changeLanguage(option.locale)}
-            disabled={currentLocale === option.locale}
+            disabled={currentLocale === option.locale || isSwitching}
           >
             {option.label}
           </DropdownMenuItem>

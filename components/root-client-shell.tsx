@@ -3,7 +3,7 @@
 import type React from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { AppTolgeeProvider } from "@/components/tolgee-provider";
@@ -12,6 +12,8 @@ import { Footer } from "@/components/footer";
 import { ConsoleBadge } from "@/components/console-badge";
 import useAutoThemeByBeijingTime from "@/hooks/use-auto-theme-by-beijing-time";
 import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/tolgee";
+
+type LocaleTransitionStage = "idle" | "exiting" | "entering";
 
 export function RootClientShell({
   children,
@@ -26,11 +28,44 @@ export function RootClientShell({
   const pathname = usePathname();
   const isAdminPage = isAdminPath(pathname);
   const locale = getLocaleFromPathname(pathname);
+  const previousLocaleRef = useRef(locale);
+  const transitionFrameRef = useRef<number | null>(null);
+  const [transitionStage, setTransitionStage] = useState<LocaleTransitionStage>("idle");
 
   useAutoThemeByBeijingTime();
 
   useEffect(() => {
     document.documentElement.lang = localeToLanguageTag(locale);
+  }, [locale]);
+
+  useEffect(() => {
+    const handleLocaleTransitionStart = () => {
+      if (transitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(transitionFrameRef.current);
+      }
+      setTransitionStage("exiting");
+    };
+
+    window.addEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
+
+    return () => {
+      window.removeEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
+      if (transitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(transitionFrameRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousLocaleRef.current === locale) return;
+
+    previousLocaleRef.current = locale;
+    setTransitionStage("entering");
+    transitionFrameRef.current = window.requestAnimationFrame(() => {
+      transitionFrameRef.current = window.requestAnimationFrame(() => {
+        setTransitionStage("idle");
+      });
+    });
   }, [locale]);
 
   useEffect(() => {
@@ -63,17 +98,19 @@ export function RootClientShell({
       <AuthProvider>
         <AppTolgeeProvider locale={locale}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-            {isAdminPage ? (
-              <div className="flex-grow">{children}</div>
-            ) : (
-              <div className="front-page-shell zero-space flex min-h-screen flex-col">
-                <div className="flex-grow">
-                  {children}
-                  <Script src="https://api.vvhan.com/api/script/yinghua" strategy="lazyOnload" />
+            <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
+              {isAdminPage ? (
+                <div className="flex-grow">{children}</div>
+              ) : (
+                <div className="front-page-shell zero-space flex min-h-screen flex-col">
+                  <div className="flex-grow">
+                    {children}
+                    <Script src="https://api.vvhan.com/api/script/yinghua" strategy="lazyOnload" />
+                  </div>
+                  <Footer />
                 </div>
-                <Footer />
-              </div>
-            )}
+              )}
+            </div>
             <Toaster
               position="top-center"
               richColors
