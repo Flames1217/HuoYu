@@ -17,18 +17,18 @@ HuoYu 的实现离不开这些优秀的开源项目与服务：
 
 <a href="https://www.radix-ui.com/"><img src="https://cdn.simpleicons.org/radixui" width="16" height="16" align="center" alt="Radix UI" /> Radix UI</a> ·
 <a href="https://www.framer.com/motion/"><img src="https://cdn.simpleicons.org/framer" width="16" height="16" align="center" alt="Framer Motion" /> Framer Motion</a> ·
-<a href="https://react-icons.github.io/react-icons/">React Icons</a> ·
-<a href="https://recharts.org/">Recharts</a> ·
-<a href="https://dndkit.com/">dnd kit</a> ·
-<a href="https://react-hook-form.com/">React Hook Form</a> ·
-<a href="https://zod.dev/">Zod</a> ·
-<a href="https://sonner.emilkowal.ski/">Sonner</a> ·
-<a href="https://particles.js.org/">tsParticles</a> ·
-<a href="https://www.embla-carousel.com/">Embla Carousel</a>
+<a href="https://react-icons.github.io/react-icons/"><img src="https://github.com/react-icons.png?size=32" width="16" height="16" align="center" alt="React Icons" /> React Icons</a> ·
+<a href="https://recharts.org/"><img src="https://github.com/recharts.png?size=32" width="16" height="16" align="center" alt="Recharts" /> Recharts</a> ·
+<a href="https://dndkit.com/"><img src="https://github.com/clauderic.png?size=32" width="16" height="16" align="center" alt="dnd kit" /> dnd kit</a> ·
+<a href="https://react-hook-form.com/"><img src="https://github.com/react-hook-form.png?size=32" width="16" height="16" align="center" alt="React Hook Form" /> React Hook Form</a> ·
+<a href="https://zod.dev/"><img src="https://github.com/colinhacks.png?size=32" width="16" height="16" align="center" alt="Zod" /> Zod</a> ·
+<a href="https://sonner.emilkowal.ski/"><img src="https://github.com/emilkowalski.png?size=32" width="16" height="16" align="center" alt="Sonner" /> Sonner</a> ·
+<a href="https://particles.js.org/"><img src="https://github.com/tsparticles.png?size=32" width="16" height="16" align="center" alt="tsParticles" /> tsParticles</a> ·
+<a href="https://www.embla-carousel.com/"><img src="https://github.com/davidjerleke.png?size=32" width="16" height="16" align="center" alt="Embla Carousel" /> Embla Carousel</a>
 
 **认证、数据与部署**
 
-<a href="https://next-auth.js.org/">NextAuth.js</a> ·
+<a href="https://next-auth.js.org/"><img src="https://github.com/nextauthjs.png?size=32" width="16" height="16" align="center" alt="NextAuth.js" /> NextAuth.js</a> ·
 <a href="https://upstash.com/"><img src="https://cdn.simpleicons.org/upstash" width="16" height="16" align="center" alt="Upstash" /> Upstash Redis</a> ·
 <a href="https://vercel.com/"><img src="https://cdn.simpleicons.org/vercel" width="16" height="16" align="center" alt="Vercel" /> Vercel</a> ·
 <a href="https://github.com/"><img src="https://cdn.simpleicons.org/github" width="16" height="16" align="center" alt="GitHub" /> GitHub</a> ·
@@ -38,14 +38,14 @@ HuoYu 的实现离不开这些优秀的开源项目与服务：
 
 **国际化与内容来源**
 
-<a href="https://tolgee.io/">Tolgee</a> ·
-<a href="https://github.com/xxnuo/MTranServer">MTranServer</a> ·
+<a href="https://tolgee.io/"><img src="https://github.com/tolgee.png?size=32" width="16" height="16" align="center" alt="Tolgee" /> Tolgee</a> ·
+<a href="https://github.com/xxnuo/MTranServer"><img src="https://github.com/xxnuo.png?size=32" width="16" height="16" align="center" alt="MTranServer" /> MTranServer</a> ·
 <a href="https://store.steampowered.com/"><img src="https://cdn.simpleicons.org/steam" width="16" height="16" align="center" alt="Steam" /> Steam</a> ·
 <a href="https://wakatime.com/"><img src="https://cdn.simpleicons.org/wakatime" width="16" height="16" align="center" alt="WakaTime" /> WakaTime</a> ·
 <a href="https://music.163.com/"><img src="https://cdn.simpleicons.org/neteasecloudmusic" width="16" height="16" align="center" alt="NetEase Cloud Music" /> 网易云音乐</a> ·
-<a href="https://www.wegame.com.cn/">WeGame</a> ·
-<a href="https://github.com/grubersjoe/react-github-calendar">react-github-calendar</a> ·
-<a href="https://github.com/rbren/rss-parser">rss-parser</a>
+<a href="https://www.wegame.com.cn/"><img src="https://cdn.simpleicons.org/wegame" width="16" height="16" align="center" alt="WeGame" /> WeGame</a> ·
+<a href="https://github.com/grubersjoe/react-github-calendar"><img src="https://github.com/grubersjoe.png?size=32" width="16" height="16" align="center" alt="react-github-calendar" /> react-github-calendar</a> ·
+<a href="https://github.com/rbren/rss-parser"><img src="https://github.com/rbren.png?size=32" width="16" height="16" align="center" alt="rss-parser" /> rss-parser</a>
 
 # 🔥 HuoYu | 无尽火域
 
@@ -54,19 +54,19 @@ HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资
 访问路径带语言前缀：
 
 - 前台：`/cn`、`/en`、`/es`、`/fr`、`/ja`
-- 后台：`/cn/admin`
+- 后台：`/cn/admin`、`/en/admin`、`/es/admin`、`/fr/admin`、`/ja/admin`
 
 ## 🧩 需要部署的服务
 
 | 服务 | 是否必需 | 用途 |
 | --- | --- | --- |
-| Vercel | 必需 | 部署 HuoYu 主站 |
-| Upstash Redis | 必需 | 保存后台配置、项目配置和缓存数据 |
-| GitHub Actions | 推荐 | 每 8 小时自动同步 GitHub 项目元数据 |
-| Tolgee | 可选但推荐 | 管理多语言翻译；建议自托管，避免 Tolgee Cloud 免费额度限制 |
-| MTranServer | 可选 | 用自己的翻译接口批量补全本地语言包 |
+| Vercel | 必需 | 当前主站部署平台 |
+| Upstash Redis | 必需 | 使用 Upstash 免费云 Redis 或 Vercel Marketplace 集成，保存后台配置、项目配置和缓存数据 |
+| GitHub Actions | 推荐 | 当前用于每 8 小时自动同步 GitHub 项目元数据 |
+| Tolgee | 可选但推荐 | 当前使用自托管实例 `https://tolgee.viper3.top` 管理多语言翻译 |
+| MTranServer | 可选 | 当前使用自建接口 `https://tran.viper3.top` 批量补全本地语言包 |
 
-最小可运行只需要 Vercel + Upstash Redis。Tolgee 和 MTranServer 主要用于维护翻译，不影响站点前台用本地语言包正常运行。
+最小可运行只需要 Vercel + Upstash Redis。当前站点的翻译维护使用自托管 Tolgee 和 MTranServer；前台运行时仍优先读取本地语言包，所以翻译服务短暂不可用也不会影响页面展示。
 
 ## 🚀 部署顺序
 
@@ -79,24 +79,18 @@ pnpm install
 cp .env.example .env.local
 ```
 
-Windows PowerShell：
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
 ### 2. 创建 Redis 🗄️
 
-创建一个 Upstash Redis 实例，拿到 REST URL 和 Token。
+创建一个 Upstash Redis 云实例，免费套餐就可以跑这个站点。你可以直接在 Upstash 控制台创建，也可以在 Vercel Marketplace 里添加 Upstash 集成。
 
-手动创建 Upstash 时配置：
+在 Upstash 控制台创建时，填这组变量：
 
 ```env
 UPSTASH_REDIS_REST_URL=your_upstash_redis_rest_url
 UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_rest_token
 ```
 
-如果通过 Vercel Marketplace 连接 Upstash，也可以使用：
+如果通过 Vercel Marketplace 连接 Upstash，通常会自动注入这组变量：
 
 ```env
 KV_REST_API_URL=your_kv_rest_api_url
@@ -129,8 +123,8 @@ GITHUB_TOKEN=your_github_token
 
 部署成功后访问：
 
-- 前台：`https://your-domain.com/cn`
-- 后台：`https://your-domain.com/cn/admin`
+- 前台：`https://viper3.top/cn`
+- 后台：`https://viper3.top/cn/admin`，其他语言后台入口同样可用，例如 `/en/admin`、`/ja/admin`
 
 登录后台后按顺序配置：
 
@@ -167,7 +161,7 @@ Authorization: Bearer your_random_cron_secret
 
 | Secret | 示例 |
 | --- | --- |
-| `SITE_URL` | `https://your-domain.com` |
+| `SITE_URL` | `https://viper3.top` |
 | `CRON_SECRET` | 和 Vercel 里的 `CRON_SECRET` 一致 |
 
 Vercel Hobby 免费版 Cron 通常只支持每天一次，所以默认用 GitHub Actions 实现每天 3 次同步。
@@ -176,12 +170,12 @@ Vercel Hobby 免费版 Cron 通常只支持每天一次，所以默认用 GitHub
 
 ### Tolgee 🦎
 
-推荐自托管 Tolgee。自托管可以避开 Tolgee Cloud 免费版的字符串数量限制，适合把本地语言包完整同步进去。
+当前使用自托管 Tolgee：`https://tolgee.viper3.top`。自托管可以避开 Tolgee Cloud 免费版的字符串数量限制，适合把本地语言包完整同步进去。
 
 服务端同步变量只放 `.env.local` 或部署平台环境变量，不要提交到仓库：
 
 ```env
-TOLGEE_API_URL=https://your-tolgee-domain.com
+TOLGEE_API_URL=https://tolgee.viper3.top
 TOLGEE_API_KEY=your_tolgee_server_api_key
 TOLGEE_PROJECT_ID=1
 ```
@@ -191,7 +185,7 @@ TOLGEE_PROJECT_ID=1
 如果要在前台连接 Tolgee 在线调试，可以额外配置项目级前端 API Key：
 
 ```env
-NEXT_PUBLIC_TOLGEE_API_URL=https://your-tolgee-domain.com
+NEXT_PUBLIC_TOLGEE_API_URL=https://tolgee.viper3.top
 NEXT_PUBLIC_TOLGEE_API_KEY=your_tolgee_project_client_key
 NEXT_PUBLIC_TOLGEE_PROJECT_ID=1
 ```
@@ -200,10 +194,10 @@ NEXT_PUBLIC_TOLGEE_PROJECT_ID=1
 
 ### MTranServer 🧠
 
-MTranServer 是可自托管的翻译接口，只在维护语言包时使用，主站运行不依赖它。
+当前使用自建 MTranServer 接口：`https://tran.viper3.top`。它只在维护语言包时使用，主站运行不依赖它。
 
 ```env
-MTRAN_API_URL=https://your-mtran-domain.com
+MTRAN_API_URL=https://tran.viper3.top
 MTRAN_API_KEY=your_mtran_api_key
 ```
 
@@ -240,12 +234,6 @@ node scripts/translate-locales-from-en.mjs
 
 ```bash
 TOLGEE_SKIP_NEW_KEYS=false node scripts/sync-tolgee-direct.mjs
-```
-
-Windows PowerShell：
-
-```powershell
-$env:TOLGEE_SKIP_NEW_KEYS='false'; node scripts\sync-tolgee-direct.mjs
 ```
 
 之后如果只想覆盖 Tolgee 里已有 key，可以直接运行：
