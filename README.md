@@ -1,6 +1,53 @@
 ![HuoYu](https://socialify.git.ci/Flames1217/HuoYu/image?description=1&forks=1&language=1&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
-# HuoYu | 火域
+## 🙏 致谢
+
+HuoYu 的实现离不开这些优秀的开源项目与服务：
+
+**核心框架**
+
+<a href="https://nextjs.org/"><img src="https://cdn.simpleicons.org/nextdotjs" width="16" height="16" align="center" alt="Next.js" /> Next.js</a> ·
+<a href="https://react.dev/"><img src="https://cdn.simpleicons.org/react" width="16" height="16" align="center" alt="React" /> React</a> ·
+<a href="https://www.typescriptlang.org/"><img src="https://cdn.simpleicons.org/typescript" width="16" height="16" align="center" alt="TypeScript" /> TypeScript</a> ·
+<a href="https://tailwindcss.com/"><img src="https://cdn.simpleicons.org/tailwindcss" width="16" height="16" align="center" alt="Tailwind CSS" /> Tailwind CSS</a> ·
+<a href="https://nodejs.org/"><img src="https://cdn.simpleicons.org/nodedotjs" width="16" height="16" align="center" alt="Node.js" /> Node.js</a> ·
+<a href="https://pnpm.io/"><img src="https://cdn.simpleicons.org/pnpm" width="16" height="16" align="center" alt="pnpm" /> pnpm</a>
+
+**界面与交互**
+
+<a href="https://www.radix-ui.com/"><img src="https://cdn.simpleicons.org/radixui" width="16" height="16" align="center" alt="Radix UI" /> Radix UI</a> ·
+<a href="https://www.framer.com/motion/"><img src="https://cdn.simpleicons.org/framer" width="16" height="16" align="center" alt="Framer Motion" /> Framer Motion</a> ·
+<a href="https://react-icons.github.io/react-icons/">React Icons</a> ·
+<a href="https://recharts.org/">Recharts</a> ·
+<a href="https://dndkit.com/">dnd kit</a> ·
+<a href="https://react-hook-form.com/">React Hook Form</a> ·
+<a href="https://zod.dev/">Zod</a> ·
+<a href="https://sonner.emilkowal.ski/">Sonner</a> ·
+<a href="https://particles.js.org/">tsParticles</a> ·
+<a href="https://www.embla-carousel.com/">Embla Carousel</a>
+
+**认证、数据与部署**
+
+<a href="https://next-auth.js.org/">NextAuth.js</a> ·
+<a href="https://upstash.com/"><img src="https://cdn.simpleicons.org/upstash" width="16" height="16" align="center" alt="Upstash" /> Upstash Redis</a> ·
+<a href="https://vercel.com/"><img src="https://cdn.simpleicons.org/vercel" width="16" height="16" align="center" alt="Vercel" /> Vercel</a> ·
+<a href="https://github.com/"><img src="https://cdn.simpleicons.org/github" width="16" height="16" align="center" alt="GitHub" /> GitHub</a> ·
+<a href="https://docs.github.com/actions"><img src="https://cdn.simpleicons.org/githubactions" width="16" height="16" align="center" alt="GitHub Actions" /> GitHub Actions</a> ·
+<a href="https://www.docker.com/"><img src="https://cdn.simpleicons.org/docker" width="16" height="16" align="center" alt="Docker" /> Docker</a> ·
+<a href="https://www.postgresql.org/"><img src="https://cdn.simpleicons.org/postgresql" width="16" height="16" align="center" alt="PostgreSQL" /> PostgreSQL</a>
+
+**国际化与内容来源**
+
+<a href="https://tolgee.io/">Tolgee</a> ·
+<a href="https://github.com/xxnuo/MTranServer">MTranServer</a> ·
+<a href="https://store.steampowered.com/"><img src="https://cdn.simpleicons.org/steam" width="16" height="16" align="center" alt="Steam" /> Steam</a> ·
+<a href="https://wakatime.com/"><img src="https://cdn.simpleicons.org/wakatime" width="16" height="16" align="center" alt="WakaTime" /> WakaTime</a> ·
+<a href="https://music.163.com/"><img src="https://cdn.simpleicons.org/neteasecloudmusic" width="16" height="16" align="center" alt="NetEase Cloud Music" /> 网易云音乐</a> ·
+<a href="https://www.wegame.com.cn/">WeGame</a> ·
+<a href="https://github.com/grubersjoe/react-github-calendar">react-github-calendar</a> ·
+<a href="https://github.com/rbren/rss-parser">rss-parser</a>
+
+# 🔥 HuoYu | 无尽火域
 
 HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资料、技能、项目、GitHub、Steam、WeGame、网易云音乐、WakaTime 等数据；后台用来维护站点资料、项目展示和页脚内容。
 
@@ -9,7 +56,7 @@ HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资
 - 前台：`/cn`、`/en`、`/es`、`/fr`、`/ja`
 - 后台：`/cn/admin`
 
-## 需要部署的服务
+## 🧩 需要部署的服务
 
 | 服务 | 是否必需 | 用途 |
 | --- | --- | --- |
@@ -21,9 +68,9 @@ HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资
 
 最小可运行只需要 Vercel + Upstash Redis。Tolgee 和 MTranServer 主要用于维护翻译，不影响站点前台用本地语言包正常运行。
 
-## 部署顺序
+## 🚀 部署顺序
 
-### 1. 准备项目
+### 1. 准备项目 🧱
 
 ```bash
 git clone git@github.com:Flames1217/HuoYu.git
@@ -38,7 +85,7 @@ Windows PowerShell：
 Copy-Item .env.example .env.local
 ```
 
-### 2. 创建 Redis
+### 2. 创建 Redis 🗄️
 
 创建一个 Upstash Redis 实例，拿到 REST URL 和 Token。
 
@@ -56,7 +103,7 @@ KV_REST_API_URL=your_kv_rest_api_url
 KV_REST_API_TOKEN=your_kv_rest_api_token
 ```
 
-### 3. 配置主站环境变量
+### 3. 配置主站环境变量 🔐
 
 本地 `.env.local` 和 Vercel Project Settings -> Environment Variables 都需要配置：
 
@@ -76,7 +123,7 @@ GITHUB_TOKEN=your_github_token
 
 `GITHUB_TOKEN` 建议使用 GitHub fine-grained token，只给当前账号公开仓库读取权限即可。
 
-### 4. 部署到 Vercel
+### 4. 部署到 Vercel ▲
 
 把仓库导入 Vercel，填好上面的环境变量，然后部署。
 
@@ -99,7 +146,7 @@ SETTINGS_REDIS_KEY=huoyu:settings
 
 同一个 Redis 跑多个站点时，把 `SETTINGS_REDIS_KEY` 改成不同值。
 
-### 5. 配置 GitHub 项目自动同步
+### 5. 配置 GitHub 项目自动同步 🔁
 
 项目展示会同步 GitHub 仓库名、简介、语言、topics、Star/Fork、GitHub 地址和最近更新时间。同步逻辑使用 GitHub 仓库 ID，仓库改名后仍会保留后台的展示开关、排序和演示地址。
 
@@ -125,9 +172,9 @@ Authorization: Bearer your_random_cron_secret
 
 Vercel Hobby 免费版 Cron 通常只支持每天一次，所以默认用 GitHub Actions 实现每天 3 次同步。
 
-## 翻译服务
+## 🌐 翻译服务
 
-### Tolgee
+### Tolgee 🦎
 
 推荐自托管 Tolgee。自托管可以避开 Tolgee Cloud 免费版的字符串数量限制，适合把本地语言包完整同步进去。
 
@@ -151,7 +198,7 @@ NEXT_PUBLIC_TOLGEE_PROJECT_ID=1
 
 不要把个人访问令牌、PAT 或服务端 key 放进 `NEXT_PUBLIC_TOLGEE_API_KEY`。
 
-### MTranServer
+### MTranServer 🧠
 
 MTranServer 是可自托管的翻译接口，只在维护语言包时使用，主站运行不依赖它。
 
@@ -169,7 +216,7 @@ Header: Authorization: your_mtran_api_key
 
 MTranServer 不建议部署在 Vercel Serverless。推荐放 VPS、NAS、Docker 主机或内网服务器，再通过 HTTPS 反代出来。
 
-## 翻译维护流程
+## 📝 翻译维护流程
 
 本地语言包位置：
 
@@ -213,9 +260,9 @@ node scripts/sync-tolgee-direct.mjs
 TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 ```
 
-## 环境变量总览
+## ⚙️ 环境变量总览
 
-### 必填
+### 必填 ✅
 
 | 变量 | 说明 |
 | --- | --- |
@@ -225,7 +272,7 @@ TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 | `UPSTASH_REDIS_REST_URL` / `KV_REST_API_URL` | Redis REST URL，二选一 |
 | `UPSTASH_REDIS_REST_TOKEN` / `KV_REST_API_TOKEN` | Redis REST Token，二选一 |
 
-### 推荐
+### 推荐 ✨
 
 | 变量 | 说明 |
 | --- | --- |
@@ -233,7 +280,7 @@ TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 | `SETTINGS_REDIS_KEY` | Redis 配置 key，默认 `huoyu:settings` |
 | `NEXT_PUBLIC_FEED_URL` | RSS 区块 feed 地址 |
 
-### 第三方数据源
+### 第三方数据源 📡
 
 | 变量 | 说明 |
 | --- | --- |
@@ -245,7 +292,7 @@ TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 | `WEGAME_TGP_ID` | WeGame Cookie 中的 `tgp_id` |
 | `WEGAME_COOKIE` | WeGame 完整 Cookie |
 
-### 翻译维护
+### 翻译维护 🛠️
 
 | 变量 | 说明 |
 | --- | --- |
@@ -260,7 +307,7 @@ TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 | `MTRAN_BATCH_SIZE` | 批量翻译大小 |
 | `TARGET_LOCALES` | 指定要补的语言，例如 `es,fr,ja` |
 
-## 常用命令
+## ⌨️ 常用命令
 
 ```bash
 pnpm dev
@@ -272,7 +319,7 @@ node scripts/translate-locales-from-en.mjs
 node scripts/sync-tolgee-direct.mjs
 ```
 
-## 维护规则
+## 🧭 维护规则
 
 改动以下内容时，要同步更新 README 和 `.env.example`：
 
@@ -282,7 +329,7 @@ node scripts/sync-tolgee-direct.mjs
 - 翻译脚本、Tolgee 同步策略、MTranServer 调用方式。
 - Redis 数据结构、后台配置项、项目同步规则。
 
-## 目录
+## 📁 目录
 
 ```text
 app/              Next.js 页面与 API
@@ -292,7 +339,7 @@ public/           静态资源
 scripts/          翻译补全和 Tolgee 同步脚本
 ```
 
-## 注意事项
+## ⚠️ 注意事项
 
 - `.env.local`、Cookie、Token 和 API Key 不要提交到仓库。
 - `NEXT_PUBLIC_*` 会暴露到浏览器，不能放服务端密钥。
