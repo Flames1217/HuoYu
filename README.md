@@ -13,10 +13,10 @@ HuoYu 是一个个人主页和数据展示站点。前台集中展示个人资�
 
 - 个人主页：头像、昵称、标语、社交链接、技能图标和主页视觉动效。
 - 内容卡片：阅读清单、Steam、WeGame、网易云音乐、GitHub 贡献、WakaTime 编程时长、MBTI 与项目展示。
-- 项目展示：同步 GitHub 公开仓库，展示语言、标签、Star/Fork、源码和预览入口。
+- 项目展示：同步 GitHub 公开仓库，展示语言、标签、Star/Fork、最近更新时间、源码和预览入口。
 - 后台管理：通过 `PASSWORD` 登录，维护站点标题、favicon、个人资料、项目和页脚配置。
 - 数据缓存：第三方 API 数据统一使用缓存策略，减少刷新时的接口压力。
-- 国际化：内置 `cn/en/es/fr/ja` 本地语言包，并接入 Tolgee 作为翻译管理后台。
+- 国际化：内置 `cn/en/es/fr/ja` 本地语言包，并接入 Tolgee 作为翻译管理后台；前后台语言切换会同步 locale 路由和 Tolgee 状态。
 
 ## 技术栈
 
@@ -341,12 +341,28 @@ pnpm tolgee:push
 
 1. Fork 或导入本仓库到 Vercel。
 2. 在 Vercel 项目里连接 Upstash Redis，或手动填写 Upstash REST 变量。
-3. 配置 `PASSWORD` 和 `NEXTAUTH_SECRET`。
-4. 按需配置 GitHub、Steam、网易云音乐、WakaTime、WeGame 等第三方服务密钥。
-5. 按需配置 Tolgee 前端变量。
-6. 部署完成后访问 `/cn/admin` 登录后台维护内容。
+3. 配置 `PASSWORD`、`NEXTAUTH_SECRET` 和 `CRON_SECRET`。
+4. 配置 `GITHUB_TOKEN`，用于同步项目仓库、仓库改名后的稳定识别和 GitHub 贡献数据。
+5. 在 GitHub Actions Secrets 中配置 `SITE_URL` 和 `CRON_SECRET`，让 `.github/workflows/sync-github-repos.yml` 能每 8 小时触发一次线上同步。
+6. 按需配置 Steam、网易云音乐、WakaTime、WeGame 等第三方服务密钥。
+7. 按需配置 Tolgee 前端变量。
+8. 部署完成后访问 `/cn/admin` 登录后台维护内容。
 
 MTranServer 不建议直接跑在 Vercel Serverless 里。它更适合单独部署在 VPS、NAS、Docker 主机或内网服务器上，然后只在维护翻译时由本地脚本调用。
+
+## README 维护清单
+
+后续改功能时，如果碰到下面任一类变化，要同时更新 README 和 `.env.example`：
+
+- 新增、删除或改名环境变量，例如 `CRON_SECRET`、`GITHUB_TOKEN`、Tolgee、MTranServer、Steam、WakaTime、WeGame、网易云音乐相关变量。
+- 新增外部服务或第三方平台配置，例如 Upstash Redis、Tolgee、MTranServer、GitHub Actions、Vercel、反向代理。
+- 新增定时任务、Webhook、后台任务或受保护接口，例如 `/api/cron/github-repos` 和 GitHub Actions Secrets。
+- 新增或修改维护脚本、CLI 命令、翻译流程和 Tolgee 同步策略。
+- 改动部署方式、平台限制、免费额度限制或必须手动配置的后台步骤。
+- 改动用户可见的核心能力，例如项目展示字段、仓库同步规则、语言切换行为、后台资料来源和数据缓存策略。
+- 改动 Redis 数据结构、站点配置 key、后台在线配置项或敏感凭据读取方式。
+
+README 不需要记录每个 UI 细节，但凡用户从 0 部署、排障、迁移或维护时会需要知道的信息，都要及时补进去。
 
 ## 目录说明
 
