@@ -1,3 +1,7 @@
+# 🔥 HuoYu | 无尽火域
+
+HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资料、技能、项目、GitHub、Steam、WeGame、网易云音乐、WakaTime 等数据；后台用来维护站点资料、项目展示和页脚内容。
+
 ![HuoYu](https://socialify.git.ci/Flames1217/HuoYu/image?description=1&forks=1&language=1&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
 ## 🙏 致谢
@@ -46,10 +50,6 @@ HuoYu 的实现离不开这些优秀的开源项目与服务：
 <a href="https://www.wegame.com.cn/"><img src="https://cdn.simpleicons.org/wegame" width="16" height="16" align="center" alt="WeGame" /> WeGame</a> ·
 <a href="https://github.com/grubersjoe/react-github-calendar"><img src="https://github.com/grubersjoe.png?size=32" width="16" height="16" align="center" alt="react-github-calendar" /> react-github-calendar</a> ·
 <a href="https://github.com/rbren/rss-parser"><img src="https://github.com/rbren.png?size=32" width="16" height="16" align="center" alt="rss-parser" /> rss-parser</a>
-
-# 🔥 HuoYu | 无尽火域
-
-HuoYu 是一个可部署到 Vercel 的个人主页站点。前台展示个人资料、技能、项目、GitHub、Steam、WeGame、网易云音乐、WakaTime 等数据；后台用来维护站点资料、项目展示和页脚内容。
 
 访问路径带语言前缀：
 
