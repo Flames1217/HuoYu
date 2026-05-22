@@ -44,6 +44,33 @@ body {
   pointer-events: none;
 }
 
+.theme-page-transition {
+  min-height: inherit;
+}
+
+.theme-page-transition-active,
+.theme-page-transition-active *,
+.theme-page-transition-active *::before,
+.theme-page-transition-active *::after {
+  transition:
+    background-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 360ms ease,
+    fill 360ms ease,
+    stroke 360ms ease,
+    box-shadow 420ms ease,
+    opacity 360ms ease,
+    filter 420ms ease;
+}
+
+.theme-page-transition-active .theme-toggle-button svg {
+  transform: rotate(18deg) scale(0.94);
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 360ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .locale-page-transition {
     transition: none;
@@ -54,6 +81,14 @@ body {
     opacity: 1;
     transform: none;
     filter: none;
+  }
+
+  .theme-page-transition-active,
+  .theme-page-transition-active *,
+  .theme-page-transition-active *::before,
+  .theme-page-transition-active *::after,
+  .theme-page-transition-active .theme-toggle-button svg {
+    transition: none;
   }
 }
 

@@ -14,6 +14,7 @@ import useAutoThemeByBeijingTime from "@/hooks/use-auto-theme-by-beijing-time";
 import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/tolgee";
 
 type LocaleTransitionStage = "idle" | "exiting" | "entering";
+type ThemeTransitionStage = "idle" | "active";
 
 export function RootClientShell({
   children,
@@ -30,7 +31,9 @@ export function RootClientShell({
   const locale = getLocaleFromPathname(pathname);
   const previousLocaleRef = useRef(locale);
   const transitionFrameRef = useRef<number | null>(null);
+  const themeTransitionTimerRef = useRef<number | null>(null);
   const [transitionStage, setTransitionStage] = useState<LocaleTransitionStage>("idle");
+  const [themeTransitionStage, setThemeTransitionStage] = useState<ThemeTransitionStage>("idle");
 
   useAutoThemeByBeijingTime();
 
@@ -46,12 +49,29 @@ export function RootClientShell({
       setTransitionStage("exiting");
     };
 
+    const handleThemeTransitionStart = () => {
+      if (themeTransitionTimerRef.current !== null) {
+        window.clearTimeout(themeTransitionTimerRef.current);
+      }
+
+      setThemeTransitionStage("active");
+      themeTransitionTimerRef.current = window.setTimeout(() => {
+        setThemeTransitionStage("idle");
+        themeTransitionTimerRef.current = null;
+      }, 520);
+    };
+
     window.addEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
+    window.addEventListener("huoyu:theme-transition-start", handleThemeTransitionStart);
 
     return () => {
       window.removeEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
+      window.removeEventListener("huoyu:theme-transition-start", handleThemeTransitionStart);
       if (transitionFrameRef.current !== null) {
         window.cancelAnimationFrame(transitionFrameRef.current);
+      }
+      if (themeTransitionTimerRef.current !== null) {
+        window.clearTimeout(themeTransitionTimerRef.current);
       }
     };
   }, []);
@@ -97,19 +117,21 @@ export function RootClientShell({
       <ConsoleBadge />
       <AuthProvider>
         <AppTolgeeProvider locale={locale}>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-            <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
-              {isAdminPage ? (
-                <div className="flex-grow">{children}</div>
-              ) : (
-                <div className="front-page-shell zero-space flex min-h-screen flex-col">
-                  <div className="flex-grow">
-                    {children}
-                    <Script src="https://api.vvhan.com/api/script/yinghua" strategy="lazyOnload" />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <div className={`theme-page-transition theme-page-transition-${themeTransitionStage}`}>
+              <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
+                {isAdminPage ? (
+                  <div className="flex-grow">{children}</div>
+                ) : (
+                  <div className="front-page-shell zero-space flex min-h-screen flex-col">
+                    <div className="flex-grow">
+                      {children}
+                      <Script src="https://api.vvhan.com/api/script/yinghua" strategy="lazyOnload" />
+                    </div>
+                    <Footer />
                   </div>
-                  <Footer />
-                </div>
-              )}
+                )}
+              </div>
             </div>
             <Toaster
               position="top-center"

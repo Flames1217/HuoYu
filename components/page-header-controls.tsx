@@ -25,6 +25,11 @@ export function PageHeaderControls() {
     return null;
   }
 
+  const toggleTheme = () => {
+    window.dispatchEvent(new CustomEvent("huoyu:theme-transition-start"));
+    setTheme(currentTheme === "light" ? "dark" : "light");
+  };
+
   return (
     <div className={`fixed ${adminPage ? "top-3 right-3" : "top-4 right-4"} z-[1000] flex items-center gap-2`}>
       <LanguageSwitcher />
@@ -32,7 +37,7 @@ export function PageHeaderControls() {
         variant="ghost"
         size="icon"
         className="theme-toggle-button h-8 w-8 rounded-md border-0 bg-transparent text-emerald-950 shadow-none hover:bg-emerald-950/10 hover:text-emerald-950 dark:text-slate-100 dark:hover:bg-white/10"
-        onClick={() => setTheme(currentTheme === "light" ? "dark" : "light")}
+        onClick={toggleTheme}
         aria-label={t("theme.toggle", "切换主题")}
       >
         {currentTheme === "light" ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
