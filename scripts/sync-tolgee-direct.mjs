@@ -182,8 +182,9 @@ async function main() {
     console.log("Updating only translation records that already exist in Tolgee.");
   }
 
+  const concurrency = Number.parseInt(process.env.TOLGEE_SYNC_CONCURRENCY || "8", 10);
   let completed = 0;
-  for (const batch of chunk(tasks, 8)) {
+  for (const batch of chunk(tasks, Number.isFinite(concurrency) && concurrency > 0 ? concurrency : 8)) {
     await Promise.all(batch.map((task) => putTranslation({ baseUrl, projectId, apiKey, ...task })));
     completed += batch.length;
     console.log(`Synced ${completed}/${tasks.length}`);
