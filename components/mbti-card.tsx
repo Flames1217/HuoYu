@@ -71,7 +71,7 @@ export const MBTICard = memo(function MBTICard({ initialMbti }: MBTICardProps) {
       : [t("mbti.trait1"), t("mbti.trait2"), t("mbti.trait3"), t("mbti.trait4")]
   const mbtiImage = mbti?.mbti_image_url || "/images/mbti-avatar.png"
   const mbtiTitleIcon = "/images/ODF.png"
-  const personalityLogo = "https://www.16personalities.com/static/images/system/logo.svg"
+  const personalityLogo = "https://img.viper3.top/HuoYu/16personality/logo.svg"
   const traitEmoji = ["🎨", "🌱", "🤝", "🧭"]
 
   return (
