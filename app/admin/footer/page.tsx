@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FiCode, FiPlusCircle, FiSave, FiTrash2 } from "react-icons/fi";
+import { format as prettierFormat } from "prettier/standalone";
+import * as prettierHtmlPlugin from "prettier/plugins/html";
+import * as prettierPostcssPlugin from "prettier/plugins/postcss";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -73,7 +76,7 @@ function withIds(items: FooterItem[]) {
 }
 
 function formatCss(css: string) {
-  return css
+  const normalized = css
     .replace(/\s+/g, " ")
     .replace(/\s*{\s*/g, " {\n  ")
     .replace(/\s*}\s*/g, "\n}\n")
@@ -81,6 +84,12 @@ function formatCss(css: string) {
     .replace(/\n\s*\n/g, "\n")
     .replace(/\n\s+}/g, "\n}")
     .trim();
+
+  return prettierFormat(normalized, {
+    parser: "css",
+    plugins: [prettierPostcssPlugin],
+    printWidth: 100,
+  });
 }
 
 function formatInlineStyle(style: string) {
@@ -91,7 +100,7 @@ function formatInlineStyle(style: string) {
     .join("; ");
 }
 
-function formatHtmlCode(value: string) {
+async function formatHtmlCode(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
 
@@ -99,30 +108,46 @@ function formatHtmlCode(value: string) {
     return `style=${quote}${formatInlineStyle(style)}${quote}`;
   });
 
-  const withFormattedStyleBlocks = withFormattedStyles.replace(/<style\b([^>]*)>([\s\S]*?)<\/style>/gi, (_, attrs, css) => {
-    return `<style${attrs}>\n${formatCss(css)}\n</style>`;
-  });
+  const withFormattedStyleBlocks = await replaceAsync(
+    withFormattedStyles,
+    /<style\b([^>]*)>([\s\S]*?)<\/style>/gi,
+    async (_, attrs, css) => `<style${attrs}>\n${(await formatCss(css)).trim()}\n</style>`,
+  );
 
-  return withFormattedStyleBlocks
-    .replace(/>\s+</g, ">\n<")
-    .replace(/\s{2,}/g, " ")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .join("\n");
+  return (
+    await prettierFormat(withFormattedStyleBlocks, {
+      parser: "html",
+      plugins: [prettierHtmlPlugin, prettierPostcssPlugin],
+      printWidth: 100,
+      bracketSameLine: false,
+      htmlWhitespaceSensitivity: "ignore",
+    })
+  ).trim();
 }
 
-function formatFooterItem(item: FooterItem): FooterItem {
+async function replaceAsync(
+  value: string,
+  pattern: RegExp,
+  replacer: (...args: string[]) => Promise<string>,
+) {
+  const replacements = await Promise.all(
+    Array.from(value.matchAll(pattern), (match) => replacer(...(match as unknown as string[]))),
+  );
+  let index = 0;
+  return value.replace(pattern, () => replacements[index++] || "");
+}
+
+async function formatFooterItem(item: FooterItem): Promise<FooterItem> {
   if (item.type === "beian") {
     return {
       ...item,
-      icpBeian: formatHtmlCode(item.icpBeian || ""),
-      mengIcpBeian: formatHtmlCode(item.mengIcpBeian || ""),
+      icpBeian: await formatHtmlCode(item.icpBeian || ""),
+      mengIcpBeian: await formatHtmlCode(item.mengIcpBeian || ""),
     };
   }
 
   if (item.type === "customText") {
-    return { ...item, text: formatHtmlCode(item.text || "") };
+    return { ...item, text: await formatHtmlCode(item.text || "") };
   }
 
   return item;
@@ -143,10 +168,10 @@ function CodeInput({
   value: string;
   minHeight?: string;
   onChange: (value: string) => void;
-  onFormat: () => void;
+  onFormat: () => Promise<void> | void;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <label htmlFor={id} className="text-sm font-bold">{label}</label>
@@ -162,7 +187,7 @@ function CodeInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         spellCheck={false}
-        className={`${minHeight} resize-y whitespace-pre font-mono text-sm leading-6`}
+        className={`${minHeight} w-full min-w-0 resize-y overflow-x-auto whitespace-pre font-mono text-sm leading-6`}
       />
     </div>
   );
@@ -264,15 +289,29 @@ export default function FooterAdminPage() {
     setFooterSettings((current) => ({ items: current.items.filter((_, itemIndex) => itemIndex !== index) }));
   }
 
-  function formatAllCodeFields() {
-    setFooterSettings((current) => ({ items: current.items.map(formatFooterItem) }));
-    toast.success(t("adminFooter.formatSuccess", "代码已格式化"));
+  async function formatAllCodeFields() {
+    try {
+      const formattedItems = await Promise.all(footerSettings.items.map(formatFooterItem));
+      setFooterSettings({ items: formattedItems });
+      toast.success(t("adminFooter.formatSuccess", "代码已格式化"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("adminFooter.formatError", "代码格式化失败"));
+    }
+  }
+
+  async function formatCodeField(index: number, field: "icpBeian" | "mengIcpBeian" | "text", value: string) {
+    try {
+      updateItem(index, { [field]: await formatHtmlCode(value) } as Partial<FooterItem>);
+      toast.success(t("adminFooter.formatSuccess", "代码已格式化"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("adminFooter.formatError", "代码格式化失败"));
+    }
   }
 
   async function saveFooter() {
     setSaving(true);
     try {
-      const formattedSettings = { items: footerSettings.items.map(formatFooterItem) };
+      const formattedSettings = { items: await Promise.all(footerSettings.items.map(formatFooterItem)) };
       setFooterSettings(formattedSettings);
       const items = formattedSettings.items.map(({ id, ...item }) =>
         item.type === "copyright" ? { ...item, startYear: item.startYear || currentYear } : item,
@@ -387,13 +426,13 @@ export default function FooterAdminPage() {
                   <p className="rounded-xl border border-cyan-300/20 bg-cyan-400/8 p-3 text-xs leading-5 text-slate-300">
                     {t("adminFooter.beianHtmlHelp", "备案信息支持自定义 HTML 和内联 CSS，可放入图标、span、style 等代码；保存时会自动格式化。")}
                   </p>
-                  <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+                  <div className="grid gap-5 [&>*]:min-w-0 xl:grid-cols-[minmax(0,1fr)_420px]">
                     <CodeInput
                       label={t("adminFooter.beianLabelIcpBeian", "ICP备案号")}
                       description={t("adminFooter.codeInputHelp", "支持 HTML/CSS，文本框可拖拽拉大。")}
                       value={item.icpBeian || ""}
                       onChange={(value) => updateItem(index, { icpBeian: value } as Partial<FooterItem>)}
-                      onFormat={() => updateItem(index, { icpBeian: formatHtmlCode(item.icpBeian || "") } as Partial<FooterItem>)}
+                      onFormat={() => formatCodeField(index, "icpBeian", item.icpBeian || "")}
                     />
                     <div className="space-y-2">
                       <label className="text-sm font-bold">{t("adminFooter.beianLabelIcpBeianUrl", "ICP备案链接")}</label>
@@ -404,13 +443,13 @@ export default function FooterAdminPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+                  <div className="grid gap-5 [&>*]:min-w-0 xl:grid-cols-[minmax(0,1fr)_420px]">
                     <CodeInput
                       label={t("adminFooter.beianLabelMengIcpBeian", "萌ICP备案号")}
                       description={t("adminFooter.codeInputHelp", "支持 HTML/CSS，文本框可拖拽拉大。")}
                       value={item.mengIcpBeian || ""}
                       onChange={(value) => updateItem(index, { mengIcpBeian: value } as Partial<FooterItem>)}
-                      onFormat={() => updateItem(index, { mengIcpBeian: formatHtmlCode(item.mengIcpBeian || "") } as Partial<FooterItem>)}
+                      onFormat={() => formatCodeField(index, "mengIcpBeian", item.mengIcpBeian || "")}
                     />
                     <div className="space-y-2">
                       <label className="text-sm font-bold">{t("adminFooter.beianLabelMengIcpBeianUrl", "萌ICP备案链接")}</label>
@@ -431,7 +470,7 @@ export default function FooterAdminPage() {
                   value={item.text || ""}
                   minHeight="min-h-64"
                   onChange={(value) => updateItem(index, { text: value } as Partial<FooterItem>)}
-                  onFormat={() => updateItem(index, { text: formatHtmlCode(item.text || "") } as Partial<FooterItem>)}
+                  onFormat={() => formatCodeField(index, "text", item.text || "")}
                 />
               )}
 
