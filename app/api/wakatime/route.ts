@@ -314,7 +314,9 @@ export async function GET(request: Request) {
       null,
     );
 
-    const languages = aggregateNamed(days, "languages", 10);
+    const languages = aggregateNamed(days, "languages", 12)
+      .filter((item) => String((item as AnyRecord).name) !== "Other")
+      .slice(0, 10);
     const editors = aggregateNamed(days, "editors", 8);
     const projects = aggregateNamed(days, "projects", 10);
     const operatingSystems = aggregateNamed(days, "operating_systems", 5);
