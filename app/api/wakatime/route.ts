@@ -86,6 +86,10 @@ function normalizeAggregateName(key: string, name: string) {
       return "VS Code";
   }
 
+  if (key === "operating_systems" && normalized === "Unknown OS") {
+    return "Windows";
+  }
+
   return normalized || "Unknown";
 }
 
