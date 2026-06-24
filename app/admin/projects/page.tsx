@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FiAlertCircle, FiClock, FiExternalLink, FiGithub, FiRefreshCw, FiSave, FiSearch, FiStar } from "react-icons/fi";
+import { FiAlertCircle, FiClock, FiExternalLink, FiGithub, FiImage, FiRefreshCw, FiSave, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { GoRepoForked, GoStar } from "react-icons/go";
 
 interface Project {
@@ -36,6 +36,11 @@ interface Project {
   updatedAt?: string;
   pushedAt?: string;
   syncedAt?: string;
+}
+
+interface ReadmeImageCandidate {
+  url: string;
+  alt: string;
 }
 
 const languageColors: Record<string, string> = {
@@ -139,6 +144,8 @@ export default function AdminProjectsPage() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [query, setQuery] = useState("");
+  const [loadingImagesByProjectId, setLoadingImagesByProjectId] = useState<Record<string, boolean>>({});
+  const [readmeImagesByProjectId, setReadmeImagesByProjectId] = useState<Record<string, ReadmeImageCandidate[]>>({});
 
   const fetchProjects = useCallback(async () => {
     setLoading(true);
@@ -194,6 +201,32 @@ export default function AdminProjectsPage() {
 
   const updateProject = (projectId: string, patch: Partial<Project>) => {
     setProjects((items) => items.map((project) => (project.id === projectId ? { ...project, ...patch } : project)));
+  };
+
+  const fetchReadmeImages = async (project: Project) => {
+    setLoadingImagesByProjectId((items) => ({ ...items, [project.id]: true }));
+    try {
+      const response = await fetch("/api/admin/projects/readme-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repoFullName: project.repoFullName,
+          githubUrl: project.githubUrl,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || t("adminProjects.readmeImagesFetchError", "README 图片获取失败"));
+
+      const images = Array.isArray(data.images) ? data.images : [];
+      setReadmeImagesByProjectId((items) => ({ ...items, [project.id]: images }));
+      if (images.length === 0) {
+        toast.info(t("adminProjects.readmeImagesEmpty", "这个 README 里没有可用图片"));
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("adminProjects.readmeImagesFetchError", "README 图片获取失败"));
+    } finally {
+      setLoadingImagesByProjectId((items) => ({ ...items, [project.id]: false }));
+    }
   };
 
   const toggleSelectAllFiltered = (checked: boolean | "indeterminate") => {
@@ -386,6 +419,70 @@ export default function AdminProjectsPage() {
                   title={t("adminProjects.priorityTitle", "排序值，越小越靠前")}
                 />
                 <Input value={project.demoUrl || ""} onChange={(event) => updateProject(project.id, { demoUrl: event.target.value })} placeholder={t("adminProjects.demoUrlPlaceholder", "演示地址")} />
+                <div className="space-y-2 rounded-xl border border-slate-500/20 bg-slate-950/28 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-200">
+                      <FiImage className="h-3.5 w-3.5" />
+                      {t("adminProjects.coverPickerTitle", "仓库封面")}
+                    </span>
+                    {project.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => updateProject(project.id, { imageUrl: "" })}
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-400 transition hover:text-slate-100"
+                      >
+                        <FiX className="h-3 w-3" />
+                        {t("adminProjects.coverClear", "清空")}
+                      </button>
+                    )}
+                  </div>
+
+                  {project.imageUrl ? (
+                    <img
+                      src={project.imageUrl}
+                      alt={`${project.title} cover`}
+                      className="aspect-video w-full rounded-lg border border-white/10 bg-slate-900 object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex aspect-video items-center justify-center rounded-lg border border-dashed border-slate-500/35 bg-slate-900/40 text-xs text-slate-500">
+                      {t("adminProjects.coverEmpty", "未选择封面")}
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={loadingImagesByProjectId[project.id] || (!project.repoFullName && !project.githubUrl)}
+                    onClick={() => fetchReadmeImages(project)}
+                    className="w-full border-slate-500/40 bg-slate-800/45 text-slate-100 hover:bg-slate-700/60"
+                  >
+                    {loadingImagesByProjectId[project.id] ? <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" /> : <FiImage className="mr-2 h-4 w-4" />}
+                    {t("adminProjects.loadReadmeImages", "获取 README 图片")}
+                  </Button>
+
+                  {(readmeImagesByProjectId[project.id] || []).length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {readmeImagesByProjectId[project.id].map((image) => {
+                        const selected = image.url === project.imageUrl;
+                        return (
+                          <button
+                            type="button"
+                            key={image.url}
+                            onClick={() => updateProject(project.id, { imageUrl: image.url })}
+                            className={`overflow-hidden rounded-lg border bg-slate-900 transition ${
+                              selected ? "border-cyan-300 ring-2 ring-cyan-300/30" : "border-white/10 hover:border-cyan-300/55"
+                            }`}
+                            title={image.alt || image.url}
+                          >
+                            <img src={image.url} alt={image.alt || "README image"} className="aspect-video w-full object-cover" loading="lazy" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
                 {project.showOnHome === false && (
                   <div className="flex items-start gap-1.5 rounded-lg border border-amber-300/18 bg-amber-400/8 p-2 text-[11px] leading-4 text-amber-100">
                     <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />

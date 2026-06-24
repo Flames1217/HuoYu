@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSettings } from "@/lib/settings-store";
+import { extractFirstReadmeImage, githubFullNameFromProject } from "@/lib/github-readme-images";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +26,6 @@ function normalizeGithubUrl(url?: string) {
     .toLowerCase();
 }
 
-function githubFullNameFromProject(project: any) {
-  if (project.repoFullName) return String(project.repoFullName).trim();
-
-  const githubUrl = String(project.githubUrl || "").trim();
-  const match = githubUrl.match(/github\.com[:/]+([^/\s]+)\/([^/\s?#.]+)(?:\.git)?/i);
-  return match ? `${match[1]}/${match[2]}` : "";
-}
-
 function projectIdentityKey(project: any) {
   if (project.githubRepoId) return `id:${String(project.githubRepoId)}`;
   if (project.githubNodeId) return `node:${String(project.githubNodeId)}`;
@@ -56,34 +49,6 @@ function decodeBase64Content(content?: string) {
   } catch {
     return "";
   }
-}
-
-function resolveReadmeImageUrl(imageUrl: string, repoFullName: string, readmeDownloadUrl?: string) {
-  const cleaned = imageUrl.trim().replace(/^['"]|['"]$/g, "");
-  if (!cleaned || cleaned.startsWith("#") || cleaned.startsWith("data:")) return "";
-  if (/^https?:\/\//i.test(cleaned)) return cleaned;
-
-  const branch =
-    readmeDownloadUrl?.match(/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/([^/]+)\//)?.[1] ||
-    "main";
-  const normalizedPath = cleaned.replace(/^\.\//, "").replace(/^\/+/, "");
-  return `https://raw.githubusercontent.com/${repoFullName}/${branch}/${normalizedPath}`;
-}
-
-function extractFirstReadmeImage(markdown: string, repoFullName: string, readmeDownloadUrl?: string) {
-  const candidates = [
-    ...Array.from(markdown.matchAll(/!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g), (match) => match[1]),
-    ...Array.from(markdown.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi), (match) => match[1]),
-  ];
-
-  for (const candidate of candidates) {
-    const imageUrl = resolveReadmeImageUrl(candidate, repoFullName, readmeDownloadUrl);
-    if (!imageUrl) continue;
-    if (/img\.shields\.io|shields\.io|badgen\.net|github-readme-stats|komarev\.com/i.test(imageUrl)) continue;
-    return imageUrl;
-  }
-
-  return "";
 }
 
 async function fetchWithTimeout(input: string, init?: RequestInit) {
@@ -199,21 +164,23 @@ export async function GET(request: Request) {
     const projectsWithGithubData = await Promise.all(
       projects.map(async (project: any) => {
         const repo = await fetchGithubRepoMeta(project, token);
-        const imageUrl = await fetchReadmeCoverImage(
-          {
-            ...project,
-            repoFullName: repo?.full_name || project.repoFullName,
-            githubUrl: repo?.html_url || project.githubUrl,
-          },
-          token
-        );
+        const readmeImageUrl = project.imageUrl
+          ? ""
+          : await fetchReadmeCoverImage(
+              {
+                ...project,
+                repoFullName: repo?.full_name || project.repoFullName,
+                githubUrl: repo?.html_url || project.githubUrl,
+              },
+              token
+            );
         const repoTopics = githubTopicsFromRepo(repo);
 
         return {
           ...project,
           title: repo?.name || project.title,
           description: repo?.description || project.description,
-          imageUrl,
+          imageUrl: project.imageUrl || readmeImageUrl,
           githubUrl: repo?.html_url || project.githubUrl,
           repoName: repo?.name || project.repoName,
           repoFullName: repo?.full_name || project.repoFullName,
