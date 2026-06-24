@@ -142,13 +142,13 @@ async function indexExistingProjects(token: string, projects: Project[]) {
   return index;
 }
 
-async function fetchAllOwnerRepos(token: string, ownerLogin: string, excludedRepos: Set<string>) {
+async function fetchAllOwnerRepos(token: string, excludedRepos: Set<string>) {
   const repos: any[] = [];
   let page = 1;
 
   while (page <= 10) {
     const response = await fetch(
-      `https://api.github.com/user/repos?affiliation=owner&visibility=all&sort=updated&per_page=100&page=${page}`,
+      `https://api.github.com/user/repos?affiliation=owner,collaborator,organization_member&visibility=all&sort=updated&per_page=100&page=${page}`,
       {
         headers: createGithubHeaders(token),
         cache: "no-store",
@@ -167,150 +167,28 @@ async function fetchAllOwnerRepos(token: string, ownerLogin: string, excludedRep
     page += 1;
   }
 
-  const normalizedOwner = ownerLogin.toLowerCase();
-  const ownerPublicRepos = repos
+  const availableRepos = repos
     .filter((repo) => {
       if (!repo) return false;
       if (excludedRepos.has(String(repo.full_name || "").toLowerCase())) return false;
-      if (repo.private === true || repo.fork === true || repo.parent || repo.source) return false;
-      if (repo.owner?.login?.toLowerCase() !== normalizedOwner) return false;
-      if (repo.archived === true || repo.disabled === true) return false;
       return true;
     })
     .sort((a, b) => repoRank(b) - repoRank(a));
 
   const detailedRepos = await Promise.all(
-    ownerPublicRepos.map(async (repo) => {
+    availableRepos.map(async (repo) => {
       const detailedRepo = await fetchGithubRepo(token, repo.full_name);
       return detailedRepo ? { ...repo, ...detailedRepo } : repo;
     })
   );
 
-  const structurallyOwnedRepos = detailedRepos
+  return detailedRepos
     .filter((repo) => {
       if (!repo) return false;
       if (excludedRepos.has(String(repo.full_name || "").toLowerCase())) return false;
-      if (repo.private === true || repo.fork === true || repo.parent || repo.source) return false;
-      if (repo.owner?.login?.toLowerCase() !== normalizedOwner) return false;
-      if (repo.archived === true || repo.disabled === true) return false;
       return true;
     })
     .sort((a, b) => repoRank(b) - repoRank(a));
-
-  const ownerOriginRepos = [];
-  for (const repo of structurallyOwnedRepos) {
-    if (
-      (await repoAppearsOwnerOrigin(token, repo, normalizedOwner)) &&
-      (await repoIsNotExternalGeneratedMirror(token, repo, normalizedOwner))
-    ) {
-      ownerOriginRepos.push(repo);
-    }
-  }
-
-  return ownerOriginRepos.sort((a, b) => repoRank(b) - repoRank(a));
-}
-
-function isBotCommitAuthor(commit: any) {
-  const login = String(commit.author?.login || "").toLowerCase();
-  const type = String(commit.author?.type || "").toLowerCase();
-  const name = String(commit.commit?.author?.name || "").toLowerCase();
-  const email = String(commit.commit?.author?.email || "").toLowerCase();
-
-  return (
-    type === "bot" ||
-    login.endsWith("[bot]") ||
-    name.includes("[bot]") ||
-    email.includes("[bot]") ||
-    login === "dependabot" ||
-    login === "renovate-bot" ||
-    login === "github-actions"
-  );
-}
-
-function commitBelongsToOwner(commit: any, normalizedOwner: string) {
-  const login = String(commit.author?.login || "").toLowerCase();
-  return login === normalizedOwner;
-}
-
-async function repoAppearsOwnerOrigin(token: string, repo: any, normalizedOwner: string) {
-  const branch = repo.default_branch || "main";
-  let page = 1;
-  const commitsInNewestFirstOrder: any[] = [];
-
-  while (page <= 20) {
-    const response = await fetch(
-      `https://api.github.com/repos/${repo.full_name}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`,
-      { headers: createGithubHeaders(token), cache: "no-store" }
-    );
-
-    if (!response.ok) return false;
-
-    const commits = await response.json();
-    if (!Array.isArray(commits) || commits.length === 0) break;
-    commitsInNewestFirstOrder.push(...commits);
-
-    if (commits.length < 100) break;
-    page += 1;
-  }
-
-  const chronologicalCommits = commitsInNewestFirstOrder.reverse();
-  let hasOwnerCommit = false;
-
-  for (const commit of chronologicalCommits) {
-    if (commitBelongsToOwner(commit, normalizedOwner)) {
-      hasOwnerCommit = true;
-      continue;
-    }
-
-    if (!hasOwnerCommit && !isBotCommitAuthor(commit)) {
-      return false;
-    }
-  }
-
-  return hasOwnerCommit;
-}
-
-async function repoIsNotExternalGeneratedMirror(token: string, repo: any, normalizedOwner: string) {
-  const branch = repo.default_branch || "main";
-  let ownerCommits = 0;
-  let externalGeneratedCommits = 0;
-  let totalCommits = 0;
-
-  for (let page = 1; page <= 5; page++) {
-    const response = await fetch(
-      `https://api.github.com/repos/${repo.full_name}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`,
-      { headers: createGithubHeaders(token), cache: "no-store" }
-    );
-
-    if (!response.ok) return true;
-
-    const commits = await response.json();
-    if (!Array.isArray(commits) || commits.length === 0) break;
-
-    for (const commit of commits) {
-      totalCommits += 1;
-      if (commitBelongsToOwner(commit, normalizedOwner)) {
-        ownerCommits += 1;
-        continue;
-      }
-
-      const authorName = String(commit.commit?.author?.name || "").toLowerCase();
-      const authorEmail = String(commit.commit?.author?.email || "").toLowerCase();
-      const looksLikeExternalProjectBot =
-        authorName.includes("/") &&
-        !authorName.startsWith(`${normalizedOwner}/`) &&
-        (authorEmail.includes("[bot]") || authorEmail.includes("bot@"));
-
-      if (looksLikeExternalProjectBot) {
-        externalGeneratedCommits += 1;
-      }
-    }
-
-    if (commits.length < 100) break;
-  }
-
-  if (totalCommits < 20) return true;
-  return !(ownerCommits <= 2 && externalGeneratedCommits / totalCommits >= 0.8);
 }
 
 async function fetchGithubUser(token: string) {
@@ -330,17 +208,18 @@ async function fetchGithubUser(token: string) {
 function mergeRepoProject(repo: any, existing: Partial<Project> | undefined, index: number, syncedAt: string): Project {
   const topics = Array.isArray(repo.topics) ? repo.topics : [];
   const isExisting = Boolean(existing);
+  const nextStatus = existing?.status || (repo.archived === true || repo.disabled === true ? "archived" : "draft");
 
   return {
     id: existing?.id || repoProjectId(repo),
     title: repo.name,
     description: repo.description || "",
-    imageUrl: "",
+    imageUrl: existing?.imageUrl || "",
     tags: topics.slice(0, 6),
     githubUrl: repo.html_url,
     demoUrl: existing?.demoUrl || repo.homepage || "",
-    status: existing?.status || "draft",
-    showOnHome: isExisting ? existing?.showOnHome ?? false : false,
+    status: nextStatus,
+    showOnHome: nextStatus === "archived" ? false : isExisting ? existing?.showOnHome ?? false : false,
     priority: typeof existing?.priority === "number" ? existing.priority : index,
     repoName: repo.name,
     repoFullName: repo.full_name,
@@ -385,7 +264,7 @@ export async function syncGithubProjects(options: SyncOptions = {}) {
       ? cached
       : await (async () => {
           const freshViewer = await fetchGithubUser(token);
-          const freshRepos = await fetchAllOwnerRepos(token, freshViewer.login, excludedRepos);
+          const freshRepos = await fetchAllOwnerRepos(token, excludedRepos);
           githubReposCache[cacheKey] = { viewer: freshViewer, repos: freshRepos, timestamp: now };
           return { viewer: freshViewer, repos: freshRepos };
         })();
