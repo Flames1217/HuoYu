@@ -1,62 +1,89 @@
-"use client"
+"use client";
 
-import { memo, useEffect, useState } from "react"
-import type { ReactNode } from "react"
-import type { IconType } from "react-icons"
-import { FiActivity, FiBarChart2, FiClock, FiCode, FiCpu, FiFileText, FiImage, FiMonitor, FiPieChart, FiZap } from "react-icons/fi"
-import { SiCss3, SiGnubash, SiGo, SiHtml5, SiJavascript, SiJson, SiMarkdown, SiPhp, SiPython, SiRust, SiToml, SiTypescript, SiVuedotjs, SiWakatime, SiYaml } from "react-icons/si"
-import { toast } from "sonner"
-import { useLocaleText } from "@/lib/use-locale-text"
+import { memo, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  FiActivity,
+  FiBarChart2,
+  FiClock,
+  FiCode,
+  FiCpu,
+  FiFileText,
+  FiImage,
+  FiMonitor,
+  FiPieChart,
+  FiZap,
+} from "react-icons/fi";
+import {
+  SiCss3,
+  SiGnubash,
+  SiGo,
+  SiHtml5,
+  SiJavascript,
+  SiJson,
+  SiMarkdown,
+  SiPhp,
+  SiPython,
+  SiRust,
+  SiToml,
+  SiTypescript,
+  SiVuedotjs,
+  SiWakatime,
+  SiYaml,
+} from "react-icons/si";
+import { toast } from "sonner";
+import { useLocaleText } from "@/lib/use-locale-text";
 
 interface WakaTimeItem {
-  name?: string
-  text?: string
-  percent?: number
-  total_seconds?: number
-  color?: string
-  ai_additions?: number
-  ai_deletions?: number
-  human_additions?: number
-  human_deletions?: number
-  ai_agent_line_changes?: number
-  ai_input_tokens?: number
-  ai_output_tokens?: number
-  ai_prompt_events?: number
+  name?: string;
+  text?: string;
+  percent?: number;
+  total_seconds?: number;
+  color?: string;
+  ai_additions?: number;
+  ai_deletions?: number;
+  human_additions?: number;
+  human_deletions?: number;
+  ai_agent_line_changes?: number;
+  ai_input_tokens?: number;
+  ai_output_tokens?: number;
+  ai_prompt_events?: number;
 }
 
 interface WakaTimeAi {
-  aiAdditions: number
-  aiDeletions: number
-  humanAdditions: number
-  humanDeletions: number
-  agentLineChanges: number
-  inputTokens: number
-  outputTokens: number
-  promptEvents: number
-  promptLengthAvg: number
-  aiLines: number
-  humanLines: number
-  aiShare: number
-  humanShare: number
-  projectBreakdown: WakaTimeItem[]
-  editorBreakdown: WakaTimeItem[]
+  aiAdditions: number;
+  aiDeletions: number;
+  humanAdditions: number;
+  humanDeletions: number;
+  agentLineChanges: number;
+  inputTokens: number;
+  outputTokens: number;
+  promptEvents: number;
+  promptLengthAvg: number;
+  aiLines: number;
+  humanLines: number;
+  aiShare: number;
+  humanShare: number;
+  projectBreakdown: WakaTimeItem[];
+  editorBreakdown: WakaTimeItem[];
 }
 
 interface WakaTimeData {
-  allTimeText?: string
-  allTimeSeconds?: number
-  recentText?: string
-  recentSeconds?: number
-  totalText: string
-  dailyAverageText: string
-  bestDay?: { date?: string; text?: string } | null
-  range?: { text?: string; start?: string; end?: string }
-  languages: WakaTimeItem[]
-  editors: WakaTimeItem[]
-  projects: WakaTimeItem[]
-  operatingSystems: WakaTimeItem[]
-  categories?: WakaTimeItem[]
-  ai?: WakaTimeAi
+  allTimeText?: string;
+  allTimeSeconds?: number;
+  recentText?: string;
+  recentSeconds?: number;
+  totalText: string;
+  dailyAverageText: string;
+  bestDay?: { date?: string; text?: string } | null;
+  range?: { text?: string; start?: string; end?: string; days?: number };
+  languages: WakaTimeItem[];
+  editors: WakaTimeItem[];
+  projects: WakaTimeItem[];
+  operatingSystems: WakaTimeItem[];
+  categories?: WakaTimeItem[];
+  ai?: WakaTimeAi;
 }
 
 const languageColors: Record<string, string> = {
@@ -76,7 +103,11 @@ const languageColors: Record<string, string> = {
   Shell: "#89e051",
   Vue: "#42b883",
   Other: "#06b6d4",
-}
+};
+
+type WakaTimeRangeDays = 7 | 30 | 90;
+
+const rangeOptions: WakaTimeRangeDays[] = [7, 30, 90];
 
 const skillIconMap: Record<string, string> = {
   TypeScript: "ts",
@@ -91,7 +122,7 @@ const skillIconMap: Record<string, string> = {
   Rust: "rust",
   Shell: "bash",
   Vue: "vue",
-}
+};
 
 const languageIconMap: Record<string, IconType> = {
   TypeScript: SiTypescript,
@@ -112,58 +143,79 @@ const languageIconMap: Record<string, IconType> = {
   Vue: SiVuedotjs,
   Other: FiFileText,
   "Image (svg)": FiImage,
-}
+};
 
 function percent(value: unknown) {
-  const num = Number(value)
-  if (!Number.isFinite(num)) return 0
-  return Math.max(0, Math.min(100, num))
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  return Math.max(0, Math.min(100, num));
 }
 
 function itemSeconds(item: WakaTimeItem) {
-  const seconds = Number(item.total_seconds)
-  return Number.isFinite(seconds) && seconds > 0 ? seconds : 0
+  const seconds = Number(item.total_seconds);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
 }
 
 function compactNumber(value: unknown) {
-  const num = Number(value)
-  if (!Number.isFinite(num) || num <= 0) return "0"
-  return new Intl.NumberFormat("en", { notation: num >= 10000 ? "compact" : "standard", maximumFractionDigits: 1 }).format(num)
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return "0";
+  return new Intl.NumberFormat("en", {
+    notation: num >= 10000 ? "compact" : "standard",
+    maximumFractionDigits: 1,
+  }).format(num);
 }
 
 function formatHours(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds <= 0) return "0 min"
-  const minutes = Math.round(seconds / 60)
-  if (minutes < 60) return `${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  const rest = minutes % 60
-  return rest ? `${hours}h ${rest}m` : `${hours}h`
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0 min";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
 }
 
-type Translate = ReturnType<typeof useLocaleText>["t"]
+type Translate = ReturnType<typeof useLocaleText>["t"];
 
 function formatCacheTime(ms: number | undefined, t: Translate) {
-  const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)))
-  const hours = Math.floor(remainingMinutes / 60)
-  const minutes = remainingMinutes % 60
-  return hours > 0 ? t("cache.timeHoursMinutes", "{{hours}}h {{minutes}}m", { hours, minutes }) : t("cache.timeMinutes", "{{minutes}}m", { minutes })
+  const remainingMinutes = Math.max(1, Math.round((ms || 0) / (60 * 1000)));
+  const hours = Math.floor(remainingMinutes / 60);
+  const minutes = remainingMinutes % 60;
+  return hours > 0
+    ? t("cache.timeHoursMinutes", "{{hours}}h {{minutes}}m", { hours, minutes })
+    : t("cache.timeMinutes", "{{minutes}}m", { minutes });
 }
 
 function splitDurationLines(value: string) {
-  const match = value.match(/^(.+?\b(?:hours?|hrs?|h))\s+(.+?\b(?:minutes?|mins?|m))$/i)
-  return match ? [match[1], match[2]] : null
+  const match = value.match(
+    /^(.+?\b(?:hours?|hrs?|h))\s+(.+?\b(?:minutes?|mins?|m))$/i,
+  );
+  return match ? [match[1], match[2]] : null;
 }
 
 function colorFor(item: WakaTimeItem, index = 0) {
-  return item.color || languageColors[item.name || ""] || ["#22c55e", "#06b6d4", "#f59e0b", "#8b5cf6", "#ef4444"][index % 5]
+  return (
+    item.color ||
+    languageColors[item.name || ""] ||
+    ["#22c55e", "#06b6d4", "#f59e0b", "#8b5cf6", "#ef4444"][index % 5]
+  );
 }
 
 function iconForLanguage(name?: string) {
-  return languageIconMap[name || ""] || FiFileText
+  return languageIconMap[name || ""] || FiFileText;
 }
 
-function StatTile({ icon, label, value, hint }: { icon: ReactNode; label: string; value: string; hint?: string }) {
-  const durationLines = splitDurationLines(value)
+function StatTile({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  hint?: string;
+}) {
+  const durationLines = splitDurationLines(value);
 
   return (
     <div className="wakatime-surface p-4">
@@ -177,11 +229,17 @@ function StatTile({ icon, label, value, hint }: { icon: ReactNode; label: string
           <span className="block">{durationLines[1]}</span>
         </p>
       ) : (
-        <p className="mt-2 text-2xl font-black text-emerald-950 dark:text-zinc-50">{value}</p>
+        <p className="mt-2 text-2xl font-black text-emerald-950 dark:text-zinc-50">
+          {value}
+        </p>
       )}
-      {hint && <p className="mt-1 truncate text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">{hint}</p>}
+      {hint && (
+        <p className="mt-1 truncate text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">
+          {hint}
+        </p>
+      )}
     </div>
-  )
+  );
 }
 
 function BarList({
@@ -192,15 +250,15 @@ function BarList({
   limit = 5,
   emptyText = "No data",
 }: {
-  title: string
-  note?: string
-  icon: ReactNode
-  items: WakaTimeItem[]
-  limit?: number
-  emptyText?: string
+  title: string;
+  note?: string;
+  icon: ReactNode;
+  items: WakaTimeItem[];
+  limit?: number;
+  emptyText?: string;
 }) {
-  const list = items.slice(0, limit)
-  const maxSeconds = Math.max(...list.map(itemSeconds), 1)
+  const list = items.slice(0, limit);
+  const maxSeconds = Math.max(...list.map(itemSeconds), 1);
 
   return (
     <div className="wakatime-surface p-4">
@@ -209,41 +267,57 @@ function BarList({
           {icon}
           {title}
         </h4>
-        {note && <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">{note}</span>}
+        {note && (
+          <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">
+            {note}
+          </span>
+        )}
       </div>
       <div className="space-y-3">
         {list.length ? (
           list.map((item, index) => {
-            const width = Math.max(6, (itemSeconds(item) / maxSeconds) * 100)
-            const color = colorFor(item, index)
+            const width = Math.max(6, (itemSeconds(item) / maxSeconds) * 100);
+            const color = colorFor(item, index);
             return (
-              <div key={`${title}-${item.name}-${index}`} className="space-y-1.5">
+              <div
+                key={`${title}-${item.name}-${index}`}
+                className="space-y-1.5"
+              >
                 <div className="flex items-center justify-between gap-3 text-xs font-bold">
-                  <span className="min-w-0 truncate text-emerald-950 dark:text-slate-100">{item.name || "Unknown"}</span>
-                  <span className="shrink-0 text-emerald-700 dark:text-cyan-100/78">{item.text || formatHours(itemSeconds(item))}</span>
+                  <span className="min-w-0 truncate text-emerald-950 dark:text-slate-100">
+                    {item.name || "Unknown"}
+                  </span>
+                  <span className="shrink-0 text-emerald-700 dark:text-cyan-100/78">
+                    {item.text || formatHours(itemSeconds(item))}
+                  </span>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-emerald-950/10 dark:bg-white/10">
                   <div
                     className="h-full rounded-full shadow-[0_0_16px_rgba(45,212,191,0.34)]"
-                    style={{ width: `${width}%`, background: `linear-gradient(90deg, ${color}, #a7f3d0)` }}
+                    style={{
+                      width: `${width}%`,
+                      background: `linear-gradient(90deg, ${color}, #a7f3d0)`,
+                    }}
                   />
                 </div>
               </div>
-            )
+            );
           })
         ) : (
-          <p className="rounded-xl bg-emerald-950/5 p-4 text-sm font-bold text-emerald-800/70 dark:bg-white/5 dark:text-slate-300">{emptyText}</p>
+          <p className="rounded-xl bg-emerald-950/5 p-4 text-sm font-bold text-emerald-800/70 dark:bg-white/5 dark:text-slate-300">
+            {emptyText}
+          </p>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function LanguageChart({ languages }: { languages: WakaTimeItem[] }) {
-  const { t } = useLocaleText()
-  const topLanguages = languages.slice(0, 8)
-  const maxSeconds = Math.max(...topLanguages.map(itemSeconds), 1)
-  const axisTicks = [0, 0.25, 0.5, 0.75, 1]
+  const { t } = useLocaleText();
+  const topLanguages = languages.slice(0, 8);
+  const maxSeconds = Math.max(...topLanguages.map(itemSeconds), 1);
+  const axisTicks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
     <div className="wakatime-surface p-4">
@@ -252,7 +326,9 @@ function LanguageChart({ languages }: { languages: WakaTimeItem[] }) {
           <FiCode className="h-4 w-4 text-cyan-600 dark:text-cyan-200" />
           {t("wakatime.languageTime", "Language time")}
         </h4>
-        <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">Top {topLanguages.length || 0}</span>
+        <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">
+          Top {topLanguages.length || 0}
+        </span>
       </div>
       <div className="wakatime-language-chart">
         <div className="wakatime-language-plot">
@@ -263,24 +339,37 @@ function LanguageChart({ languages }: { languages: WakaTimeItem[] }) {
           </div>
           {topLanguages.length ? (
             topLanguages.map((language, index) => {
-              const width = Math.max(4, (itemSeconds(language) / maxSeconds) * 100)
-              const color = colorFor(language, index)
-              const LanguageIcon = iconForLanguage(language.name)
+              const width = Math.max(
+                4,
+                (itemSeconds(language) / maxSeconds) * 100,
+              );
+              const color = colorFor(language, index);
+              const LanguageIcon = iconForLanguage(language.name);
               return (
-                <div key={`${language.name}-${index}`} className="wakatime-language-row">
+                <div
+                  key={`${language.name}-${index}`}
+                  className="wakatime-language-row"
+                >
                   <div className="wakatime-language-label">
                     <LanguageIcon aria-hidden="true" style={{ color }} />
                     <span>{language.name || "Unknown"}</span>
                   </div>
                   <div className="wakatime-language-bar-cell">
-                    <div className="wakatime-language-bar" style={{ width: `${width}%`, backgroundColor: color }} />
-                    <span>{language.text || formatHours(itemSeconds(language))}</span>
+                    <div
+                      className="wakatime-language-bar"
+                      style={{ width: `${width}%`, backgroundColor: color }}
+                    />
+                    <span>
+                      {language.text || formatHours(itemSeconds(language))}
+                    </span>
                   </div>
                 </div>
-              )
+              );
             })
           ) : (
-            <p className="rounded-xl bg-emerald-950/5 p-4 text-sm font-bold text-emerald-800/70 dark:bg-white/5 dark:text-slate-300">{t("wakatime.noLanguageData", "No language time data")}</p>
+            <p className="rounded-xl bg-emerald-950/5 p-4 text-sm font-bold text-emerald-800/70 dark:bg-white/5 dark:text-slate-300">
+              {t("wakatime.noLanguageData", "No language time data")}
+            </p>
           )}
           <div className="wakatime-language-axis">
             {axisTicks.map((tick) => (
@@ -290,37 +379,57 @@ function LanguageChart({ languages }: { languages: WakaTimeItem[] }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function AiPanel({ ai }: { ai?: WakaTimeAi }) {
-  const { t } = useLocaleText()
-  const aiShare = percent(ai?.aiShare)
-  const humanShare = percent(ai?.humanShare)
-  const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0)
-  const aiProjects = ai?.projectBreakdown?.slice(0, 3) || []
-  const aiEditors = ai?.editorBreakdown?.slice(0, 3) || []
+  const { t } = useLocaleText();
+  const aiShare = percent(ai?.aiShare);
+  const humanShare = percent(ai?.humanShare);
+  const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0);
+  const aiProjects = ai?.projectBreakdown?.slice(0, 3) || [];
+  const aiEditors = ai?.editorBreakdown?.slice(0, 3) || [];
 
-  const Breakdown = ({ title, items }: { title: string; items: WakaTimeItem[] }) => (
+  const Breakdown = ({
+    title,
+    items,
+  }: {
+    title: string;
+    items: WakaTimeItem[];
+  }) => (
     <div className="rounded-xl border border-emerald-950/8 bg-white/30 p-3 dark:border-white/10 dark:bg-white/[.035]">
-      <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-800/72 dark:text-cyan-100/70">{title}</p>
+      <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-800/72 dark:text-cyan-100/70">
+        {title}
+      </p>
       <div className="space-y-2">
         {items.length ? (
           items.map((item, index) => {
-            const lineChanges = Number(item.ai_additions || 0) + Number(item.ai_deletions || 0) + Number(item.ai_agent_line_changes || 0)
+            const lineChanges =
+              Number(item.ai_additions || 0) +
+              Number(item.ai_deletions || 0) +
+              Number(item.ai_agent_line_changes || 0);
             return (
-              <div key={`${title}-${item.name}-${index}`} className="flex items-center justify-between gap-3 rounded-lg bg-emerald-950/5 px-2.5 py-2 dark:bg-white/[.04]">
-                <span className="min-w-0 truncate text-xs font-black text-emerald-950 dark:text-slate-100">{item.name || "Unknown"}</span>
-                <span className="shrink-0 text-xs font-bold text-emerald-700 dark:text-cyan-100/78">{compactNumber(lineChanges)} lines</span>
+              <div
+                key={`${title}-${item.name}-${index}`}
+                className="flex items-center justify-between gap-3 rounded-lg bg-emerald-950/5 px-2.5 py-2 dark:bg-white/[.04]"
+              >
+                <span className="min-w-0 truncate text-xs font-black text-emerald-950 dark:text-slate-100">
+                  {item.name || "Unknown"}
+                </span>
+                <span className="shrink-0 text-xs font-bold text-emerald-700 dark:text-cyan-100/78">
+                  {compactNumber(lineChanges)} lines
+                </span>
               </div>
-            )
+            );
           })
         ) : (
-          <p className="rounded-lg bg-emerald-950/5 px-2.5 py-2 text-xs font-bold text-emerald-800/68 dark:bg-white/[.04] dark:text-slate-300/72">{t("wakatime.aiDetailsEmpty", "No AI details")}</p>
+          <p className="rounded-lg bg-emerald-950/5 px-2.5 py-2 text-xs font-bold text-emerald-800/68 dark:bg-white/[.04] dark:text-slate-300/72">
+            {t("wakatime.aiDetailsEmpty", "No AI details")}
+          </p>
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="wakatime-surface p-4">
@@ -329,103 +438,179 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
           <FiZap className="h-4 w-4 text-amber-500 dark:text-amber-200" />
           {t("wakatime.aiCollaboration", "AI collaboration")}
         </h4>
-        <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">{totalLines ? `${compactNumber(totalLines)} lines` : "no lines"}</span>
+        <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">
+          {totalLines ? `${compactNumber(totalLines)} lines` : "no lines"}
+        </span>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-emerald-950/8 bg-white/36 p-3 dark:border-white/10 dark:bg-white/[.04]">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700/72 dark:text-cyan-100/70">{t("wakatime.aiChanges", "AI changes")}</p>
-          <p className="mt-2 text-xl font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.aiLines)}</p>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700/72 dark:text-cyan-100/70">
+            {t("wakatime.aiChanges", "AI changes")}
+          </p>
+          <p className="mt-2 text-xl font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.aiLines)}
+          </p>
           <div className="wakatime-ai-meter mt-2 h-2 overflow-hidden rounded-full bg-emerald-950/10 dark:bg-white/10">
-            <div className="wakatime-ai-meter-fill wakatime-ai-meter-fill-ai h-full rounded-full" style={{ width: `${Math.max(aiShare, aiShare ? 5 : 0)}%` }} />
+            <div
+              className="wakatime-ai-meter-fill wakatime-ai-meter-fill-ai h-full rounded-full"
+              style={{ width: `${Math.max(aiShare, aiShare ? 5 : 0)}%` }}
+            />
           </div>
-          <p className="mt-2 text-xs font-bold text-emerald-800/68 dark:text-slate-300/75">{t("wakatime.addedDeleted", "Added {{added}} / Deleted {{deleted}}", { added: compactNumber(ai?.aiAdditions), deleted: compactNumber(ai?.aiDeletions) })}</p>
+          <p className="mt-2 text-xs font-bold text-emerald-800/68 dark:text-slate-300/75">
+            {t(
+              "wakatime.addedDeleted",
+              "Added {{added}} / Deleted {{deleted}}",
+              {
+                added: compactNumber(ai?.aiAdditions),
+                deleted: compactNumber(ai?.aiDeletions),
+              },
+            )}
+          </p>
         </div>
         <div className="rounded-xl border border-emerald-950/8 bg-white/36 p-3 dark:border-white/10 dark:bg-white/[.04]">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700/72 dark:text-cyan-100/70">{t("wakatime.humanChanges", "Human changes")}</p>
-          <p className="mt-2 text-xl font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.humanLines)}</p>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700/72 dark:text-cyan-100/70">
+            {t("wakatime.humanChanges", "Human changes")}
+          </p>
+          <p className="mt-2 text-xl font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.humanLines)}
+          </p>
           <div className="wakatime-ai-meter mt-2 h-2 overflow-hidden rounded-full bg-emerald-950/10 dark:bg-white/10">
-            <div className="wakatime-ai-meter-fill wakatime-ai-meter-fill-human h-full rounded-full" style={{ width: `${Math.max(humanShare, humanShare ? 5 : 0)}%` }} />
+            <div
+              className="wakatime-ai-meter-fill wakatime-ai-meter-fill-human h-full rounded-full"
+              style={{ width: `${Math.max(humanShare, humanShare ? 5 : 0)}%` }}
+            />
           </div>
-          <p className="mt-2 text-xs font-bold text-emerald-800/68 dark:text-slate-300/75">{t("wakatime.addedDeleted", "Added {{added}} / Deleted {{deleted}}", { added: compactNumber(ai?.humanAdditions), deleted: compactNumber(ai?.humanDeletions) })}</p>
+          <p className="mt-2 text-xs font-bold text-emerald-800/68 dark:text-slate-300/75">
+            {t(
+              "wakatime.addedDeleted",
+              "Added {{added}} / Deleted {{deleted}}",
+              {
+                added: compactNumber(ai?.humanAdditions),
+                deleted: compactNumber(ai?.humanDeletions),
+              },
+            )}
+          </p>
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-4">
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">{t("wakatime.inputTokens", "Input tokens")}</p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.inputTokens)}</p>
+          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+            {t("wakatime.inputTokens", "Input tokens")}
+          </p>
+          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.inputTokens)}
+          </p>
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">{t("wakatime.outputTokens", "Output tokens")}</p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.outputTokens)}</p>
+          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+            {t("wakatime.outputTokens", "Output tokens")}
+          </p>
+          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.outputTokens)}
+          </p>
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">{t("wakatime.promptEvents", "Prompts")}</p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.promptEvents)}</p>
+          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+            {t("wakatime.promptEvents", "Prompts")}
+          </p>
+          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.promptEvents)}
+          </p>
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">{t("wakatime.promptAverage", "Avg prompt")}</p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">{compactNumber(ai?.promptLengthAvg)}</p>
+          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+            {t("wakatime.promptAverage", "Avg prompt")}
+          </p>
+          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+            {compactNumber(ai?.promptLengthAvg)}
+          </p>
         </div>
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
-        <Breakdown title={t("wakatime.aiProjects", "AI projects")} items={aiProjects} />
-        <Breakdown title={t("wakatime.aiEditors", "AI editors")} items={aiEditors} />
+        <Breakdown
+          title={t("wakatime.aiProjects", "AI projects")}
+          items={aiProjects}
+        />
+        <Breakdown
+          title={t("wakatime.aiEditors", "AI editors")}
+          items={aiEditors}
+        />
       </div>
     </div>
-  )
+  );
 }
 
 export const WakaTimeStats = memo(function WakaTimeStats() {
-  const { t, locale } = useLocaleText()
-  const [data, setData] = useState<WakaTimeData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { t, locale } = useLocaleText();
+  const [rangeDays, setRangeDays] = useState<WakaTimeRangeDays>(30);
+  const [data, setData] = useState<WakaTimeData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function fetchWakaTime() {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        const response = await fetch(`/api/wakatime?lang=${locale}`, { cache: "no-store" })
-        const result = await response.json().catch(() => null)
+        const response = await fetch(
+          `/api/wakatime?lang=${locale}&days=${rangeDays}`,
+          { cache: "no-store" },
+        );
+        const result = await response.json().catch(() => null);
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message || t("wakatime.loadError", "Failed to fetch WakaTime data"))
+          throw new Error(
+            result?.message ||
+              t("wakatime.loadError", "Failed to fetch WakaTime data"),
+          );
         }
         if (!cancelled) {
-          setData(result.data)
+          setData(result.data);
           if (result.cached) {
-            toast.success(t("wakatime.cacheUsed", "Using cached WakaTime data, {{time}} remaining", { time: formatCacheTime(result.expiresInMs, t) }), {
-              position: "top-center",
-              duration: 3000,
-              id: "wakatime-cache-info",
-              icon: <FiClock className="h-4 w-4" />,
-              style: { maxWidth: "420px", width: "max-content" },
-            })
+            toast.success(
+              t(
+                "wakatime.cacheUsed",
+                "Using cached WakaTime data, {{time}} remaining",
+                { time: formatCacheTime(result.expiresInMs, t) },
+              ),
+              {
+                position: "top-center",
+                duration: 3000,
+                id: "wakatime-cache-info",
+                icon: <FiClock className="h-4 w-4" />,
+                style: { maxWidth: "420px", width: "max-content" },
+              },
+            );
           }
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t("wakatime.loadError", "Failed to fetch WakaTime data"))
-          setData(null)
+          setError(
+            err instanceof Error
+              ? err.message
+              : t("wakatime.loadError", "Failed to fetch WakaTime data"),
+          );
+          setData(null);
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoading(false);
       }
     }
 
-    fetchWakaTime()
+    fetchWakaTime();
     return () => {
-      cancelled = true
-    }
-  }, [locale, t])
+      cancelled = true;
+    };
+  }, [locale, rangeDays, t]);
 
-  const rangeText = data?.range?.text || "last 7 days"
+  const rangeText =
+    data?.range?.text ||
+    (locale === "en" ? `last ${rangeDays} days` : `最近 ${rangeDays} 天`);
 
   return (
     <div className="wakatime-card relative overflow-hidden rounded-2xl border border-emerald-900/10 bg-emerald-50/76 p-5 text-emerald-950 shadow-xl shadow-emerald-900/10 dark:border-cyan-300/18 dark:bg-slate-950/76 dark:text-slate-100 dark:shadow-cyan-950/25 md:p-6">
@@ -438,15 +623,32 @@ export const WakaTimeStats = memo(function WakaTimeStats() {
               WakaTime
             </h3>
           </div>
-          <div className="rounded-full border border-emerald-800/10 bg-white/52 px-3 py-1 text-xs font-bold text-emerald-800 dark:border-cyan-200/15 dark:bg-cyan-200/10 dark:text-cyan-100">
-            {rangeText}
+          <div className="flex rounded-full border border-emerald-800/10 bg-white/52 p-1 text-xs font-bold text-emerald-800 dark:border-cyan-200/15 dark:bg-cyan-200/10 dark:text-cyan-100">
+            {rangeOptions.map((days) => (
+              <button
+                key={days}
+                type="button"
+                onClick={() => setRangeDays(days)}
+                className={`rounded-full px-3 py-1 transition ${
+                  rangeDays === days
+                    ? "bg-emerald-600 text-white shadow-sm shadow-emerald-900/10 dark:bg-cyan-300 dark:text-slate-950"
+                    : "hover:bg-emerald-950/6 dark:hover:bg-white/10"
+                }`}
+                aria-pressed={rangeDays === days}
+              >
+                {locale === "en" ? `${days}d` : `${days}天`}
+              </button>
+            ))}
           </div>
         </div>
 
         {loading ? (
           <div className="mt-6 grid gap-3 md:grid-cols-2">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="h-24 animate-pulse rounded-2xl bg-emerald-900/10 dark:bg-white/10" />
+              <div
+                key={index}
+                className="h-24 animate-pulse rounded-2xl bg-emerald-900/10 dark:bg-white/10"
+              />
             ))}
           </div>
         ) : error ? (
@@ -455,24 +657,74 @@ export const WakaTimeStats = memo(function WakaTimeStats() {
               <FiClock className="h-5 w-5" />
               {t("wakatime.waiting", "Waiting for WakaTime configuration")}
             </div>
-            <p className="mt-2 text-amber-900/72 dark:text-amber-50/70">{error}</p>
+            <p className="mt-2 text-amber-900/72 dark:text-amber-50/70">
+              {error}
+            </p>
           </div>
         ) : data ? (
           <div className="mt-5 space-y-4">
             <div className="grid gap-4 xl:grid-cols-[1.06fr_0.94fr]">
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <StatTile icon={<FiClock className="h-4 w-4 text-emerald-600 dark:text-cyan-200" />} label={t("wakatime.totalCoding", "Total coding")} value={data.allTimeText || data.totalText} hint="WakaTime all time" />
-                  <StatTile icon={<FiActivity className="h-4 w-4 text-emerald-600 dark:text-emerald-200" />} label={t("wakatime.recentCoding", "Recent coding")} value={data.recentText || data.totalText} hint={rangeText} />
-                  <StatTile icon={<FiCpu className="h-4 w-4 text-violet-500 dark:text-violet-200" />} label={t("wakatime.bestDay", "Best day")} value={data.bestDay?.text || t("wakatime.noData", "No data")} hint={data.bestDay?.date} />
+                  <StatTile
+                    icon={
+                      <FiClock className="h-4 w-4 text-emerald-600 dark:text-cyan-200" />
+                    }
+                    label={t("wakatime.totalCoding", "Total coding")}
+                    value={data.allTimeText || data.totalText}
+                    hint="WakaTime all time"
+                  />
+                  <StatTile
+                    icon={
+                      <FiActivity className="h-4 w-4 text-emerald-600 dark:text-emerald-200" />
+                    }
+                    label={t("wakatime.recentCoding", "Recent coding")}
+                    value={data.recentText || data.totalText}
+                    hint={rangeText}
+                  />
+                  <StatTile
+                    icon={
+                      <FiCpu className="h-4 w-4 text-violet-500 dark:text-violet-200" />
+                    }
+                    label={t("wakatime.bestDay", "Best day")}
+                    value={
+                      data.bestDay?.text || t("wakatime.noData", "No data")
+                    }
+                    hint={data.bestDay?.date}
+                  />
                 </div>
-                <BarList title={t("wakatime.projectTime", "Project time")} note={t("wakatime.recent7Days", "Last 7 days")} icon={<FiBarChart2 className="h-4 w-4 text-emerald-600 dark:text-cyan-200" />} items={data.projects} limit={5} emptyText={t("wakatime.noData", "No data")} />
-                <BarList title={t("wakatime.editorTime", "Editor time")} icon={<FiMonitor className="h-4 w-4 text-violet-500 dark:text-violet-200" />} items={data.editors} limit={3} emptyText={t("wakatime.noData", "No data")} />
+                <BarList
+                  title={t("wakatime.projectTime", "Project time")}
+                  note={rangeText}
+                  icon={
+                    <FiBarChart2 className="h-4 w-4 text-emerald-600 dark:text-cyan-200" />
+                  }
+                  items={data.projects}
+                  limit={5}
+                  emptyText={t("wakatime.noData", "No data")}
+                />
+                <BarList
+                  title={t("wakatime.editorTime", "Editor time")}
+                  icon={
+                    <FiMonitor className="h-4 w-4 text-violet-500 dark:text-violet-200" />
+                  }
+                  items={data.editors}
+                  limit={3}
+                  emptyText={t("wakatime.noData", "No data")}
+                />
               </div>
 
               <div className="space-y-3">
                 <AiPanel ai={data.ai} />
-                <BarList title={t("wakatime.systemTime", "System time")} icon={<FiPieChart className="h-4 w-4 text-amber-500 dark:text-amber-200" />} items={data.operatingSystems} limit={3} emptyText={t("wakatime.noData", "No data")} />
+                <BarList
+                  title={t("wakatime.systemTime", "System time")}
+                  icon={
+                    <FiPieChart className="h-4 w-4 text-amber-500 dark:text-amber-200" />
+                  }
+                  items={data.operatingSystems}
+                  limit={3}
+                  emptyText={t("wakatime.noData", "No data")}
+                />
               </div>
             </div>
             <LanguageChart languages={data.languages} />
@@ -480,5 +732,5 @@ export const WakaTimeStats = memo(function WakaTimeStats() {
         ) : null}
       </div>
     </div>
-  )
-})
+  );
+});
