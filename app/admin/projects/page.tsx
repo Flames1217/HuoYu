@@ -153,7 +153,19 @@ export default function AdminProjectsPage() {
       const response = await fetch("/api/admin/projects");
       if (!response.ok) throw new Error(t("adminProjects.toastFetchError", "项目数据加载失败"));
       const data = await response.json();
-      setProjects(Array.isArray(data) ? data.map(normalizeProject) : []);
+      const normalizedProjects = Array.isArray(data) ? data.map(normalizeProject) : [];
+      const readmeImages = Array.isArray(data)
+        ? data.reduce((items: Record<string, ReadmeImageCandidate[]>, project: any, index: number) => {
+            const normalized = normalizedProjects[index];
+            if (normalized && Array.isArray(project.readmeImages)) {
+              items[normalized.id] = project.readmeImages;
+            }
+            return items;
+          }, {})
+        : {};
+
+      setProjects(normalizedProjects);
+      setReadmeImagesByProjectId(readmeImages);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("adminProjects.toastFetchError", "项目数据加载失败"));
       setProjects([]);
@@ -219,6 +231,9 @@ export default function AdminProjectsPage() {
 
       const images = Array.isArray(data.images) ? data.images : [];
       setReadmeImagesByProjectId((items) => ({ ...items, [project.id]: images }));
+      if (!project.imageUrl && images[0]?.url) {
+        updateProject(project.id, { imageUrl: images[0].url });
+      }
       if (images.length === 0) {
         toast.info(t("adminProjects.readmeImagesEmpty", "这个 README 里没有可用图片"));
       }
@@ -459,7 +474,7 @@ export default function AdminProjectsPage() {
                     className="w-full border-slate-500/40 bg-slate-800/45 text-slate-100 hover:bg-slate-700/60"
                   >
                     {loadingImagesByProjectId[project.id] ? <AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" /> : <FiImage className="mr-2 h-4 w-4" />}
-                    {t("adminProjects.loadReadmeImages", "获取 README 图片")}
+                    {t("adminProjects.loadReadmeImages", "刷新 README 图片")}
                   </Button>
 
                   {(readmeImagesByProjectId[project.id] || []).length > 0 && (

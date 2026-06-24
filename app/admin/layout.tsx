@@ -137,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider defaultOpen>
-      <div className="zero-admin zero-admin-shell fixed inset-0 overflow-y-auto">
+      <div className="zero-admin zero-admin-shell fixed inset-0 overflow-hidden">
         <aside className="admin-sidebar hidden lg:flex" style={{ width: SIDEBAR_WIDTH }}>
           <SidebarHeader className="border-b border-white/10 px-4 py-4">
             <AdminBrand href={adminHomeHref} title={t("adminLayout.title", "管理中心")} />
