@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -126,7 +125,6 @@ export function RootClientShell({
                   <div className="front-page-shell zero-space flex min-h-screen flex-col">
                     <div className="flex-grow">
                       {children}
-                      <Script src="https://api.vvhan.com/api/script/yinghua" strategy="lazyOnload" />
                     </div>
                     <Footer />
                   </div>

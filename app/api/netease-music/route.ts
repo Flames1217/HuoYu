@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const locale = localeFromRequest(request);
   const uid = searchParams.get('uid') || process.env.NETEASE_USER_ID;
   const musicU = process.env.NETEASE_MUSIC_U;
-  const baseURL = 'https://neteasecloudmusicapi.viper3.top';
+  const baseURL = (process.env.NETEASE_API_BASE_URL || 'https://api-cloudmusic.viper3.top').replace(/\/+$/, '');
   const isForceRefresh = isHardReload(request);
 
   if (!uid) {

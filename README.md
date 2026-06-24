@@ -276,6 +276,7 @@ TOLGEE_SYNC_EXISTING_TRANSLATIONS_ONLY=true node scripts/sync-tolgee-direct.mjs
 | `STEAM_USER_ID` | Steam 64 位用户 ID |
 | `NETEASE_USER_ID` | 网易云音乐用户 ID |
 | `NETEASE_MUSIC_U` | 网易云音乐 Cookie 中的 `MUSIC_U` |
+| `NETEASE_API_BASE_URL` | 网易云音乐 API 服务地址，默认 `https://api-cloudmusic.viper3.top` |
 | `WAKATIME_API_KEY` | WakaTime API Key |
 | `WEGAME_TGP_ID` | WeGame Cookie 中的 `tgp_id` |
 | `WEGAME_COOKIE` | WeGame 完整 Cookie |

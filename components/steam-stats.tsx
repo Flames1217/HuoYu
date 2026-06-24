@@ -50,9 +50,16 @@ function showReadableSteamCacheToast(ms: number | undefined, t: Translate) {
 }
 
 function SteamGameCover({ game }: { game: GameData }) {
-  const [coverFailed, setCoverFailed] = useState(false)
+  const coverUrls = [
+    `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appid}/header.jpg`,
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`,
+    game.img_icon_url ? `https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg` : "",
+    game.img_icon_url ? `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg` : "",
+  ].filter(Boolean)
+  const [coverIndex, setCoverIndex] = useState(0)
+  const coverUrl = coverUrls[coverIndex]
 
-  if (coverFailed) {
+  if (!coverUrl) {
     return (
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white/25 text-foreground shadow dark:bg-black/25">
         <SiSteam className="h-6 w-6" aria-hidden="true" />
@@ -62,10 +69,10 @@ function SteamGameCover({ game }: { game: GameData }) {
 
   return (
     <img
-      src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
+      src={coverUrl}
       alt={game.name}
       className="h-10 w-10 shrink-0 rounded object-cover shadow"
-      onError={() => setCoverFailed(true)}
+      onError={() => setCoverIndex((index) => index + 1)}
     />
   )
 }
