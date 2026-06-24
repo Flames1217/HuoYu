@@ -2,18 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  FiArchive,
   FiChevronDown,
   FiClock,
   FiDownload,
-  FiEdit3,
   FiExternalLink,
   FiGithub,
   FiImage,
   FiRefreshCw,
   FiSave,
   FiSearch,
-  FiStar,
   FiX,
 } from "react-icons/fi";
 import { GoRepoForked, GoStar } from "react-icons/go";
@@ -201,6 +198,9 @@ function LanguagePill({ language }: { language?: string | null }) {
     </span>
   );
 }
+
+const adminSelectTriggerClass =
+  "border-slate-300/30 bg-white/70 text-emerald-950 shadow-none hover:bg-white/85 dark:border-slate-600/50 dark:bg-slate-950/45 dark:text-slate-100 dark:hover:bg-slate-900/70";
 
 function SortButton({
   active,
@@ -519,7 +519,7 @@ export default function AdminProjectsPage() {
               />
             </div>
             <Select value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value as VisibilityFilter)}>
-              <SelectTrigger><SelectValue placeholder="展示状态" /></SelectTrigger>
+              <SelectTrigger className={adminSelectTriggerClass}><SelectValue placeholder="展示状态" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部展示状态</SelectItem>
                 <SelectItem value="visible">仅前台展示</SelectItem>
@@ -527,7 +527,7 @@ export default function AdminProjectsPage() {
               </SelectContent>
             </Select>
             <Select value={repoTypeFilter} onValueChange={(value) => setRepoTypeFilter(value as RepoTypeFilter)}>
-              <SelectTrigger><SelectValue placeholder="仓库类型" /></SelectTrigger>
+              <SelectTrigger className={adminSelectTriggerClass}><SelectValue placeholder="仓库类型" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部类型</SelectItem>
                 <SelectItem value="public">Public</SelectItem>
@@ -537,7 +537,7 @@ export default function AdminProjectsPage() {
               </SelectContent>
             </Select>
             <Select value={languageFilter} onValueChange={setLanguageFilter}>
-              <SelectTrigger><SelectValue placeholder="语言" /></SelectTrigger>
+              <SelectTrigger className={adminSelectTriggerClass}><SelectValue placeholder="语言" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部语言</SelectItem>
                 {languages.map((language) => (
@@ -546,7 +546,7 @@ export default function AdminProjectsPage() {
               </SelectContent>
             </Select>
             <Select value={sortKey} onValueChange={(value) => setSortKey(value as SortKey)}>
-              <SelectTrigger><SelectValue placeholder="排序字段" /></SelectTrigger>
+              <SelectTrigger className={adminSelectTriggerClass}><SelectValue placeholder="排序字段" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="priority">按优先级</SelectItem>
                 <SelectItem value="updated">按更新时间</SelectItem>
@@ -558,7 +558,7 @@ export default function AdminProjectsPage() {
               </SelectContent>
             </Select>
             <Select value={sortDirection} onValueChange={(value) => setSortDirection(value as SortDirection)}>
-              <SelectTrigger><SelectValue placeholder="方向" /></SelectTrigger>
+              <SelectTrigger className={adminSelectTriggerClass}><SelectValue placeholder="方向" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="asc">升序</SelectItem>
                 <SelectItem value="desc">降序</SelectItem>
@@ -616,14 +616,14 @@ export default function AdminProjectsPage() {
                     <SortButton active={sortKey === "priority"} direction={sortDirection} onClick={() => toggleSort("priority")}>排序</SortButton>
                   </TableHead>
                   <TableHead className="w-[180px]">封面</TableHead>
-                  <TableHead className="w-[160px]">操作</TableHead>
+                  <TableHead className="w-[260px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProjects.map((project) => {
                   const selected = selectedIds.includes(project.id);
                   return (
-                    <TableRow key={project.id} className="border-slate-300/10">
+                    <TableRow key={project.id} className="border-slate-300/10 hover:bg-cyan-400/[0.035] data-[state=selected]:bg-cyan-400/[0.055]">
                       <TableCell>
                         <Checkbox
                           checked={selected}
@@ -745,17 +745,14 @@ export default function AdminProjectsPage() {
                         </button>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col gap-2">
+                        <div className="min-w-[240px]">
                           <Input
                             value={project.demoUrl || ""}
                             onChange={(event) => updateProject(project.id, { demoUrl: event.target.value })}
                             placeholder="预览链接"
-                            className="h-8 text-xs"
+                            title={project.demoUrl || ""}
+                            className="h-9 text-xs"
                           />
-                          <Button type="button" size="sm" variant="outline" className="admin-secondary-button h-8" onClick={() => openCoverPicker(project)}>
-                            <FiEdit3 className="mr-2 h-3.5 w-3.5" />
-                            编辑封面
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

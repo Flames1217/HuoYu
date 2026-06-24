@@ -117,7 +117,7 @@ export function RootClientShell({
       <AuthProvider>
         <AppTolgeeProvider locale={locale}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            <div className={`theme-page-transition theme-page-transition-${themeTransitionStage}`}>
+            <div className={`theme-page-transition theme-page-transition-${themeTransitionStage} ${isAdminPage ? "theme-page-transition-admin" : ""}`}>
               <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
                 {isAdminPage ? (
                   <div className="flex-grow">{children}</div>
