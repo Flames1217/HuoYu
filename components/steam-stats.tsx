@@ -49,6 +49,27 @@ function showReadableSteamCacheToast(ms: number | undefined, t: Translate) {
   })
 }
 
+function SteamGameCover({ game }: { game: GameData }) {
+  const [coverFailed, setCoverFailed] = useState(false)
+
+  if (coverFailed) {
+    return (
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white/25 text-foreground shadow dark:bg-black/25">
+        <SiSteam className="h-6 w-6" aria-hidden="true" />
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
+      alt={game.name}
+      className="h-10 w-10 shrink-0 rounded object-cover shadow"
+      onError={() => setCoverFailed(true)}
+    />
+  )
+}
+
 function isHardReload() {
   if (typeof window === "undefined") return false
   const navigation = window.performance?.getEntriesByType?.("navigation")?.[0] as PerformanceNavigationTiming | undefined
@@ -212,14 +233,7 @@ export const SteamStats = memo(function SteamStats({ initialProfile }: SteamStat
         rel="noopener noreferrer"
         className="group flex min-w-0 flex-row items-center rounded-lg p-2 transition hover:bg-white/20 dark:hover:bg-black/30"
       >
-        <img
-          src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg`}
-          alt={game.name}
-          className="h-10 w-10 shrink-0 rounded object-cover shadow"
-          onError={(event) => {
-            event.currentTarget.src = "/images/vapo.gif"
-          }}
-        />
+        <SteamGameCover game={game} />
         <div className="ml-3 min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-foreground">{game.name}</span>
           <span className="block truncate text-xs text-muted-foreground">
