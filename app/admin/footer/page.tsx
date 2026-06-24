@@ -153,12 +153,19 @@ async function formatFooterItem(item: FooterItem): Promise<FooterItem> {
   return item;
 }
 
+function getCodeInputRows(value: string, minRows: number, maxRows: number) {
+  const lines = value ? value.split("\n") : [""];
+  const estimatedRows = lines.reduce((total, line) => total + Math.max(1, Math.ceil(line.length / 120)), 0);
+  return Math.min(maxRows, Math.max(minRows, estimatedRows + 2));
+}
+
 function CodeInput({
   id,
   label,
   description,
   value,
-  minHeight = "min-h-40",
+  minRows = 8,
+  maxRows = 22,
   onChange,
   onFormat,
 }: {
@@ -166,10 +173,13 @@ function CodeInput({
   label: string;
   description?: string;
   value: string;
-  minHeight?: string;
+  minRows?: number;
+  maxRows?: number;
   onChange: (value: string) => void;
   onFormat: () => Promise<void> | void;
 }) {
+  const rows = getCodeInputRows(value, minRows, maxRows);
+
   return (
     <div className="min-w-0 space-y-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -186,8 +196,9 @@ function CodeInput({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        rows={rows}
         spellCheck={false}
-        className={`${minHeight} w-full min-w-0 resize-y overflow-x-auto whitespace-pre font-mono text-sm leading-6`}
+        className="w-full min-w-0 resize-y overflow-x-auto whitespace-pre font-mono text-sm leading-6"
       />
     </div>
   );
@@ -468,7 +479,8 @@ export default function FooterAdminPage() {
                   label={t("adminFooter.customTextLabel", "自定义文本（支持 HTML/CSS）")}
                   description={t("adminFooter.customTextCodeHelp", "支持 HTML、CSS、style 标签，文本框可拖拽拉大；保存时会自动格式化。")}
                   value={item.text || ""}
-                  minHeight="min-h-64"
+                  minRows={14}
+                  maxRows={34}
                   onChange={(value) => updateItem(index, { text: value } as Partial<FooterItem>)}
                   onFormat={() => formatCodeField(index, "text", item.text || "")}
                 />
