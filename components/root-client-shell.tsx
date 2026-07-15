@@ -13,7 +13,6 @@ import useAutoThemeByBeijingTime from "@/hooks/use-auto-theme-by-beijing-time";
 import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/tolgee";
 
 type LocaleTransitionStage = "idle" | "exiting" | "entering";
-type ThemeTransitionStage = "idle" | "active";
 
 function AutoThemeController() {
   useAutoThemeByBeijingTime();
@@ -35,9 +34,7 @@ export function RootClientShell({
   const locale = getLocaleFromPathname(pathname);
   const previousLocaleRef = useRef(locale);
   const transitionFrameRef = useRef<number | null>(null);
-  const themeTransitionTimerRef = useRef<number | null>(null);
   const [transitionStage, setTransitionStage] = useState<LocaleTransitionStage>("idle");
-  const [themeTransitionStage, setThemeTransitionStage] = useState<ThemeTransitionStage>("idle");
 
   useEffect(() => {
     document.documentElement.lang = localeToLanguageTag(locale);
@@ -51,29 +48,12 @@ export function RootClientShell({
       setTransitionStage("exiting");
     };
 
-    const handleThemeTransitionStart = () => {
-      if (themeTransitionTimerRef.current !== null) {
-        window.clearTimeout(themeTransitionTimerRef.current);
-      }
-
-      setThemeTransitionStage("active");
-      themeTransitionTimerRef.current = window.setTimeout(() => {
-        setThemeTransitionStage("idle");
-        themeTransitionTimerRef.current = null;
-      }, 520);
-    };
-
     window.addEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
-    window.addEventListener("huoyu:theme-transition-start", handleThemeTransitionStart);
 
     return () => {
       window.removeEventListener("huoyu:locale-transition-start", handleLocaleTransitionStart);
-      window.removeEventListener("huoyu:theme-transition-start", handleThemeTransitionStart);
       if (transitionFrameRef.current !== null) {
         window.cancelAnimationFrame(transitionFrameRef.current);
-      }
-      if (themeTransitionTimerRef.current !== null) {
-        window.clearTimeout(themeTransitionTimerRef.current);
       }
     };
   }, []);
@@ -121,7 +101,8 @@ export function RootClientShell({
         <AppTolgeeProvider locale={locale}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
             <AutoThemeController />
-            <div className={`theme-page-transition theme-page-transition-${themeTransitionStage} ${isAdminPage ? "theme-page-transition-admin" : ""}`}>
+            <div className="theme-page-transition">
+              <div id="page-floating-controls-host" />
               <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
                 {isAdminPage ? (
                   <div className="flex-grow">{children}</div>
