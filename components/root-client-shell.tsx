@@ -15,6 +15,11 @@ import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/t
 type LocaleTransitionStage = "idle" | "exiting" | "entering";
 type ThemeTransitionStage = "idle" | "active";
 
+function AutoThemeController() {
+  useAutoThemeByBeijingTime();
+  return null;
+}
+
 export function RootClientShell({
   children,
   initialSiteMeta,
@@ -33,8 +38,6 @@ export function RootClientShell({
   const themeTransitionTimerRef = useRef<number | null>(null);
   const [transitionStage, setTransitionStage] = useState<LocaleTransitionStage>("idle");
   const [themeTransitionStage, setThemeTransitionStage] = useState<ThemeTransitionStage>("idle");
-
-  useAutoThemeByBeijingTime();
 
   useEffect(() => {
     document.documentElement.lang = localeToLanguageTag(locale);
@@ -117,6 +120,7 @@ export function RootClientShell({
       <AuthProvider>
         <AppTolgeeProvider locale={locale}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <AutoThemeController />
             <div className={`theme-page-transition theme-page-transition-${themeTransitionStage} ${isAdminPage ? "theme-page-transition-admin" : ""}`}>
               <div className={`locale-page-transition locale-page-transition-${transitionStage}`}>
                 {isAdminPage ? (
