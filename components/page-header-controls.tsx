@@ -1,19 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { FiMoon, FiSun } from "react-icons/fi";
-import { isAdminPath } from "@/lib/tolgee";
 import { useLocaleText } from "@/lib/use-locale-text";
 
 export function PageHeaderControls() {
-  const pathname = usePathname();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const adminPage = isAdminPath(pathname);
   const currentTheme = mounted ? resolvedTheme || theme : undefined;
   const { t } = useLocaleText();
 
@@ -30,8 +27,8 @@ export function PageHeaderControls() {
     setTheme(currentTheme === "light" ? "dark" : "light");
   };
 
-  return (
-    <div className={`fixed ${adminPage ? "top-3 right-3" : "top-4 right-4"} z-[1000] flex items-center gap-2`}>
+  return createPortal(
+    <div className="page-floating-controls fixed z-[1000] flex items-center gap-1 rounded-xl border border-emerald-950/10 bg-emerald-50/90 p-1 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-slate-950/90">
       <LanguageSwitcher />
       <Button
         variant="ghost"
@@ -42,6 +39,7 @@ export function PageHeaderControls() {
       >
         {currentTheme === "light" ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
       </Button>
-    </div>
+    </div>,
+    document.body,
   );
 }

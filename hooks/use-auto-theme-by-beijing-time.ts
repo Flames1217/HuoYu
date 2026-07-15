@@ -40,5 +40,5 @@ export default function useAutoThemeByBeijingTime() {
     autoSetTheme();
     scheduleNextBoundary();
     return () => clearTimeout(timer);
-  }, [setTheme]);
+  }, []);
 }

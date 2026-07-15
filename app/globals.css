@@ -4528,3 +4528,16 @@ body.light .admin-login-page .admin-login-mark :is(svg, path),
 .front-landing .rss-showcase-card::before {
   display: none !important;
 }
+
+.page-floating-controls {
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+html.light .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-showcase-card, .wakatime-card, .wakatime-surface, .github-activity-frame):is(.zero-panel, .life-glass-card, .rss-showcase-card, .wakatime-card, .wakatime-surface, .github-activity-frame) {
+  background-color: rgb(232, 246, 226) !important;
+}
+
+html.dark .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-showcase-card, .wakatime-card, .wakatime-surface, .github-activity-frame):is(.zero-panel, .life-glass-card, .rss-showcase-card, .wakatime-card, .wakatime-surface, .github-activity-frame) {
+  background-color: rgb(4, 8, 20) !important;
+}
