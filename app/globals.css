@@ -50,19 +50,19 @@ body {
 }
 
 ::view-transition-old(root) {
-  animation: huoyu-theme-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation: huoyu-theme-out 520ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(root) {
-  animation: huoyu-theme-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: huoyu-theme-in 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes huoyu-theme-out {
-  to { opacity: 0; }
+  to { opacity: 0; filter: blur(6px); transform: scale(0.99); }
 }
 
 @keyframes huoyu-theme-in {
-  from { opacity: 0; }
+  from { opacity: 0; filter: blur(8px); transform: scale(1.015); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1121,7 +1121,7 @@ body {
 }
 
 .hero-nickname-badge {
-  font-family: "ForSale", "MapleMono", "Segoe UI Emoji", sans-serif;
+  font-family: "YeZiChuanQiuShaXingKai", "MapleMono", "Microsoft YaHei UI", sans-serif;
   font-weight: 400 !important;
   min-height: 3.1rem;
   padding: 0.62rem 1.35rem !important;
@@ -4615,7 +4615,8 @@ html.dark .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-s
 .card-flame-host {
   position: relative;
   height: 100%;
-  padding-top: 1rem;
+  overflow: hidden;
+  border-radius: 1.5rem;
   isolation: isolate;
 }
 
@@ -4626,10 +4627,10 @@ html.dark .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-s
 
 .card-flame-video {
   position: absolute;
-  top: -2.8rem;
-  right: clamp(0.5rem, 3vw, 2.5rem);
+  top: 0.5rem;
+  right: 0.5rem;
   z-index: 3;
-  width: clamp(7rem, 12vw, 10.5rem);
+  width: clamp(4.5rem, 7vw, 6.5rem);
   aspect-ratio: 1;
   object-fit: contain;
   pointer-events: none;
