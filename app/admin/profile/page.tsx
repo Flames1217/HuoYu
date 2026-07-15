@@ -1,7 +1,7 @@
 ﻿// AT THE VERY TOP OF app/admin/profile/page.tsx
 
 "use client";
-import { useState, useEffect, ChangeEvent, FormEvent, Suspense, useMemo } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,16 @@ import { toast } from 'sonner';
 import { FiPlusCircle, FiTrash2, FiMoreVertical } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useLocaleText } from '@/lib/use-locale-text';
+import { profileFormSnapshot } from '@/lib/profile-form-snapshot.mjs';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // DND Kit imports
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -175,7 +185,12 @@ export default function AdminProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const restoringHistory = useRef(false);
+  const allowHistoryNavigation = useRef(false);
   const router = useRouter();
+  const hasUnsavedChanges = savedSnapshot !== null && profileFormSnapshot(profile as Record<string, unknown>) !== savedSnapshot;
 
   // DND Kit sensors
   const sensors = useSensors(
@@ -194,7 +209,7 @@ export default function AdminProfilePage() {
         }
         const data: ProfileData = await response.json();
         // Set profile state using snake_case keys, handling potential nulls from API for form fields
-        setProfile({
+        const normalizedProfile: ProfileData = {
           ...data, // Spread all data first
           site_title: data.site_title || 'HuoYu',
           favicon_url: data.favicon_url || '/images/avatar.png',
@@ -227,7 +242,9 @@ export default function AdminProfilePage() {
           wegame_tgp_id: data.wegame_tgp_id || '',
           wegame_cookie: data.wegame_cookie || '',
           wakatime_api_key: data.wakatime_api_key || '',
-        });
+        };
+        setProfile(normalizedProfile);
+        setSavedSnapshot(profileFormSnapshot(normalizedProfile as Record<string, unknown>));
       } catch (error) {
         toast.error(error instanceof Error ? error.message : t('adminProfile.toastCouldNotLoad'));
         console.error("Fetch Profile Error:", error);
@@ -237,6 +254,48 @@ export default function AdminProfilePage() {
     };
     fetchProfile();
   }, [t]); // Add t to dependency array
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    const handleLinkClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!(event.target instanceof Element)) return;
+      const link = event.target.closest('a[href]') as HTMLAnchorElement | null;
+      if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin || url.href === window.location.href) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setPendingNavigation(`${url.pathname}${url.search}${url.hash}`);
+    };
+    const handleHistoryBack = () => {
+      if (allowHistoryNavigation.current) {
+        allowHistoryNavigation.current = false;
+        return;
+      }
+      if (restoringHistory.current) {
+        restoringHistory.current = false;
+        return;
+      }
+      restoringHistory.current = true;
+      window.history.forward();
+      setPendingNavigation('__history_back__');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handleHistoryBack);
+    document.addEventListener('click', handleLinkClick, true);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handleHistoryBack);
+      document.removeEventListener('click', handleLinkClick, true);
+    };
+  }, [hasUnsavedChanges]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target; // name will be snake_case (e.g., "avatar_url")
@@ -287,8 +346,7 @@ export default function AdminProfilePage() {
     }
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const saveProfile = async () => {
     setSaving(true);
 
     // Create a type for the payload to be sent to the backend, excluding the client-side 'id' for social_links
@@ -341,7 +399,7 @@ export default function AdminProfilePage() {
       const fetchResponse = await fetch('/api/admin/profile'); // Re-fetch after save
       if (fetchResponse.ok) {
         const updatedData: ProfileData = await fetchResponse.json();
-        setProfile({
+        const normalizedProfile: ProfileData = {
           ...updatedData,
           site_title: updatedData.site_title || 'HuoYu',
           favicon_url: updatedData.favicon_url || '/images/avatar.png',
@@ -359,14 +417,41 @@ export default function AdminProfilePage() {
           wegame_tgp_id: updatedData.wegame_tgp_id || '',
           wegame_cookie: updatedData.wegame_cookie || '',
           wakatime_api_key: updatedData.wakatime_api_key || '',
-        });
+        };
+        setProfile(normalizedProfile);
+        setSavedSnapshot(profileFormSnapshot(normalizedProfile as Record<string, unknown>));
+      } else {
+        setSavedSnapshot(profileFormSnapshot(profile as Record<string, unknown>));
       }
+      return true;
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('adminProfile.toastCouldNotSave'));
       console.error("Submit Profile Error:", error);
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await saveProfile();
+  };
+
+  const continueNavigation = () => {
+    if (!pendingNavigation) return;
+    const destination = pendingNavigation;
+    setPendingNavigation(null);
+    if (destination === '__history_back__') {
+      allowHistoryNavigation.current = true;
+      window.history.back();
+    } else {
+      router.push(destination);
+    }
+  };
+
+  const saveAndContinue = async () => {
+    if (await saveProfile()) continueNavigation();
   };
 
   if (loading) {
@@ -383,6 +468,19 @@ export default function AdminProfilePage() {
       <AdminPageTitle title={t('adminProfile.title')} description={t('adminProfile.description')} />
       
       <form onSubmit={handleSubmit} className="mt-6 space-y-8 max-w-5xl">
+        <div className="admin-profile-actions">
+          <span className={hasUnsavedChanges ? 'text-amber-300' : 'text-emerald-300'}>
+            {hasUnsavedChanges ? '有未保存的更改' : '所有更改均已保存'}
+          </span>
+          <Button type="submit" disabled={saving || !hasUnsavedChanges} className="px-6">
+            {saving ? (
+              <><AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" />{t('adminProfile.savingProfileButton')}</>
+            ) : (
+              t('adminProfile.saveProfileButton')
+            )}
+          </Button>
+        </div>
+
         <section className="zero-admin-surface rounded-lg p-4">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-foreground">{t('adminProfile.siteSectionTitle', '站点信息')}</h2>
@@ -776,16 +874,27 @@ export default function AdminProfilePage() {
           </div>
         </fieldset>
 
-        <div className="mt-8">
-          <Button type="submit" disabled={saving || loading} className="px-6">
-            {saving ? (
-              <><AiOutlineLoading3Quarters className="mr-2 h-4 w-4 animate-spin" />{t('adminProfile.savingProfileButton')}</>
-            ) : (
-              t('adminProfile.saveProfileButton')
-            )}
-          </Button>
-        </div>
       </form>
+
+      <AlertDialog open={Boolean(pendingNavigation)} onOpenChange={(open) => !open && setPendingNavigation(null)}>
+        <AlertDialogContent className="external-link-dialog overflow-hidden border-cyan-300/20 bg-slate-950/95 text-slate-100 shadow-2xl shadow-cyan-950/40 backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>个人资料尚未保存</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              当前内容与上次保存的内容不同。保存后前往，还是放弃本次更改？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:space-x-0">
+            <AlertDialogCancel className="border-white/10 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white">留在此页</AlertDialogCancel>
+            <Button variant="outline" onClick={continueNavigation} className="border-rose-300/20 bg-rose-400/10 text-rose-200 hover:bg-rose-400/20 hover:text-rose-100">
+              放弃更改
+            </Button>
+            <Button onClick={saveAndContinue} disabled={saving} className="bg-gradient-to-r from-violet-600 to-cyan-500 text-white hover:opacity-90">
+              {saving ? '保存中...' : '保存并前往'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

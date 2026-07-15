@@ -2387,6 +2387,22 @@ body {
   padding: 4.25rem clamp(1.25rem, 3vw, 3rem) 3rem;
 }
 
+.admin-profile-actions {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.8rem 0.65rem 1rem;
+  background: rgba(15, 23, 42, 0.9);
+  box-shadow: 0 12px 32px rgba(2, 8, 23, 0.24);
+  backdrop-filter: blur(16px);
+}
+
 .admin-mobile-bar {
   position: fixed;
   top: 1rem;

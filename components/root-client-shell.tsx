@@ -117,7 +117,7 @@ export function RootClientShell({
                 )}
               </div>
             </div>
-            {!isAdminPage && <ExternalLinkDialog />}
+            <ExternalLinkDialog />
             <Toaster
               position="top-center"
               richColors
