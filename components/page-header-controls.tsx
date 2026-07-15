@@ -12,7 +12,7 @@ export function PageHeaderControls() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentTheme = mounted ? resolvedTheme || theme : undefined;
-  const { t } = useLocaleText();
+  const { t, locale } = useLocaleText();
 
   useEffect(() => {
     setMounted(true);
@@ -60,7 +60,7 @@ export function PageHeaderControls() {
           size="icon"
           className="back-to-top-button h-8 w-8 rounded-md border-0 bg-transparent text-emerald-950 shadow-none hover:bg-emerald-950/10 hover:text-emerald-950 dark:text-slate-100 dark:hover:bg-white/10"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label={t("page.backToTop", "回到顶部")}
+          aria-label={locale === "cn" ? "回到顶部" : "Back to top"}
         >
           <FiArrowUp className="h-4 w-4" />
         </Button>

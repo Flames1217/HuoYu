@@ -39,6 +39,8 @@ interface SocialLink {
 interface ProfileData {
   site_title?: string | null;
   favicon_url?: string | null;
+  day_background_video_url?: string | null;
+  night_background_video_url?: string | null;
   nickname?: string | null;
   hero_title_line1?: string | null;
   hero_title_line2?: string | null;
@@ -146,7 +148,9 @@ export default function AdminProfilePage() {
   const [profile, setProfile] = useState<ProfileData>({ 
     site_title: 'HuoYu',
     favicon_url: '/images/avatar.png',
-    nickname: '🔥Flamez',
+    nickname: '三千焱',
+    day_background_video_url: '',
+    night_background_video_url: '',
     hero_title_line1: t('front.heroTitleLine1', '心中有火'),
     hero_title_line2: t('front.heroTitleLine2', '前方有光'),
     skill_icon_row1: 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
@@ -194,7 +198,9 @@ export default function AdminProfilePage() {
           ...data, // Spread all data first
           site_title: data.site_title || 'HuoYu',
           favicon_url: data.favicon_url || '/images/avatar.png',
-          nickname: data.nickname || '🔥Flamez',
+          nickname: data.nickname || '三千焱',
+          day_background_video_url: data.day_background_video_url || '',
+          night_background_video_url: data.night_background_video_url || '',
           hero_title_line1: data.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
           hero_title_line2: data.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
           skill_icon_row1: data.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
@@ -296,7 +302,9 @@ export default function AdminProfilePage() {
       site_title: profile.site_title || 'HuoYu',
       favicon_url: profile.favicon_url || '/images/avatar.png',
       avatar_url: profile.avatar_url || null,
-      nickname: profile.nickname || '🔥Flamez',
+      nickname: profile.nickname || '三千焱',
+      day_background_video_url: profile.day_background_video_url || null,
+      night_background_video_url: profile.night_background_video_url || null,
       hero_title_line1: profile.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
       hero_title_line2: profile.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
       skill_icon_row1: profile.skill_icon_row1 || null,
@@ -337,7 +345,9 @@ export default function AdminProfilePage() {
           ...updatedData,
           site_title: updatedData.site_title || 'HuoYu',
           favicon_url: updatedData.favicon_url || '/images/avatar.png',
-          nickname: updatedData.nickname || '🔥Flamez',
+          nickname: updatedData.nickname || '三千焱',
+          day_background_video_url: updatedData.day_background_video_url || '',
+          night_background_video_url: updatedData.night_background_video_url || '',
           hero_title_line1: updatedData.hero_title_line1 || t('front.heroTitleLine1', '心中有火'),
           hero_title_line2: updatedData.hero_title_line2 || t('front.heroTitleLine2', '前方有光'),
           skill_icon_row1: updatedData.skill_icon_row1 || 'html,css,js,nextjs,nodejs,java,php,py,fastapi,flask,wordpress,md,regex,pytorch',
@@ -420,8 +430,32 @@ export default function AdminProfilePage() {
               id="nickname"
               value={profile.nickname || ''}
               onChange={handleInputChange}
-              placeholder={t('adminProfile.nicknamePlaceholder', '🔥Flamez')}
+              placeholder={t('adminProfile.nicknamePlaceholder', '三千焱')}
             />
+          </div>
+          <div className="mb-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="day_background_video_url" className="mb-1 block text-sm font-medium text-foreground">日间背景视频 URL</label>
+              <Input
+                type="url"
+                name="day_background_video_url"
+                id="day_background_video_url"
+                value={profile.day_background_video_url || ''}
+                onChange={handleInputChange}
+                placeholder="https://example.com/xiaoyan-day.webm"
+              />
+            </div>
+            <div>
+              <label htmlFor="night_background_video_url" className="mb-1 block text-sm font-medium text-foreground">夜间背景视频 URL</label>
+              <Input
+                type="url"
+                name="night_background_video_url"
+                id="night_background_video_url"
+                value={profile.night_background_video_url || ''}
+                onChange={handleInputChange}
+                placeholder="https://example.com/xiaoyan-night.webm"
+              />
+            </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>

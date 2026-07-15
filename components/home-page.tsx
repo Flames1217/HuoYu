@@ -14,6 +14,8 @@ import { ReadingPreset } from "@/components/reading-preset";
 import { PageHeaderControls } from "@/components/page-header-controls";
 import { WakaTimeStats } from "@/components/wakatime-stats";
 import { CacheApiToasts } from "@/components/cache-api-toasts";
+import { FlameCard } from "@/components/card-flame";
+import { ThemeBackgroundVideo } from "@/components/theme-background-video";
 import { useLocaleText } from "@/lib/use-locale-text";
 
 interface SocialLink {
@@ -39,12 +41,14 @@ interface HomePageProfileData {
   mbti_traits?: string[];
   mbti_title?: string;
   folo_url?: string;
+  dayBackgroundVideoUrl?: string;
+  nightBackgroundVideoUrl?: string;
 }
 
 const defaultIntro = "一个破烂爬虫开发者 | 前端又菜又爱玩 | 啥都会点 | 9年老烟民 🤣";
 const defaultHeroTitleLine1 = "心中有火";
 const defaultHeroTitleLine2 = "前方有光";
-const defaultNickname = "🔥Flamez";
+const defaultNickname = "三千焱";
 const defaultAvatarUrl =
   "https://img.viper3.top/%E6%96%97%E7%A0%B4%E8%8B%8D%E7%A9%B9/%E8%90%A7%E7%82%8E%E6%89%8B%E7%BB%98.jpg";
 const defaultHeroTitleLine1Aliases = [defaultHeroTitleLine1, "心中有火"];
@@ -60,24 +64,6 @@ const skillIconRows = [
     alt: "MySQL, PostgreSQL, MongoDB, Redis, Kafka, RabbitMQ, Docker, Linux, Git, Maven, Vim, Anaconda, Photoshop, Premiere Pro",
   },
 ];
-
-const flameMeteorTypes = ["dragon", "wave", "snow", "lotus", "premium-lotus", "snake"] as const;
-
-type FlameMeteorType = (typeof flameMeteorTypes)[number];
-
-const flameMeteorImages: Record<FlameMeteorType, { src: string; alt: string }> = {
-  dragon: { src: "/assets/flames/three-thousand-flame.png", alt: "三千焱炎火" },
-  wave: { src: "/assets/flames/sea-heart-flame.png", alt: "海心焰" },
-  snow: { src: "/assets/flames/bone-chilling-flame.png", alt: "骨灵冷火" },
-  lotus: { src: "/assets/flames/green-lotus-flame.png", alt: "青莲地心火" },
-  "premium-lotus": { src: "/assets/flames/purifying-lotus-flame.png", alt: "净莲妖火" },
-  snake: { src: "/assets/flames/fallen-heart-flame.png", alt: "陨落心炎" },
-};
-
-function FlameMeteorShape({ type }: { type: FlameMeteorType }) {
-  const image = flameMeteorImages[type];
-  return <img className="flame-meteor-image" src={image.src} alt={image.alt} draggable={false} loading="eager" />;
-}
 
 function normalizeSkillIconIds(value?: string) {
   return (value || "")
@@ -104,6 +90,8 @@ const defaultProfileData: HomePageProfileData = {
   mbti_traits: [],
   mbti_title: "",
   folo_url: "",
+  dayBackgroundVideoUrl: "",
+  nightBackgroundVideoUrl: "",
 };
 
 function ShellCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -269,6 +257,7 @@ function GitHubSignals({ username }: { username?: string }) {
   const { t } = useLocaleText();
   return (
     <div className="mx-auto max-w-[1180px] space-y-4">
+      <FlameCard flame="九玄金雷">
       <ShellCard className="space-y-4 p-4 md:p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
@@ -291,6 +280,7 @@ function GitHubSignals({ username }: { username?: string }) {
         </div>
         <GitHubActivity username={username} />
       </ShellCard>
+      </FlameCard>
 
       <div className="github-wakatime-compact">
         <WakaTimeStats />
@@ -351,6 +341,8 @@ export default function Home() {
           mbti_traits: Array.isArray(data.mbti_traits) ? data.mbti_traits : [],
           mbti_title: data.mbti_title || "",
           folo_url: data.folo_url || "",
+          dayBackgroundVideoUrl: data.day_background_video_url || "",
+          nightBackgroundVideoUrl: data.night_background_video_url || "",
         });
       } catch {
         setProfileData({
@@ -372,19 +364,7 @@ export default function Home() {
       <CacheApiToasts />
       <PageHeaderControls />
       <main className="front-landing min-h-screen overflow-hidden text-zinc-100">
-        <div className="zero-meteor" />
-        <div className="zero-leaf-layer" aria-hidden="true">
-          {Array.from({ length: 96 }).map((_, index) => (
-            <span key={index} />
-          ))}
-        </div>
-        <div className="zero-flame-meteor-layer" aria-hidden="true">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <span key={index} className={`flame-meteor-${flameMeteorTypes[index % flameMeteorTypes.length]}`}>
-              <FlameMeteorShape type={flameMeteorTypes[index % flameMeteorTypes.length]} />
-            </span>
-          ))}
-        </div>
+        <ThemeBackgroundVideo dayUrl={profileData.dayBackgroundVideoUrl} nightUrl={profileData.nightBackgroundVideoUrl} />
         <section className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-center px-4 py-16">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -447,18 +427,18 @@ export default function Home() {
           <SectionTitle title={t("front.lifeTitle", "Life")} accent={t("front.lifeAccent", "Signals")} description={t("front.lifeDescription", "Games, music, reading, subscriptions and personal status collected in one screen.")} />
           <div className="space-y-8">
             <div className="grid items-stretch gap-6 lg:grid-cols-2">
-              <RSSSubscription initialFoloUrl={profileData.folo_url} />
-              <ReadingPreset />
+              <FlameCard flame="青莲地心火"><RSSSubscription initialFoloUrl={profileData.folo_url} /></FlameCard>
+              <FlameCard flame="骨灵冷火"><ReadingPreset /></FlameCard>
             </div>
 
             <div className="grid items-start gap-6 lg:grid-cols-2">
               <div className="space-y-6">
-                <SteamStats initialProfile={{ social_links: profileData.socialLinks, steam_user_id: profileData.steam_user_id }} />
-                <WeGamePreset />
+                <FlameCard flame="陨落心炎"><SteamStats initialProfile={{ social_links: profileData.socialLinks, steam_user_id: profileData.steam_user_id }} /></FlameCard>
+                <FlameCard flame="海心焰"><WeGamePreset /></FlameCard>
               </div>
               <div className="space-y-6">
-                <MBTICard initialMbti={{ mbti_type: profileData.mbti_type, mbti_image_url: profileData.mbti_image_url, mbti_traits: profileData.mbti_traits, mbti_title: profileData.mbti_title }} />
-                <NeteaseMusicStats initialUserId={profileData.netease_user_id} />
+                <FlameCard flame="三千焱炎火"><MBTICard initialMbti={{ mbti_type: profileData.mbti_type, mbti_image_url: profileData.mbti_image_url, mbti_traits: profileData.mbti_traits, mbti_title: profileData.mbti_title }} /></FlameCard>
+                <FlameCard flame="净莲妖火"><NeteaseMusicStats initialUserId={profileData.netease_user_id} /></FlameCard>
               </div>
             </div>
           </div>

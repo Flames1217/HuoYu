@@ -9,6 +9,7 @@ import { AppTolgeeProvider } from "@/components/tolgee-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/footer";
 import { ConsoleBadge } from "@/components/console-badge";
+import { ExternalLinkDialog } from "@/components/external-link-dialog";
 import useAutoThemeByBeijingTime from "@/hooks/use-auto-theme-by-beijing-time";
 import { getLocaleFromPathname, isAdminPath, localeToLanguageTag } from "@/lib/tolgee";
 
@@ -116,6 +117,7 @@ export function RootClientShell({
                 )}
               </div>
             </div>
+            {!isAdminPage && <ExternalLinkDialog />}
             <Toaster
               position="top-center"
               richColors

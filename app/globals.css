@@ -4571,3 +4571,85 @@ html.dark .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-s
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+.theme-background-video {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.theme-background-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: huoyu-background-in 700ms ease both;
+}
+
+.theme-background-video::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: rgba(235, 247, 230, 0.34);
+}
+
+.dark .theme-background-video::after {
+  background: rgba(2, 6, 23, 0.58);
+}
+
+.has-theme-background .zero-space::before,
+.has-theme-background .zero-space::after {
+  display: none;
+}
+
+.front-landing > section {
+  z-index: 1;
+}
+
+@keyframes huoyu-background-in {
+  from { opacity: 0; transform: scale(1.02); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.card-flame-host {
+  position: relative;
+  height: 100%;
+  padding-top: 1rem;
+  isolation: isolate;
+}
+
+.card-flame-host > :not(.card-flame-video) {
+  position: relative;
+  z-index: 1;
+}
+
+.card-flame-video {
+  position: absolute;
+  top: -2.8rem;
+  right: clamp(0.5rem, 3vw, 2.5rem);
+  z-index: 3;
+  width: clamp(7rem, 12vw, 10.5rem);
+  aspect-ratio: 1;
+  object-fit: contain;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.94;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 52%, #000 0 48%, rgba(0, 0, 0, 0.9) 62%, transparent 88%);
+  mask-image: radial-gradient(ellipse at 50% 52%, #000 0 48%, rgba(0, 0, 0, 0.9) 62%, transparent 88%);
+  filter: saturate(1.12) contrast(1.04) drop-shadow(0 0 12px rgba(103, 232, 249, 0.24));
+}
+
+.external-link-dialog-glow {
+  position: absolute;
+  inset: -35% 25% 45% -15%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.32), rgba(34, 211, 238, 0.12) 44%, transparent 72%);
+  filter: blur(26px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-background-video video {
+    animation: none;
+  }
+}

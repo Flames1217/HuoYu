@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic'
 interface ProfileData {
   site_title?: string | null;
   favicon_url?: string | null;
+  day_background_video_url?: string | null;
+  night_background_video_url?: string | null;
   avatar_url?: string | null;
   skill_icon_row1?: string | null;
   skill_icon_row2?: string | null;
