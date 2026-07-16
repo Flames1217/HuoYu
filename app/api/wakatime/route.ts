@@ -73,18 +73,32 @@ function dayRange(days: number) {
   };
 }
 
-function normalizeAggregateName(key: string, name: string) {
+function isAiOnlyEditor(item: AnyRecord) {
+  const aiActivity =
+    numberValue(item?.ai_input_tokens) +
+    numberValue(item?.ai_output_tokens) +
+    numberValue(item?.ai_additions) +
+    numberValue(item?.ai_deletions) +
+    numberValue(item?.ai_agent_line_changes);
+  const humanActivity =
+    numberValue(item?.human_additions) + numberValue(item?.human_deletions);
+  return aiActivity > 0 && humanActivity === 0;
+}
+
+function normalizeAggregateName(key: string, name: string, item: AnyRecord) {
   const normalized = name.trim();
   if (key === "editors") {
     const lower = normalized.toLowerCase().replace(/[\s_-]+/g, "");
     if (
       lower === "codex" ||
       lower === "codexdesktop" ||
-      lower === "codexwakatime"
+      lower === "codexwakatime" ||
+      lower === "chatgpt" ||
+      lower === "chatgptdesktop"
     )
-      return "Codex Desktop";
+      return "ChatGPT";
     if (lower === "code" || lower === "vscode" || lower === "visualstudiocode")
-      return "VS Code";
+      return isAiOnlyEditor(item) ? "ChatGPT" : "VS Code";
   }
 
   if (key === "operating_systems" && normalized === "Unknown OS") {
@@ -100,7 +114,11 @@ function aggregateNamed(days: AnyRecord[], key: string, limit = 12) {
   for (const day of days) {
     const items = Array.isArray(day?.[key]) ? day[key] : [];
     for (const item of items) {
-      const name = normalizeAggregateName(key, String(item?.name || "Unknown"));
+      const name = normalizeAggregateName(
+        key,
+        String(item?.name || "Unknown"),
+        item,
+      );
       const prev = map.get(name) || {
         name,
         total_seconds: 0,

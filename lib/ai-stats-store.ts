@@ -43,6 +43,7 @@ export async function getCodexStats(start: string, end: string) {
   if (!sessions.length) return null;
 
   const stats = aggregateCodexSessions(sessions, start, end);
+  const allTimeStats = aggregateCodexSessions(sessions, "", "9999-12-31");
   const inputRate = getRate(
     "AI_INPUT_USD_PER_MILLION",
     DEFAULT_CODEX_RATES.input,
@@ -56,9 +57,13 @@ export async function getCodexStats(start: string, end: string) {
     DEFAULT_CODEX_RATES.output,
   );
   const estimatedCostUsd =
-    ((stats.inputTokens - stats.cachedInputTokens) * inputRate +
-      stats.cachedInputTokens * cachedRate +
-      stats.outputTokens * outputRate) /
+    ((allTimeStats.inputTokens - allTimeStats.cachedInputTokens) * inputRate +
+      allTimeStats.cachedInputTokens * cachedRate +
+      allTimeStats.outputTokens * outputRate) /
     1_000_000;
-  return { ...stats, estimatedCostUsd };
+  return {
+    ...stats,
+    totalTokens: allTimeStats.inputTokens + allTimeStats.outputTokens,
+    estimatedCostUsd,
+  };
 }

@@ -60,6 +60,7 @@ interface WakaTimeAi {
   agentLineChanges: number;
   inputTokens: number;
   outputTokens: number;
+  totalTokens?: number;
   promptEvents: number;
   promptLengthAvg: number;
   sessions?: number;
@@ -167,6 +168,13 @@ function compactNumber(value: unknown) {
     notation: num >= 10000 ? "compact" : "standard",
     maximumFractionDigits: 1,
   }).format(num);
+}
+
+function exactNumber(value: unknown) {
+  const num = Number(value);
+  return Number.isFinite(num) && num > 0
+    ? new Intl.NumberFormat("en").format(Math.trunc(num))
+    : "0";
 }
 
 function formatHours(seconds: number) {
@@ -391,22 +399,13 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
   const aiShare = percent(ai?.aiShare);
   const humanShare = percent(ai?.humanShare);
   const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0);
-  const totalTokens = Number(ai?.inputTokens || 0) + Number(ai?.outputTokens || 0);
   const aiProjects = ai?.projectBreakdown?.slice(0, 3) || [];
   const hasCodexStats = ai?.source === "codex+wakatime";
   const awaitingSync = t("wakatime.awaitingCodexSync", "Awaiting sync");
   const metrics: Array<{ label: ReactNode; value: ReactNode }> = [
     {
-      label: t("wakatime.inputTokens", "Input tokens"),
-      value: compactNumber(ai?.inputTokens),
-    },
-    {
-      label: t("wakatime.outputTokens", "Output tokens"),
-      value: compactNumber(ai?.outputTokens),
-    },
-    {
       label: t("wakatime.totalTokens", "Total tokens"),
-      value: compactNumber(totalTokens),
+      value: exactNumber(ai?.totalTokens),
     },
     {
       label: t("wakatime.promptEvents", "Prompts"),
@@ -426,7 +425,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
       value:
         ai?.estimatedCostUsd == null
           ? t("wakatime.costNotConfigured", "Not configured")
-          : `≈$${ai.estimatedCostUsd.toFixed(2)}`,
+          : `$${ai.estimatedCostUsd.toFixed(2)}`,
     },
   ];
 
@@ -543,7 +542,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-3">
         {metrics.map((metric, index) => (
           <div
             key={index}

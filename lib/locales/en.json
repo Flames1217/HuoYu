@@ -84,7 +84,7 @@
     "addedDeleted": "Added {{added}} / Deleted {{deleted}}",
     "inputTokens": "Input tokens",
     "outputTokens": "Output tokens",
-    "totalTokens": "Total tokens",
+    "totalTokens": "All-time tokens",
     "promptEvents": "Prompts",
     "promptAverage": "Avg prompt",
     "aiProjects": "AI projects",

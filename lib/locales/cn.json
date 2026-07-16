@@ -84,7 +84,7 @@
     "addedDeleted": "新增 {{added}} / 删除 {{deleted}}",
     "inputTokens": "输入 Token",
     "outputTokens": "输出 Token",
-    "totalTokens": "Token 总计",
+    "totalTokens": "历史 Token 总计",
     "promptEvents": "提示次数",
     "promptAverage": "平均提示",
     "aiProjects": "AI 项目",

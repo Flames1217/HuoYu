@@ -108,6 +108,8 @@ test("WakaTime 接口合并 Upstash 中的 Codex 使用量", async () => {
 
   assert.match(route, /getCodexStats/);
   assert.match(route, /codexAi/);
+  assert.match(route, /isAiOnlyEditor/);
+  assert.match(route, /return "ChatGPT"/);
 });
 
 test("AI 面板展示 Codex 会话、项目 Token 与成本估算且不展示模型卡片", async () => {
@@ -119,13 +121,24 @@ test("AI 面板展示 Codex 会话、项目 Token 与成本估算且不展示模
   assert.match(panel, /estimatedCostUsd/);
   assert.match(panel, /sessions/);
   assert.match(panel, /totalTokens/);
-  assert.match(panel, /grid-cols-3/);
+  assert.match(panel, /exactNumber/);
+  assert.doesNotMatch(panel, /wakatime\.inputTokens/);
+  assert.doesNotMatch(panel, /wakatime\.outputTokens/);
   assert.match(panel, /mt-auto/);
   assert.match(panel, /sessionUnit/);
   assert.match(panel, /item\.tokens/);
   assert.match(panel, /awaitingCodexSync/);
   assert.doesNotMatch(panel, /aiModels/);
   assert.doesNotMatch(panel, /modelBreakdown/);
+  assert.doesNotMatch(panel, /≈\$/);
+});
+
+test("Token 总计使用全部历史会话且成本采用同一口径", async () => {
+  const store = await readFile(new URL("../lib/ai-stats-store.ts", import.meta.url), "utf8");
+
+  assert.match(store, /allTimeStats\s*=\s*aggregateCodexSessions/);
+  assert.match(store, /totalTokens:\s*allTimeStats\.inputTokens\s*\+\s*allTimeStats\.outputTokens/);
+  assert.match(store, /allTimeStats\.cachedInputTokens/);
 });
 
 test("未配置单价时使用公开的 GPT-5.3-Codex API 等价价格", async () => {
@@ -219,4 +232,5 @@ test("AI 汇总按时间范围合并项目、模型、会话和 Token", async ()
   assert.equal(result.sessions, 1);
   assert.deepEqual(result.projectBreakdown, [{ name: "HuoYu", tokens: 75 }]);
   assert.deepEqual(result.modelBreakdown, [{ name: "gpt-test", tokens: 75 }]);
+  assert.deepEqual(result.sourceBreakdown, [{ name: "ChatGPT", tokens: 75 }]);
 });
