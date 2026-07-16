@@ -158,6 +158,9 @@ test("README 使用 Shields for-the-badge 并把翻译服务放入部署顺序",
 
   assert.match(readme, /img\.shields\.io\/badge\/Next\.js/);
   assert.match(readme, /style=for-the-badge/);
+  const badges = readme.split("\n").filter((line) => line.includes("img.shields.io/badge/"));
+  assert.ok(badges.length > 20);
+  assert.deepEqual(badges.filter((line) => !line.includes("logo=")), []);
   assert.ok(readme.indexOf("img.shields.io/badge/Next.js") < readme.indexOf("## 功能"));
   assert.match(readme, /部署顺序[\s\S]*配置翻译服务[\s\S]*部署到 Vercel/);
 });

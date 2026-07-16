@@ -4,9 +4,9 @@
 
 ![HuoYu](https://socialify.git.ci/Flames1217/HuoYu/image?description=1&forks=1&language=1&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
-[![Build](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)](https://github.com/Flames1217/HuoYu/actions)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Flames1217/HuoYu/actions)
 [![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=for-the-badge&logo=vercel)](https://viper3.top)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](./LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 
 ## 致谢
 
@@ -25,12 +25,12 @@
 [![Framer Motion](https://img.shields.io/badge/Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
 [![React Icons](https://img.shields.io/badge/React%20Icons-E91E63?style=for-the-badge&logo=react&logoColor=white)](https://react-icons.github.io/react-icons/)
 [![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=for-the-badge&logo=chartdotjs&logoColor=white)](https://recharts.org/)
-[![dnd kit](https://img.shields.io/badge/dnd%20kit-635BFF?style=for-the-badge)](https://dndkit.com/)
+[![dnd kit](https://img.shields.io/badge/dnd%20kit-635BFF?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEyIDFsMyAzaC0ydjZoNlY4bDMgMy0zIDN2LTJoLTZ2NmgybC0zIDMtMy0zaDJ2LTZINXYybC0zLTMgMy0zdjJoNlY0SDl6Ii8%2BPC9zdmc%2B)](https://dndkit.com/)
 [![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white)](https://react-hook-form.com/)
 [![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)](https://zod.dev/)
-[![Sonner](https://img.shields.io/badge/Sonner-111111?style=for-the-badge)](https://sonner.emilkowal.ski/)
-[![tsParticles](https://img.shields.io/badge/tsParticles-0B7285?style=for-the-badge)](https://particles.js.org/)
-[![Embla Carousel](https://img.shields.io/badge/Embla%20Carousel-7C3AED?style=for-the-badge)](https://www.embla-carousel.com/)
+[![Sonner](https://img.shields.io/badge/Sonner-111111?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTEyIDIyYTIuNSAyLjUgMCAwIDAgMi40NS0yaC00LjlBMi41IDIuNSAwIDAgMCAxMiAyMlptNy02di01YTcgNyAwIDAgMC0xNCAwdjVsLTIgMnYxaDE4di0xbC0yLTJaIi8%2BPC9zdmc%2B)](https://sonner.emilkowal.ski/)
+[![tsParticles](https://img.shields.io/badge/tsParticles-0B7285?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPGcgZmlsbD0iI2ZmZiI%2BPGNpcmNsZSBjeD0iNSIgY3k9IjciIHI9IjMiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjUiIHI9IjIiLz48Y2lyY2xlIGN4PSIxOCIgY3k9IjE1IiByPSI0Ii8%2BPGNpcmNsZSBjeD0iNyIgY3k9IjE4IiByPSIyIi8%2BPC9nPjwvc3ZnPg%3D%3D)](https://particles.js.org/)
+[![Embla Carousel](https://img.shields.io/badge/Embla%20Carousel-7C3AED?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPGcgZmlsbD0iI2ZmZiI%2BPHJlY3QgeD0iMSIgeT0iNyIgd2lkdGg9IjQiIGhlaWdodD0iMTAiIHJ4PSIxIi8%2BPHJlY3QgeD0iNyIgeT0iNCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjE2IiByeD0iMiIvPjxyZWN0IHg9IjE5IiB5PSI3IiB3aWR0aD0iNCIgaGVpZ2h0PSIxMCIgcng9IjEiLz48L2c%2BPC9zdmc%2B)](https://www.embla-carousel.com/)
 
 ### 数据、认证与部署
 
@@ -40,16 +40,16 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://docs.github.com/actions)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tolgee](https://img.shields.io/badge/Tolgee-FFCC00?style=for-the-badge)](https://tolgee.io/)
-[![MTranServer](https://img.shields.io/badge/MTranServer-2563EB?style=for-the-badge)](https://github.com/xxnuo/MTranServer)
+[![Tolgee](https://img.shields.io/badge/Tolgee-FFCC00?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTMgNGg4djJIOC40Yy0uMyAxLjUtLjkgMi45LTEuOCA0LjEuOC44IDEuNyAxLjUgMi44IDJsLTEgMS44QTEzIDEzIDAgMCAxIDUuMyAxMmExMyAxMyAwIDAgMS0zLjIgMmwtMS0xLjhjMS4xLS41IDIuMS0xLjIgMi45LTIuMUExMCAxMCAwIDAgMSAyLjUgOGgyLjJjLjIuMy40LjYuNy45LjUtLjguOC0xLjggMS0yLjlIM1Y0Wm0xNCA0IDYgMTJoLTIuNGwtMS4zLTNoLTUuNmwtMS4zIDNIMTBsNi0xMmgxWm0tMi40IDdoMy44bC0xLjktNC40TDE0LjYgMTVaIi8%2BPC9zdmc%2B)](https://tolgee.io/)
+[![MTranServer](https://img.shields.io/badge/MTranServer-2563EB?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTMgNGg4djJIOC40Yy0uMyAxLjUtLjkgMi45LTEuOCA0LjEuOC44IDEuNyAxLjUgMi44IDJsLTEgMS44QTEzIDEzIDAgMCAxIDUuMyAxMmExMyAxMyAwIDAgMS0zLjIgMmwtMS0xLjhjMS4xLS41IDIuMS0xLjIgMi45LTIuMUExMCAxMCAwIDAgMSAyLjUgOGgyLjJjLjIuMy40LjYuNy45LjUtLjguOC0xLjggMS0yLjlIM1Y0Wm0xNCA0IDYgMTJoLTIuNGwtMS4zLTNoLTUuNmwtMS4zIDNIMTBsNi0xMmgxWm0tMi40IDdoMy44bC0xLjktNC40TDE0LjYgMTVaIi8%2BPC9zdmc%2B)](https://github.com/xxnuo/MTranServer)
 
 ### 内容与统计来源
 
 [![Steam](https://img.shields.io/badge/Steam-000000?style=for-the-badge&logo=steam&logoColor=white)](https://store.steampowered.com/)
 [![WakaTime](https://img.shields.io/badge/WakaTime-000000?style=for-the-badge&logo=wakatime&logoColor=white)](https://wakatime.com/)
-[![Codex](https://img.shields.io/badge/OpenAI%20Codex-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/codex/)
+[![Codex](https://img.shields.io/badge/OpenAI%20Codex-412991?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTggNSAxIDEybDcgNyAyLTItNS01IDUtNS0yLTJabTggMC0yIDIgNSA1LTUgNSAyIDIgNy03LTctN1oiLz48L3N2Zz4%3D)](https://openai.com/codex/)
 [![网易云音乐](https://img.shields.io/badge/网易云音乐-D43C33?style=for-the-badge&logo=neteasecloudmusic&logoColor=white)](https://music.163.com/)
-[![WeGame](https://img.shields.io/badge/WeGame-FF6A00?style=for-the-badge)](https://www.wegame.com.cn/)
+[![WeGame](https://img.shields.io/badge/WeGame-FF6A00?style=for-the-badge&logo=wegame&logoColor=white)](https://www.wegame.com.cn/)
 [![react-github-calendar](https://img.shields.io/badge/react--github--calendar-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/grubersjoe/react-github-calendar)
 [![rss-parser](https://img.shields.io/badge/rss--parser-F26522?style=for-the-badge&logo=rss&logoColor=white)](https://github.com/rbren/rss-parser)
 
