@@ -15,13 +15,25 @@ const flameSources = {
 
 export type CardFlameName = keyof typeof flameSources;
 
-export function FlameCard({ flame, children }: { flame: CardFlameName; children: React.ReactNode }) {
+export function FlameCard({
+  flame,
+  children,
+}: {
+  flame: CardFlameName;
+  children: React.ReactNode;
+}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const { ref: inViewRef, inView } = useInView({ rootMargin: "160px 0px", threshold: 0.05 });
-  const setVideoRef = useCallback((node: HTMLVideoElement | null) => {
-    videoRef.current = node;
-    inViewRef(node);
-  }, [inViewRef]);
+  const { ref: inViewRef, inView } = useInView({
+    rootMargin: "160px 0px",
+    threshold: 0.05,
+  });
+  const setVideoRef = useCallback(
+    (node: HTMLVideoElement | null) => {
+      videoRef.current = node;
+      inViewRef(node);
+    },
+    [inViewRef],
+  );
 
   useEffect(() => {
     const video = videoRef.current;
@@ -36,6 +48,7 @@ export function FlameCard({ flame, children }: { flame: CardFlameName; children:
       <video
         ref={setVideoRef}
         className="card-flame-video"
+        data-flame={flame}
         src={flameSources[flame]}
         aria-label={flame}
         muted

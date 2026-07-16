@@ -87,7 +87,10 @@
     "promptEvents": "提示次数",
     "promptAverage": "平均提示",
     "aiProjects": "AI 项目",
-    "aiEditors": "AI 编辑器"
+    "aiEditors": "AI 编辑器",
+    "aiSessions": "Codex 会话",
+    "estimatedCost": "API 等价成本",
+    "aiModels": "AI 模型"
   },
   "cache": {
     "timeHoursMinutes": "{{hours}}小时{{minutes}}分钟",

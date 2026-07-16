@@ -49,6 +49,7 @@ interface WakaTimeItem {
   ai_input_tokens?: number;
   ai_output_tokens?: number;
   ai_prompt_events?: number;
+  tokens?: number;
 }
 
 interface WakaTimeAi {
@@ -61,12 +62,16 @@ interface WakaTimeAi {
   outputTokens: number;
   promptEvents: number;
   promptLengthAvg: number;
+  sessions?: number;
+  estimatedCostUsd?: number | null;
+  source?: string;
   aiLines: number;
   humanLines: number;
   aiShare: number;
   humanShare: number;
   projectBreakdown: WakaTimeItem[];
   editorBreakdown: WakaTimeItem[];
+  modelBreakdown?: WakaTimeItem[];
 }
 
 interface WakaTimeData {
@@ -388,7 +393,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
   const humanShare = percent(ai?.humanShare);
   const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0);
   const aiProjects = ai?.projectBreakdown?.slice(0, 3) || [];
-  const aiEditors = ai?.editorBreakdown?.slice(0, 3) || [];
+  const aiModels = ai?.modelBreakdown?.slice(0, 3) || [];
 
   const Breakdown = ({
     title,
@@ -408,6 +413,10 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
               Number(item.ai_additions || 0) +
               Number(item.ai_deletions || 0) +
               Number(item.ai_agent_line_changes || 0);
+            const value =
+              item.tokens != null
+                ? `${compactNumber(item.tokens)} tokens`
+                : `${compactNumber(lineChanges)} lines`;
             return (
               <div
                 key={`${title}-${item.name}-${index}`}
@@ -417,7 +426,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
                   {item.name || "Unknown"}
                 </span>
                 <span className="shrink-0 text-xs font-bold text-emerald-700 dark:text-cyan-100/78">
-                  {compactNumber(lineChanges)} lines
+                  {value}
                 </span>
               </div>
             );
@@ -437,6 +446,11 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
         <h4 className="flex items-center gap-2 text-sm font-black text-emerald-950 dark:text-zinc-50">
           <FiZap className="h-4 w-4 text-amber-500 dark:text-amber-200" />
           {t("wakatime.aiCollaboration", "AI collaboration")}
+          {ai?.source === "codex+wakatime" && (
+            <span className="text-[10px] font-bold text-emerald-700/65 dark:text-cyan-200/65">
+              WakaTime × Codex
+            </span>
+          )}
         </h4>
         <span className="text-xs font-bold text-emerald-800/60 dark:text-slate-300/72">
           {totalLines ? `${compactNumber(totalLines)} lines` : "no lines"}
@@ -494,7 +508,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
           <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
             {t("wakatime.inputTokens", "Input tokens")}
@@ -521,10 +535,20 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
           <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.promptAverage", "Avg prompt")}
+            {t("wakatime.aiSessions", "Sessions")}
           </p>
           <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {compactNumber(ai?.promptLengthAvg)}
+            {compactNumber(ai?.sessions)}
+          </p>
+        </div>
+        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
+          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+            {t("wakatime.estimatedCost", "API equivalent")}
+          </p>
+          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+            {ai?.estimatedCostUsd == null
+              ? "—"
+              : `$${ai.estimatedCostUsd.toFixed(2)}`}
           </p>
         </div>
       </div>
@@ -535,8 +559,8 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
           items={aiProjects}
         />
         <Breakdown
-          title={t("wakatime.aiEditors", "AI editors")}
-          items={aiEditors}
+          title={t("wakatime.aiModels", "AI models")}
+          items={aiModels}
         />
       </div>
     </div>

@@ -87,7 +87,10 @@
     "promptEvents": "Prompts",
     "promptAverage": "Avg prompt",
     "aiProjects": "AI projects",
-    "aiEditors": "AI editors"
+    "aiEditors": "AI editors",
+    "aiSessions": "Codex sessions",
+    "estimatedCost": "API equivalent",
+    "aiModels": "AI models"
   },
   "cache": {
     "timeHoursMinutes": "{{hours}}h {{minutes}}m",

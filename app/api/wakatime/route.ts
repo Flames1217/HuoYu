@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSettings } from "@/lib/settings-store";
+import { getCodexStats } from "@/lib/ai-stats-store";
 
 export const dynamic = "force-dynamic";
 
@@ -212,6 +213,19 @@ function aggregateAi(
   };
 }
 
+async function withCodexAi(
+  data: AnyRecord,
+  range: { start: string; end: string },
+) {
+  const codexAi = await getCodexStats(range.start, range.end).catch((error) => {
+    console.warn("[API WakaTime] Codex AI stats unavailable:", error);
+    return null;
+  });
+  return codexAi
+    ? { ...data, ai: { ...data.ai, ...codexAi, source: "codex+wakatime" } }
+    : data;
+}
+
 export async function GET(request: Request) {
   const locale = localeFromRequest(request);
   const requestedDays = daysFromRequest(request);
@@ -244,11 +258,12 @@ export async function GET(request: Request) {
       now - cached.timestamp < CACHE_DURATION &&
       !isHardReload(request)
     ) {
+      const data = await withCodexAi(cached.data, range);
       return NextResponse.json({
         success: true,
         cached: true,
         expiresInMs: cached.timestamp + CACHE_DURATION - now,
-        data: cached.data,
+        data,
       });
     }
 
@@ -365,7 +380,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       cached: false,
-      data: responseData,
+      data: await withCodexAi(responseData, range),
     });
   } catch (error) {
     console.error("[API WakaTime] Error fetching WakaTime data:", error);

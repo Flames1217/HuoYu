@@ -12,7 +12,8 @@ let settingsCache: { value: Settings; timestamp: number } | null = null;
 function getRedisEnv() {
   return {
     url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
+    token:
+      process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
   };
 }
 
@@ -29,6 +30,10 @@ function getRedis() {
   return redisClient;
 }
 
+export function getRedisClient() {
+  return getRedis();
+}
+
 function normalizeStoredSettings(value: unknown, defaultSettings: Settings) {
   if (!value) return null;
   if (typeof value === "string") {
@@ -43,7 +48,10 @@ function normalizeStoredSettings(value: unknown, defaultSettings: Settings) {
 
 function withTimeout<T>(promise: Promise<T>, ms: number) {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Redis settings request timed out after ${ms}ms`)), ms);
+    const timer = setTimeout(
+      () => reject(new Error(`Redis settings request timed out after ${ms}ms`)),
+      ms,
+    );
 
     promise.then(
       (value) => {
@@ -53,7 +61,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number) {
       (error) => {
         clearTimeout(timer);
         reject(error);
-      }
+      },
     );
   });
 }
@@ -68,7 +76,9 @@ export async function getSettings(defaultSettings: Settings = {}) {
 
   if (!redis) {
     if (process.env.VERCEL) {
-      throw new Error("缺少 Upstash Redis 环境变量，请在 Vercel 中检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。");
+      throw new Error(
+        "缺少 Upstash Redis 环境变量，请在 Vercel 中检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。",
+      );
     }
 
     settingsCache = { value: defaultSettings, timestamp: now };
@@ -78,7 +88,7 @@ export async function getSettings(defaultSettings: Settings = {}) {
   try {
     const storedSettings = normalizeStoredSettings(
       await withTimeout(redis.get(SETTINGS_KEY), SETTINGS_FETCH_TIMEOUT),
-      defaultSettings
+      defaultSettings,
     );
     const resolvedSettings = storedSettings || defaultSettings;
     settingsCache = { value: resolvedSettings, timestamp: Date.now() };
@@ -103,7 +113,9 @@ export async function saveSettings(settings: Settings) {
   const redis = getRedis();
 
   if (!redis) {
-    throw new Error("缺少 Upstash Redis 环境变量，请检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。");
+    throw new Error(
+      "缺少 Upstash Redis 环境变量，请检查 KV_REST_API_URL/KV_REST_API_TOKEN 或 UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN。",
+    );
   }
 
   await redis.set(SETTINGS_KEY, settings);
@@ -111,7 +123,10 @@ export async function saveSettings(settings: Settings) {
   return settings;
 }
 
-export async function updateSettings(updater: (settings: Settings) => Settings | Promise<Settings>, defaultSettings: Settings = {}) {
+export async function updateSettings(
+  updater: (settings: Settings) => Settings | Promise<Settings>,
+  defaultSettings: Settings = {},
+) {
   const currentSettings = await getSettings(defaultSettings);
   const nextSettings = await updater(currentSettings);
   return saveSettings(nextSettings);

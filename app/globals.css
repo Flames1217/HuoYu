@@ -4657,6 +4657,18 @@ html.dark .front-landing.front-landing :is(.zero-panel, .life-glass-card, .rss-s
   filter: saturate(1.12) contrast(1.04) drop-shadow(0 0 12px rgba(103, 232, 249, 0.24));
 }
 
+html.light .card-flame-video {
+  mix-blend-mode: normal;
+  opacity: 0.82;
+  filter: saturate(1.2) contrast(1.08) drop-shadow(0 0 10px rgba(5, 150, 105, 0.18));
+}
+
+.card-flame-video[data-flame="九玄金雷"] {
+  z-index: 0;
+  width: clamp(3.75rem, 5.5vw, 5rem);
+  opacity: 0.68;
+}
+
 .external-link-dialog-glow {
   position: absolute;
   inset: -35% 25% 45% -15%;
