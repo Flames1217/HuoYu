@@ -141,6 +141,8 @@ test("Windows 安装器创建隐藏且仅空闲时运行的计划任务", async 
   assert.match(installer, /wscript\.exe/);
   assert.match(installer, /RunOnlyIfIdle/);
   assert.match(installer, /HuoYu Codex AI Sync/);
+  assert.match(installer, /\.env\.local/);
+  assert.match(installer, /AI_SYNC_SECRET.*CRON_SECRET/s);
 });
 
 test("AI 汇总按时间范围合并项目、模型、会话和 Token", async () => {

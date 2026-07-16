@@ -1,10 +1,23 @@
 param(
-  [Parameter(Mandatory = $true)][string]$Secret,
+  [string]$Secret,
   [string]$Endpoint = "https://viper3.top/api/ai-sync",
   [string]$CodexHome = $env:CODEX_HOME
 )
 
 $ErrorActionPreference = "Stop"
+if (-not $Secret) {
+  $envFile = Join-Path $PSScriptRoot "..\.env.local"
+  foreach ($name in @("AI_SYNC_SECRET", "CRON_SECRET")) {
+    $line = Get-Content -LiteralPath $envFile -ErrorAction SilentlyContinue |
+      Where-Object { $_ -match "^$name=" } |
+      Select-Object -First 1
+    if ($line) {
+      $Secret = $line.Substring($line.IndexOf("=") + 1).Trim().Trim('"', "'")
+      if ($Secret) { break }
+    }
+  }
+}
+if (-not $Secret) { throw "请通过 -Secret 传入密钥，或在 .env.local 配置 AI_SYNC_SECRET/CRON_SECRET。" }
 if (-not $CodexHome) { $CodexHome = Join-Path $env:USERPROFILE ".codex" }
 $node = (Get-Command node.exe).Source
 $script = (Resolve-Path (Join-Path $PSScriptRoot "sync-codex-ai.mjs")).Path
