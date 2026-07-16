@@ -29,7 +29,7 @@ export function ReadingPreset() {
           <ul className="grid grid-cols-1 gap-3">
             {localizedItems.map((item, index) => (
               <li key={item.title} className="min-w-0">
-                <div className="group flex min-w-0 flex-row items-center rounded-lg p-2 transition hover:bg-white/24 dark:hover:bg-black/30">
+                <div className="life-signal-item group flex min-w-0 flex-row items-center rounded-lg p-2 hover:bg-white/24 dark:hover:bg-black/30">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-emerald-400/15 text-emerald-500 shadow">
                     {index === 0 ? <FiBookmark className="h-5 w-5" /> : <FiFeather className="h-5 w-5" />}
                   </div>

@@ -238,7 +238,7 @@ export const SteamStats = memo(function SteamStats({ initialProfile }: SteamStat
         href={`https://store.steampowered.com/app/${game.appid}/`}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex min-w-0 flex-row items-center rounded-lg p-2 transition hover:bg-white/20 dark:hover:bg-black/30"
+        className="life-signal-item group flex min-w-0 flex-row items-center rounded-lg p-2 hover:bg-white/20 dark:hover:bg-black/30"
       >
         <SteamGameCover game={game} />
         <div className="ml-3 min-w-0 flex-1">

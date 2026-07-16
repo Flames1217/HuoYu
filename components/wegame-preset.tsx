@@ -61,7 +61,7 @@ function GameItem({ game, mode }: { game: WeGameInfo; mode: "recent" | "top" }) 
 
   return (
     <li className="min-w-0">
-      <div className="group flex min-w-0 flex-row items-center rounded-lg p-2 transition hover:bg-white/24 dark:hover:bg-black/30">
+      <div className="life-signal-item group flex min-w-0 flex-row items-center rounded-lg p-2 hover:bg-white/24 dark:hover:bg-black/30">
         <img
           src={imageUrl}
           alt={game.name}

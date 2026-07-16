@@ -108,16 +108,18 @@ test("WakaTime 接口合并 Upstash 中的 Codex 使用量", async () => {
   assert.match(route, /codexAi/);
 });
 
-test("AI 面板展示 Codex 会话、模型、项目 Token 与成本估算", async () => {
+test("AI 面板展示 Codex 会话、项目 Token 与成本估算且不展示模型卡片", async () => {
   const panel = await readFile(
     new URL("../components/wakatime-stats.tsx", import.meta.url),
     "utf8",
   );
 
   assert.match(panel, /estimatedCostUsd/);
-  assert.match(panel, /modelBreakdown/);
   assert.match(panel, /sessions/);
   assert.match(panel, /item\.tokens/);
+  assert.match(panel, /awaitingCodexSync/);
+  assert.doesNotMatch(panel, /aiModels/);
+  assert.doesNotMatch(panel, /modelBreakdown/);
 });
 
 test("本机同步器只发送摘要并使用本地文件状态缓存", async () => {

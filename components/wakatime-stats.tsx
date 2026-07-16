@@ -71,7 +71,6 @@ interface WakaTimeAi {
   humanShare: number;
   projectBreakdown: WakaTimeItem[];
   editorBreakdown: WakaTimeItem[];
-  modelBreakdown?: WakaTimeItem[];
 }
 
 interface WakaTimeData {
@@ -393,7 +392,7 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
   const humanShare = percent(ai?.humanShare);
   const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0);
   const aiProjects = ai?.projectBreakdown?.slice(0, 3) || [];
-  const aiModels = ai?.modelBreakdown?.slice(0, 3) || [];
+  const hasCodexStats = ai?.source === "codex+wakatime";
 
   const Breakdown = ({
     title,
@@ -530,7 +529,9 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
             {t("wakatime.promptEvents", "Prompts")}
           </p>
           <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {compactNumber(ai?.promptEvents)}
+            {hasCodexStats
+              ? compactNumber(ai?.promptEvents)
+              : t("wakatime.awaitingCodexSync", "Awaiting sync")}
           </p>
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
@@ -538,7 +539,9 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
             {t("wakatime.aiSessions", "Sessions")}
           </p>
           <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {compactNumber(ai?.sessions)}
+            {hasCodexStats
+              ? compactNumber(ai?.sessions)
+              : t("wakatime.awaitingCodexSync", "Awaiting sync")}
           </p>
         </div>
         <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
@@ -547,20 +550,16 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
           </p>
           <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
             {ai?.estimatedCostUsd == null
-              ? "—"
+              ? t("wakatime.costNotConfigured", "Not configured")
               : `$${ai.estimatedCostUsd.toFixed(2)}`}
           </p>
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-3">
         <Breakdown
           title={t("wakatime.aiProjects", "AI projects")}
           items={aiProjects}
-        />
-        <Breakdown
-          title={t("wakatime.aiModels", "AI models")}
-          items={aiModels}
         />
       </div>
     </div>

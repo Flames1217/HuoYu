@@ -135,7 +135,7 @@ export const NeteaseMusicStats = memo(function NeteaseMusicStats({ initialUserId
               href={`https://music.163.com/song?id=${song.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex min-w-0 items-center gap-3 rounded-lg p-2 transition hover:bg-white/24 dark:hover:bg-black/30"
+              className="life-signal-item group flex min-w-0 items-center gap-3 rounded-lg p-2 hover:bg-white/24 dark:hover:bg-black/30"
             >
               <img src={song.cover} alt={song.name} className="h-10 w-10 shrink-0 rounded object-cover shadow" loading="lazy" />
               <div className="min-w-0">

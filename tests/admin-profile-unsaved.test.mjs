@@ -31,8 +31,13 @@ test("个人资料离开前提供保存或放弃选择", async () => {
 
 test("个人资料保存操作条始终粘在内容区顶部", async () => {
   const source = await readFile(new URL("../app/admin/profile/page.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
   assert.match(source, /admin-profile-actions/);
+  assert.match(source, /dark:text-amber-300/);
+  assert.match(source, /dark:text-emerald-300/);
+  assert.match(css, /\.admin-profile-actions\s*\{[^}]*background:\s*rgba\(255,\s*255,\s*255/s);
+  assert.match(css, /\.dark\s+\.admin-profile-actions\s*\{[^}]*background:\s*rgba\(15,\s*23,\s*42/s);
   assert.doesNotMatch(source, /<div className="mt-8">\s*<Button type="submit"/);
 });
 

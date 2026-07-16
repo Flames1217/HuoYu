@@ -90,7 +90,8 @@
     "aiEditors": "AI editors",
     "aiSessions": "Codex sessions",
     "estimatedCost": "API equivalent",
-    "aiModels": "AI models"
+    "awaitingCodexSync": "Awaiting sync",
+    "costNotConfigured": "Not configured"
   },
   "cache": {
     "timeHoursMinutes": "{{hours}}h {{minutes}}m",

@@ -90,7 +90,8 @@
     "aiEditors": "AI 编辑器",
     "aiSessions": "Codex 会话",
     "estimatedCost": "API 等价成本",
-    "aiModels": "AI 模型"
+    "awaitingCodexSync": "待同步",
+    "costNotConfigured": "未配置"
   },
   "cache": {
     "timeHoursMinutes": "{{hours}}小时{{minutes}}分钟",

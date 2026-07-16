@@ -92,7 +92,7 @@ export const MBTICard = memo(function MBTICard({ initialMbti }: MBTICardProps) {
             {mbtiTraits.slice(0, 4).map((trait, index) => (
               <li
                 key={index}
-                className="flex min-h-14 items-center gap-3 rounded-xl border border-emerald-900/10 bg-white/32 px-4 py-3 text-sm font-semibold leading-6 text-emerald-950/82 shadow-sm dark:border-white/10 dark:bg-white/[.08] dark:text-zinc-200"
+                className="life-signal-item flex min-h-14 items-center gap-3 rounded-xl border border-emerald-900/10 bg-white/32 px-4 py-3 text-sm font-semibold leading-6 text-emerald-950/82 shadow-sm dark:border-white/10 dark:bg-white/[.08] dark:text-zinc-200"
               >
                 <span className="text-lg leading-none">{traitEmoji[index] || "✓"}</span>
                 <span>{trait}</span>

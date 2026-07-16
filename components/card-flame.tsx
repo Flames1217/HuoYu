@@ -43,7 +43,7 @@ export function FlameCard({
   }, [inView]);
 
   return (
-    <div className="card-flame-host">
+    <div className="card-flame-host" data-flame-host={flame}>
       {children}
       <video
         ref={setVideoRef}

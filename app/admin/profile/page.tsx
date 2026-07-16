@@ -469,7 +469,7 @@ export default function AdminProfilePage() {
       
       <form onSubmit={handleSubmit} className="mt-6 space-y-8 max-w-5xl">
         <div className="admin-profile-actions">
-          <span className={hasUnsavedChanges ? 'text-amber-300' : 'text-emerald-300'}>
+          <span className={hasUnsavedChanges ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}>
             {hasUnsavedChanges ? '有未保存的更改' : '所有更改均已保存'}
           </span>
           <Button type="submit" disabled={saving || !hasUnsavedChanges} className="px-6">
