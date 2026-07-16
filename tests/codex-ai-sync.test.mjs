@@ -118,10 +118,23 @@ test("AI 面板展示 Codex 会话、项目 Token 与成本估算且不展示模
 
   assert.match(panel, /estimatedCostUsd/);
   assert.match(panel, /sessions/);
+  assert.match(panel, /totalTokens/);
+  assert.match(panel, /grid-cols-3/);
+  assert.match(panel, /mt-auto/);
+  assert.match(panel, /sessionUnit/);
   assert.match(panel, /item\.tokens/);
   assert.match(panel, /awaitingCodexSync/);
   assert.doesNotMatch(panel, /aiModels/);
   assert.doesNotMatch(panel, /modelBreakdown/);
+});
+
+test("未配置单价时使用公开的 GPT-5.3-Codex API 等价价格", async () => {
+  const store = await readFile(new URL("../lib/ai-stats-store.ts", import.meta.url), "utf8");
+
+  assert.match(store, /DEFAULT_CODEX_RATES/);
+  assert.match(store, /input:\s*1\.75/);
+  assert.match(store, /cached:\s*0\.175/);
+  assert.match(store, /output:\s*14/);
 });
 
 test("本机同步器只发送摘要并使用本地文件状态缓存", async () => {

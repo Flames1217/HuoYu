@@ -84,11 +84,13 @@
     "addedDeleted": "新增 {{added}} / 删除 {{deleted}}",
     "inputTokens": "输入 Token",
     "outputTokens": "输出 Token",
+    "totalTokens": "Token 总计",
     "promptEvents": "提示次数",
     "promptAverage": "平均提示",
     "aiProjects": "AI 项目",
     "aiEditors": "AI 编辑器",
     "aiSessions": "Codex 会话",
+    "sessionUnit": "会话",
     "estimatedCost": "API 等价成本",
     "awaitingCodexSync": "待同步",
     "costNotConfigured": "未配置"

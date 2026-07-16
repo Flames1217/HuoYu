@@ -84,11 +84,13 @@
     "addedDeleted": "Added {{added}} / Deleted {{deleted}}",
     "inputTokens": "Input tokens",
     "outputTokens": "Output tokens",
+    "totalTokens": "Total tokens",
     "promptEvents": "Prompts",
     "promptAverage": "Avg prompt",
     "aiProjects": "AI projects",
     "aiEditors": "AI editors",
     "aiSessions": "Codex sessions",
+    "sessionUnit": "Sessions",
     "estimatedCost": "API equivalent",
     "awaitingCodexSync": "Awaiting sync",
     "costNotConfigured": "Not configured"

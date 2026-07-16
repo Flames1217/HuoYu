@@ -391,8 +391,44 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
   const aiShare = percent(ai?.aiShare);
   const humanShare = percent(ai?.humanShare);
   const totalLines = Number(ai?.aiLines || 0) + Number(ai?.humanLines || 0);
+  const totalTokens = Number(ai?.inputTokens || 0) + Number(ai?.outputTokens || 0);
   const aiProjects = ai?.projectBreakdown?.slice(0, 3) || [];
   const hasCodexStats = ai?.source === "codex+wakatime";
+  const awaitingSync = t("wakatime.awaitingCodexSync", "Awaiting sync");
+  const metrics: Array<{ label: ReactNode; value: ReactNode }> = [
+    {
+      label: t("wakatime.inputTokens", "Input tokens"),
+      value: compactNumber(ai?.inputTokens),
+    },
+    {
+      label: t("wakatime.outputTokens", "Output tokens"),
+      value: compactNumber(ai?.outputTokens),
+    },
+    {
+      label: t("wakatime.totalTokens", "Total tokens"),
+      value: compactNumber(totalTokens),
+    },
+    {
+      label: t("wakatime.promptEvents", "Prompts"),
+      value: hasCodexStats ? compactNumber(ai?.promptEvents) : awaitingSync,
+    },
+    {
+      label: (
+        <>
+          <span className="block">Codex</span>
+          <span className="block">{t("wakatime.sessionUnit", "Sessions")}</span>
+        </>
+      ),
+      value: hasCodexStats ? compactNumber(ai?.sessions) : awaitingSync,
+    },
+    {
+      label: t("wakatime.estimatedCost", "API equivalent"),
+      value:
+        ai?.estimatedCostUsd == null
+          ? t("wakatime.costNotConfigured", "Not configured")
+          : `≈$${ai.estimatedCostUsd.toFixed(2)}`,
+    },
+  ];
 
   const Breakdown = ({
     title,
@@ -507,53 +543,20 @@ function AiPanel({ ai }: { ai?: WakaTimeAi }) {
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.inputTokens", "Input tokens")}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {compactNumber(ai?.inputTokens)}
-          </p>
-        </div>
-        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.outputTokens", "Output tokens")}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {compactNumber(ai?.outputTokens)}
-          </p>
-        </div>
-        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.promptEvents", "Prompts")}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {hasCodexStats
-              ? compactNumber(ai?.promptEvents)
-              : t("wakatime.awaitingCodexSync", "Awaiting sync")}
-          </p>
-        </div>
-        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.aiSessions", "Sessions")}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {hasCodexStats
-              ? compactNumber(ai?.sessions)
-              : t("wakatime.awaitingCodexSync", "Awaiting sync")}
-          </p>
-        </div>
-        <div className="rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]">
-          <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
-            {t("wakatime.estimatedCost", "API equivalent")}
-          </p>
-          <p className="mt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
-            {ai?.estimatedCostUsd == null
-              ? t("wakatime.costNotConfigured", "Not configured")
-              : `$${ai.estimatedCostUsd.toFixed(2)}`}
-          </p>
-        </div>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {metrics.map((metric, index) => (
+          <div
+            key={index}
+            className="flex min-h-20 flex-col rounded-xl bg-emerald-950/5 p-3 dark:bg-white/[.04]"
+          >
+            <p className="text-xs font-bold text-emerald-800/65 dark:text-slate-300/72">
+              {metric.label}
+            </p>
+            <p className="mt-auto pt-1 text-lg font-black text-emerald-950 dark:text-zinc-50">
+              {metric.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-3">

@@ -2,6 +2,18 @@ import { aggregateCodexSessions } from "@/lib/codex-session-summary.mjs";
 import { getRedisClient } from "@/lib/settings-store";
 
 const SESSIONS_KEY = process.env.AI_SESSIONS_REDIS_KEY || "huoyu:ai:sessions";
+const DEFAULT_CODEX_RATES = {
+  input: 1.75,
+  cached: 0.175,
+  output: 14,
+};
+
+function getRate(name: string, fallback: number) {
+  const value = process.env[name]?.trim();
+  if (!value) return fallback;
+  const rate = Number(value);
+  return Number.isFinite(rate) && rate >= 0 ? rate : fallback;
+}
 
 export async function saveCodexSessions(sessions: any[]) {
   const redis = getRedisClient();
@@ -31,15 +43,22 @@ export async function getCodexStats(start: string, end: string) {
   if (!sessions.length) return null;
 
   const stats = aggregateCodexSessions(sessions, start, end);
-  const inputRate = Number(process.env.AI_INPUT_USD_PER_MILLION);
-  const cachedRate = Number(process.env.AI_CACHED_INPUT_USD_PER_MILLION);
-  const outputRate = Number(process.env.AI_OUTPUT_USD_PER_MILLION);
-  const hasRates = [inputRate, cachedRate, outputRate].every(Number.isFinite);
-  const estimatedCostUsd = hasRates
-    ? ((stats.inputTokens - stats.cachedInputTokens) * inputRate +
-        stats.cachedInputTokens * cachedRate +
-        stats.outputTokens * outputRate) /
-      1_000_000
-    : null;
+  const inputRate = getRate(
+    "AI_INPUT_USD_PER_MILLION",
+    DEFAULT_CODEX_RATES.input,
+  );
+  const cachedRate = getRate(
+    "AI_CACHED_INPUT_USD_PER_MILLION",
+    DEFAULT_CODEX_RATES.cached,
+  );
+  const outputRate = getRate(
+    "AI_OUTPUT_USD_PER_MILLION",
+    DEFAULT_CODEX_RATES.output,
+  );
+  const estimatedCostUsd =
+    ((stats.inputTokens - stats.cachedInputTokens) * inputRate +
+      stats.cachedInputTokens * cachedRate +
+      stats.outputTokens * outputRate) /
+    1_000_000;
   return { ...stats, estimatedCostUsd };
 }

@@ -211,7 +211,7 @@ pwsh -NoProfile -File .\scripts\install-codex-ai-sync.ps1 `
 
 统计结果按会话 ID 覆盖写入 Upstash，移动或归档会话不会重复计数。
 
-Codex 订阅与 API 计费并不等价。需要显示“API 等价成本”时，按实际模型价格配置每百万 Token 单价；不配置时页面显示“未配置”：
+Codex 订阅与 API 计费并不等价。页面默认按 GPT-5.3-Codex 的公开 API 单价估算等价成本（输入 `$1.75`、缓存输入 `$0.175`、输出 `$14` / 百万 Token）；混用其他模型时仅作为参考。需要按实际模型价格覆盖时配置：
 
 ```env
 AI_INPUT_USD_PER_MILLION=
