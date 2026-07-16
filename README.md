@@ -8,6 +8,51 @@
 [![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=for-the-badge&logo=vercel)](https://viper3.top)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](./LICENSE)
 
+## 致谢
+
+### 核心框架
+
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/)
+
+### 界面与交互
+
+[![Radix UI](https://img.shields.io/badge/Radix%20UI-161618?style=for-the-badge&logo=radixui&logoColor=white)](https://www.radix-ui.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
+[![React Icons](https://img.shields.io/badge/React%20Icons-E91E63?style=for-the-badge&logo=react&logoColor=white)](https://react-icons.github.io/react-icons/)
+[![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=for-the-badge&logo=chartdotjs&logoColor=white)](https://recharts.org/)
+[![dnd kit](https://img.shields.io/badge/dnd%20kit-635BFF?style=for-the-badge)](https://dndkit.com/)
+[![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white)](https://react-hook-form.com/)
+[![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)](https://zod.dev/)
+[![Sonner](https://img.shields.io/badge/Sonner-111111?style=for-the-badge)](https://sonner.emilkowal.ski/)
+[![tsParticles](https://img.shields.io/badge/tsParticles-0B7285?style=for-the-badge)](https://particles.js.org/)
+[![Embla Carousel](https://img.shields.io/badge/Embla%20Carousel-7C3AED?style=for-the-badge)](https://www.embla-carousel.com/)
+
+### 数据、认证与部署
+
+[![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://next-auth.js.org/)
+[![Upstash Redis](https://img.shields.io/badge/Upstash%20Redis-00E9A3?style=for-the-badge&logo=upstash&logoColor=black)](https://upstash.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://docs.github.com/actions)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tolgee](https://img.shields.io/badge/Tolgee-FFCC00?style=for-the-badge)](https://tolgee.io/)
+[![MTranServer](https://img.shields.io/badge/MTranServer-2563EB?style=for-the-badge)](https://github.com/xxnuo/MTranServer)
+
+### 内容与统计来源
+
+[![Steam](https://img.shields.io/badge/Steam-000000?style=for-the-badge&logo=steam&logoColor=white)](https://store.steampowered.com/)
+[![WakaTime](https://img.shields.io/badge/WakaTime-000000?style=for-the-badge&logo=wakatime&logoColor=white)](https://wakatime.com/)
+[![Codex](https://img.shields.io/badge/OpenAI%20Codex-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/codex/)
+[![网易云音乐](https://img.shields.io/badge/网易云音乐-D43C33?style=for-the-badge&logo=neteasecloudmusic&logoColor=white)](https://music.163.com/)
+[![WeGame](https://img.shields.io/badge/WeGame-FF6A00?style=for-the-badge)](https://www.wegame.com.cn/)
+[![react-github-calendar](https://img.shields.io/badge/react--github--calendar-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/grubersjoe/react-github-calendar)
+[![rss-parser](https://img.shields.io/badge/rss--parser-F26522?style=for-the-badge&logo=rss&logoColor=white)](https://github.com/rbren/rss-parser)
+
 ## 功能
 
 - 多语言前台与后台：`cn`、`en`、`es`、`fr`、`ja`。
@@ -153,7 +198,7 @@ AI_SYNC_SECRET=your_random_ai_sync_secret
 Windows 本机安装隐藏同步任务。未配置 `AI_SYNC_SECRET` 时，`Secret` 填 Vercel 中现有的 `CRON_SECRET`：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-ai-sync.ps1 `
+pwsh -NoProfile -File .\scripts\install-codex-ai-sync.ps1 `
   -Endpoint "https://your-domain/api/ai-sync" `
   -Secret "your_random_ai_sync_secret"
 ```
@@ -166,7 +211,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install-codex-ai-sync.ps1 `
 
 统计结果按会话 ID 覆盖写入 Upstash，移动或归档会话不会重复计数。
 
-Codex 订阅与 API 计费并不等价。需要显示“API 等价成本”时，按实际模型价格配置每百万 Token 单价；不配置时页面显示 `—`：
+Codex 订阅与 API 计费并不等价。需要显示“API 等价成本”时，按实际模型价格配置每百万 Token 单价；不配置时页面显示“未配置”：
 
 ```env
 AI_INPUT_USD_PER_MILLION=
@@ -241,51 +286,6 @@ public/       静态资源与异火视频
 scripts/      翻译、同步和维护脚本
 tests/        Node.js 回归检查
 ```
-
-## 致谢
-
-### 核心框架
-
-[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)](https://pnpm.io/)
-
-### 界面与交互
-
-[![Radix UI](https://img.shields.io/badge/Radix%20UI-161618?style=for-the-badge&logo=radixui&logoColor=white)](https://www.radix-ui.com/)
-[![Framer Motion](https://img.shields.io/badge/Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
-[![React Icons](https://img.shields.io/badge/React%20Icons-E91E63?style=for-the-badge&logo=react&logoColor=white)](https://react-icons.github.io/react-icons/)
-[![Recharts](https://img.shields.io/badge/Recharts-22B5BF?style=for-the-badge&logo=chartdotjs&logoColor=white)](https://recharts.org/)
-[![dnd kit](https://img.shields.io/badge/dnd%20kit-635BFF?style=for-the-badge)](https://dndkit.com/)
-[![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white)](https://react-hook-form.com/)
-[![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)](https://zod.dev/)
-[![Sonner](https://img.shields.io/badge/Sonner-111111?style=for-the-badge)](https://sonner.emilkowal.ski/)
-[![tsParticles](https://img.shields.io/badge/tsParticles-0B7285?style=for-the-badge)](https://particles.js.org/)
-[![Embla Carousel](https://img.shields.io/badge/Embla%20Carousel-7C3AED?style=for-the-badge)](https://www.embla-carousel.com/)
-
-### 数据、认证与部署
-
-[![NextAuth.js](https://img.shields.io/badge/NextAuth.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://next-auth.js.org/)
-[![Upstash Redis](https://img.shields.io/badge/Upstash%20Redis-00E9A3?style=for-the-badge&logo=upstash&logoColor=black)](https://upstash.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)](https://docs.github.com/actions)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Tolgee](https://img.shields.io/badge/Tolgee-FFCC00?style=for-the-badge)](https://tolgee.io/)
-[![MTranServer](https://img.shields.io/badge/MTranServer-2563EB?style=for-the-badge)](https://github.com/xxnuo/MTranServer)
-
-### 内容与统计来源
-
-[![Steam](https://img.shields.io/badge/Steam-000000?style=for-the-badge&logo=steam&logoColor=white)](https://store.steampowered.com/)
-[![WakaTime](https://img.shields.io/badge/WakaTime-000000?style=for-the-badge&logo=wakatime&logoColor=white)](https://wakatime.com/)
-[![Codex](https://img.shields.io/badge/OpenAI%20Codex-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/codex/)
-[![网易云音乐](https://img.shields.io/badge/网易云音乐-D43C33?style=for-the-badge&logo=neteasecloudmusic&logoColor=white)](https://music.163.com/)
-[![WeGame](https://img.shields.io/badge/WeGame-FF6A00?style=for-the-badge)](https://www.wegame.com.cn/)
-[![react-github-calendar](https://img.shields.io/badge/react--github--calendar-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/grubersjoe/react-github-calendar)
-[![rss-parser](https://img.shields.io/badge/rss--parser-F26522?style=for-the-badge&logo=rss&logoColor=white)](https://github.com/rbren/rss-parser)
 
 ## 安全提醒
 

@@ -1,7 +1,7 @@
 import { readdir, readFile, stat, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { summarizeCodexJsonl } from "../lib/codex-session-summary.mjs";
+import { summarizeCodexJsonlFile } from "../lib/codex-session-summary.mjs";
 
 const dataDir = path.join(process.env.LOCALAPPDATA || os.homedir(), "HuoYu");
 const configPath = path.join(dataDir, "ai-sync.json");
@@ -58,7 +58,7 @@ async function main() {
     const summary =
       cached?.mtimeMs === info.mtimeMs && cached?.size === info.size
         ? cached.summary
-        : summarizeCodexJsonl(await readFile(file, "utf8"));
+        : await summarizeCodexJsonlFile(file);
     nextFiles[file] = { mtimeMs: info.mtimeMs, size: info.size, summary };
     if (
       summary?.id &&

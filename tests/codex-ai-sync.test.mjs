@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 test("Codex 会话按日期计算累计 Token 增量且不保留提示正文", async () => {
   const { summarizeCodexJsonl } =
@@ -128,10 +130,28 @@ test("本机同步器只发送摘要并使用本地文件状态缓存", async ()
     "utf8",
   );
 
-  assert.match(script, /summarizeCodexJsonl/);
+  assert.match(script, /summarizeCodexJsonlFile/);
   assert.match(script, /mtimeMs/);
   assert.match(script, /ai-sync-state\.json/);
   assert.doesNotMatch(script, /user_message.*message/);
+});
+
+test("Codex 大日志通过流式接口解析而不是整文件读入内存", async () => {
+  const { summarizeCodexJsonlFile } = await import("../lib/codex-session-summary.mjs");
+  const dir = await mkdtemp(path.join(os.tmpdir(), "huoyu-ai-sync-"));
+  const file = path.join(dir, "session.jsonl");
+  await writeFile(file, [
+    JSON.stringify({ timestamp: "2026-07-16T10:00:00Z", type: "session_meta", payload: { id: "stream-1", cwd: "F:\\code\\HuoYu" } }),
+    JSON.stringify({ timestamp: "2026-07-16T10:01:00Z", type: "event_msg", payload: { type: "token_count", info: { total_token_usage: { input_tokens: 12, output_tokens: 3 } } } }),
+  ].join("\n"));
+
+  try {
+    const summary = await summarizeCodexJsonlFile(file);
+    assert.equal(summary.id, "stream-1");
+    assert.equal(summary.daily[0].inputTokens, 12);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test("Windows 安装器创建隐藏且仅空闲时运行的计划任务", async () => {
